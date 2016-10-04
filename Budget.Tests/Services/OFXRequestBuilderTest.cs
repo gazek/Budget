@@ -18,7 +18,7 @@ namespace Budget.Tests.Controllers
             var config = CreateValidRequestBuilderConfig();
 
             // Act
-            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
+            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
 
             // Assert
             Assert.IsNotNull(ofxBuilder);
@@ -40,7 +40,7 @@ namespace Budget.Tests.Controllers
                 "NEWFILEUID:1" };
             string expectedHeader = string.Join(" ", header);
             var config = CreateValidRequestBuilderConfig();
-            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
+            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
 
             // Act
             string result = ofxBuilder.Header;
@@ -54,10 +54,10 @@ namespace Budget.Tests.Controllers
         public void OFXRequestBuilderConfigTest()
         {
             // Arrange
-            var config = new OFXRequestBuilderConfig();
+            var config = new OFXStatementRequestConfig();
 
             // Act
-            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
+            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
 
             // Assert
 
@@ -106,17 +106,15 @@ namespace Budget.Tests.Controllers
 
 
             // Act
-            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
+            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
 
             // Assert
             Assert.AreEqual(ofxBuilder.Body, expectedBody);
-            //string result = GetOfxField(ofxBuilder.Body, "ORG");
-            //Assert.AreEqual(result, "Some Bank");
         }
 
-        private OFXRequestBuilderConfig CreateValidRequestBuilderConfig()
+        private OFXStatementRequestConfig CreateValidRequestBuilderConfig()
         {
-            var config = new OFXRequestBuilderConfig()
+            var config = new OFXStatementRequestConfig()
             {
                 UserId = "testUser",
                 password = "testPassword",
@@ -127,41 +125,10 @@ namespace Budget.Tests.Controllers
                 AccountType = OFXRequestBuilderConfigAccountType.CHECKING,
                 StartDate = new DateTime(2016, 9, 1),
                 EndDate = new DateTime(2016, 9, 30),
+                URL = new Uri("https://fake.com"),
                 //IncludeTransactions = true
             };
             return config;
         }
-
-        private string GetOfxField(string ofx, string field)
-        {
-            XmlDocument doc = OfxToXml(ofx);
-            var result = doc.GetElementsByTagName(field);
-            
-            return "foo";
-        }
-
-        XmlDocument OfxToXml(string ofx)
-        {
-
-            // setup SgmlReader
-            Sgml.SgmlReader sgmlReader = new Sgml.SgmlReader();
-            //sgmlReader.DocType = "OFX";
-            sgmlReader.WhitespaceHandling = WhitespaceHandling.All;
-            //sgmlReader.CaseFolding = Sgml.CaseFolding.ToLower;
-
-            // create document
-            XmlDocument doc = new XmlDocument();
-            doc.PreserveWhitespace = true;
-            doc.XmlResolver = null;
-
-            using (TextReader sr = new StringReader(ofx))
-            {
-                sgmlReader.InputStream = sr;
-                doc.Load(sgmlReader);
-            }
-            
-            return doc;
-        }
-        
     }
 }
