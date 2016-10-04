@@ -64,54 +64,47 @@ namespace Budget.Tests.Controllers
         }
 
         [TestMethod]
-        public void OFXRequestBuilderBodyTest()
+        public void OFXRequestBuilderBodyBankTest()
         {
             // Arrange
             var config = CreateValidRequestBuilderConfig();
-            string[] body = {
-                "<OFX>",
-                "<SIGNONMSGSRQV1>",
-                "<SONRQ>",
-                "<DTCLIENT>"+DateTime.Today.ToString("yyyyMMdd"),
-                "<USERID>testUser",
-                "<USERPASS>testPassword",
-                "<LANGUAGE>ENG",
-                "<FI>",
-                "<ORG>Some Bank",
-                "<FID>123",
-                "</FI>",
-                "<APPID>QWIN",
-                "<APPVER>1900",
-                "</SONRQ>",
-                "</SIGNONMSGSRQV1>",
-                "<BANKMSGSRQV1>",
-                "<STMTTRNRQ>",
-                "<TRNUID>1001",
-                "<STMTRQ>",
-                "<BANKACCTFROM>",
-                "<BANKID>456",
-                "<ACCTID>789",
-                "<ACCTTYPE>CHECKING",
-                "</BANKACCTFROM>",
-                "<INCTRAN>",
-                "<DTSTART>20160901",
-                "<DTEND>20160930",
-                "<INCLUDE>Y",
-                "</INCTRAN>",
-                "</STMTRQ>",
-                "</STMTTRNRQ>",
-                "</BANKMSGSRQV1>",
-                "</OFX>" };
-            string expectedBody = string.Join("", body);
-
+            string expectedBody = GetValidRequestBodyString(OFXRequestBuilderConfigAccountType.CHECKING, true);
 
             // Act
             OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
 
             // Assert
             Assert.AreEqual(ofxBuilder.Body, expectedBody);
-            //string result = GetOfxField(ofxBuilder.Body, "ORG");
-            //Assert.AreEqual(result, "Some Bank");
+        }
+
+        [TestMethod]
+        public void OFXRequestBuilderBodyCreditCardTest()
+        {
+            // Arrange
+            var config = CreateValidRequestBuilderConfig();
+            config.AccountType = OFXRequestBuilderConfigAccountType.CREDITCARD;
+            string expectedBody = GetValidRequestBodyString(OFXRequestBuilderConfigAccountType.CREDITCARD, true);
+
+            // Act
+            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
+
+            // Assert
+            Assert.AreEqual(ofxBuilder.Body, expectedBody);
+        }
+
+        [TestMethod]
+        public void OFXRequestBuilderBodyIncludeTransTest()
+        {
+            // Arrange
+            var config = CreateValidRequestBuilderConfig();
+            config.IncludeTransactions = false;
+            string expectedBody = GetValidRequestBodyString(OFXRequestBuilderConfigAccountType.CHECKING, false);
+
+            // Act
+            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
+
+            // Assert
+            Assert.AreEqual(ofxBuilder.Body, expectedBody);
         }
 
         private OFXRequestBuilderConfig CreateValidRequestBuilderConfig()
@@ -132,36 +125,76 @@ namespace Budget.Tests.Controllers
             return config;
         }
 
-        private string GetOfxField(string ofx, string field)
+        private string GetValidRequestBodyString(OFXRequestBuilderConfigAccountType type, bool includeTrans)
         {
-            XmlDocument doc = OfxToXml(ofx);
-            var result = doc.GetElementsByTagName(field);
-            
-            return "foo";
-        }
+            string BANKMSGSRQV1 = "<BANKMSGSRQV1>";
+            string STMTTRNRQ = "<STMTTRNRQ>";
+            string STMTRQ = "<STMTRQ>";
+            string ACCTFROM = "<BANKACCTFROM>";
+            string BANKID = "<BANKID>456";
+            string ACCTTYPE = "<ACCTTYPE>"+type.ToString();
+            string ACCTFROMCLOSE = "</BANKACCTFROM>";
+            string STMTRQCLOSE = "</STMTRQ>";
+            string STMTTRNRQCLOSE = "</STMTTRNRQ>";
+            string BANKMSGSRQV1CLOSE = "</BANKMSGSRQV1>";
+            string include = "Y";
 
-        XmlDocument OfxToXml(string ofx)
-        {
-
-            // setup SgmlReader
-            Sgml.SgmlReader sgmlReader = new Sgml.SgmlReader();
-            //sgmlReader.DocType = "OFX";
-            sgmlReader.WhitespaceHandling = WhitespaceHandling.All;
-            //sgmlReader.CaseFolding = Sgml.CaseFolding.ToLower;
-
-            // create document
-            XmlDocument doc = new XmlDocument();
-            doc.PreserveWhitespace = true;
-            doc.XmlResolver = null;
-
-            using (TextReader sr = new StringReader(ofx))
+            if (type == OFXRequestBuilderConfigAccountType.CREDITCARD)
             {
-                sgmlReader.InputStream = sr;
-                doc.Load(sgmlReader);
+                BANKMSGSRQV1 = "<CREDITCARDMSGSRQV1>";
+                STMTTRNRQ = "<CCSTMTTRNRQ>";
+                STMTRQ = "<CCSTMTRQ>";
+                ACCTFROM = "<CCACCTFROM>";
+                BANKID = "";
+                ACCTTYPE = "";
+                ACCTFROMCLOSE = "</CCACCTFROM>";
+                STMTRQCLOSE = "</CCSTMTRQ>";
+                STMTTRNRQCLOSE = "</CCSTMTTRNRQ>";
+                BANKMSGSRQV1CLOSE = "</CREDITCARDMSGSRQV1>";
             }
-            
-            return doc;
+
+            if (!includeTrans)
+            {
+                include = "N";
+            }
+
+            string[] body = {
+                "<OFX>",
+                "<SIGNONMSGSRQV1>",
+                "<SONRQ>",
+                "<DTCLIENT>"+DateTime.Today.ToString("yyyyMMdd"),
+                "<USERID>testUser",
+                "<USERPASS>testPassword",
+                "<LANGUAGE>ENG",
+                "<FI>",
+                "<ORG>Some Bank",
+                "<FID>123",
+                "</FI>",
+                "<APPID>QWIN",
+                "<APPVER>1900",
+                "</SONRQ>",
+                "</SIGNONMSGSRQV1>",
+                BANKMSGSRQV1,
+                STMTTRNRQ,
+                "<TRNUID>1001",
+                STMTRQ,
+                ACCTFROM,
+                BANKID,
+                "<ACCTID>789",
+                ACCTTYPE,
+                ACCTFROMCLOSE,
+                "<INCTRAN>",
+                "<DTSTART>20160901",
+                "<DTEND>20160930",
+                "<INCLUDE>"+include,
+                "</INCTRAN>",
+                STMTRQCLOSE,
+                STMTTRNRQCLOSE,
+                BANKMSGSRQV1CLOSE,
+                "</OFX>" };
+
+            string result = string.Join("", body);
+            return result;
         }
-        
     }
 }

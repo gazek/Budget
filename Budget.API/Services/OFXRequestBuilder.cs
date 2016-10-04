@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Web;
 
 namespace Budget.API.Services
 {
@@ -174,7 +173,7 @@ namespace Budget.API.Services
             List<List<string>> AcctFromList = new List<List<string>>();
             AcctFromList.Add(new List<string> { "<CCACCTFROM>" });
             AcctFromList.Add(new List<string> { "<ACCTID>", this._config.AccountNumber.ToString() });
-            AcctFromList.Add(new List<string> { "</BANKACCTFROM>" });
+            AcctFromList.Add(new List<string> { "</CCACCTFROM>" });
 
             // build request body AcctFrom string
             return string.Join("", AcctFromList.Select(x => string.Join("", x)).ToArray());
