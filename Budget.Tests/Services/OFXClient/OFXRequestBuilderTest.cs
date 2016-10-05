@@ -1,4 +1,4 @@
-﻿using Budget.API.Services;
+﻿using Budget.API.Services.OFXClient;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
@@ -34,7 +34,7 @@ namespace Budget.Tests.Controllers
                 "CHARSET:1252",
                 "COMPRESSION:NONE",
                 "OLDFILEUID:NONE",
-                "NEWFILEUID:1" };
+                "NEWFILEUID:NONE" };
             string expectedHeader = string.Join(" ", header);
             var config = CreateValidRequestBuilderConfig();
             OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
@@ -51,7 +51,7 @@ namespace Budget.Tests.Controllers
         public void OFXRequestBuilderConfigTest()
         {
             // Arrange
-            var config = new OFXStatementRequestConfig();
+            var config = new OFXRequestConfig();
 
             // Act
             OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
@@ -65,7 +65,7 @@ namespace Budget.Tests.Controllers
         {
             // Arrange
             var config = CreateValidRequestBuilderConfig();
-            string expectedBody = GetValidRequestBodyString(OFXRequestBuilderConfigAccountType.CHECKING, true);
+            string expectedBody = GetValidRequestBodyString(OFXRequestConfigAccountType.CHECKING, true);
 
             // Act
             OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
@@ -79,8 +79,8 @@ namespace Budget.Tests.Controllers
         {
             // Arrange
             var config = CreateValidRequestBuilderConfig();
-            config.AccountType = OFXRequestBuilderConfigAccountType.CREDITCARD;
-            string expectedBody = GetValidRequestBodyString(OFXRequestBuilderConfigAccountType.CREDITCARD, true);
+            config.AccountType = OFXRequestConfigAccountType.CREDITCARD;
+            string expectedBody = GetValidRequestBodyString(OFXRequestConfigAccountType.CREDITCARD, true);
 
             // Act
             OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
@@ -95,7 +95,7 @@ namespace Budget.Tests.Controllers
             // Arrange
             var config = CreateValidRequestBuilderConfig();
             config.IncludeTransactions = false;
-            string expectedBody = GetValidRequestBodyString(OFXRequestBuilderConfigAccountType.CHECKING, false);
+            string expectedBody = GetValidRequestBodyString(OFXRequestConfigAccountType.CHECKING, false);
 
             // Act
             OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
@@ -104,9 +104,9 @@ namespace Budget.Tests.Controllers
             Assert.AreEqual(ofxBuilder.Body, expectedBody);
         }
 
-        private OFXStatementRequestConfig CreateValidRequestBuilderConfig()
+        private OFXRequestConfig CreateValidRequestBuilderConfig()
         {
-            var config = new OFXStatementRequestConfig()
+            var config = new OFXRequestConfig()
             {
                 UserId = "testUser",
                 password = "testPassword",
@@ -114,7 +114,7 @@ namespace Budget.Tests.Controllers
                 InstitutionId = 123,
                 InstitutionRoutingNumber = 456,
                 AccountNumber = "789",
-                AccountType = OFXRequestBuilderConfigAccountType.CHECKING,
+                AccountType = OFXRequestConfigAccountType.CHECKING,
                 StartDate = new DateTime(2016, 9, 1),
                 EndDate = new DateTime(2016, 9, 30),
                 URL = new Uri("https://fake.com"),
@@ -123,7 +123,7 @@ namespace Budget.Tests.Controllers
             return config;
         }
 
-        private string GetValidRequestBodyString(OFXRequestBuilderConfigAccountType type, bool includeTrans)
+        private string GetValidRequestBodyString(OFXRequestConfigAccountType type, bool includeTrans)
         {
             string BANKMSGSRQV1 = "<BANKMSGSRQV1>";
             string STMTTRNRQ = "<STMTTRNRQ>";
@@ -137,7 +137,7 @@ namespace Budget.Tests.Controllers
             string BANKMSGSRQV1CLOSE = "</BANKMSGSRQV1>";
             string include = "Y";
 
-            if (type == OFXRequestBuilderConfigAccountType.CREDITCARD)
+            if (type == OFXRequestConfigAccountType.CREDITCARD)
             {
                 BANKMSGSRQV1 = "<CREDITCARDMSGSRQV1>";
                 STMTTRNRQ = "<CCSTMTTRNRQ>";

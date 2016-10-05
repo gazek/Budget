@@ -71,8 +71,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Services\OFXStatementRequestorTest.cs" />
-    <Compile Include="Services\OFXRequestBuilderTest.cs" />
+    <Compile Include="Services\OFXClient\OFXRequestorTest.cs" />
+    <Compile Include="Services\OFXClient\OFXRequestBuilderTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Controllers\HomeControllerTest.cs" />
     <Compile Include="Controllers\ValuesControllerTest.cs" />

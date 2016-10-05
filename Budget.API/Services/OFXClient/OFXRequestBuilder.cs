@@ -1,49 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
-namespace Budget.API.Services
+namespace Budget.API.Services.OFXClient
 {
-
-    public enum OFXRequestBuilderConfigAccountType
-    {
-        SAVINGS,
-        CHECKING,
-        CREDITCARD
-    }
-
-    public class OFXStatementRequestConfig
-    {
-        public string UserId { get; set; }
-        public string password { get; set; }
-        public string InstitutionName { get; set; }
-        public int InstitutionId { get; set; }
-        public int InstitutionRoutingNumber { get; set; }
-        public string AccountNumber { get; set; }
-        public OFXRequestBuilderConfigAccountType AccountType { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-        public bool IncludeTransactions { get; set; }
-        public Uri URL { get; set; }
-
-        public OFXStatementRequestConfig()
-        {
-            IncludeTransactions = true;
-        }
-
-        public void VerifyConfig()
-        {
-            foreach (PropertyInfo prop in typeof(OFXStatementRequestConfig).GetProperties())
-            {
-                if (this.GetType().GetProperty(prop.Name).GetValue(this) == null)
-                {
-                    throw new System.ArgumentException("Config property cannot be null", prop.Name); ;
-                }
-            }
-        }
-    }
-
     public class OFXStatementRequestBuilder
     {
         public string Header
@@ -69,7 +29,7 @@ namespace Budget.API.Services
             }
         }
 
-        public OFXStatementRequestConfig Config
+        public OFXRequestConfig Config
         {
             get
             {
@@ -77,7 +37,7 @@ namespace Budget.API.Services
             }
         }
 
-        OFXStatementRequestConfig _config;
+        OFXRequestConfig _config;
         string _header;
         string _body;
         string _request;
@@ -85,7 +45,7 @@ namespace Budget.API.Services
         string _APPVER = "1900";
         string _TRNUID = "1001";
 
-        public OFXStatementRequestBuilder(OFXStatementRequestConfig config)
+        public OFXStatementRequestBuilder(OFXRequestConfig config)
         {
             config.VerifyConfig();
             this._config = config;
@@ -106,7 +66,7 @@ namespace Budget.API.Services
             headerList.Add(new List<string> { "CHARSET", "1252" });
             headerList.Add(new List<string> { "COMPRESSION", "NONE" });
             headerList.Add(new List<string> { "OLDFILEUID", "NONE" });
-            headerList.Add(new List<string> { "NEWFILEUID", "1" });
+            headerList.Add(new List<string> { "NEWFILEUID", "NONE" });
 
             // build request header string
             this._header = string.Join(" ", headerList.Select(x => string.Join(":", x)).ToArray());
@@ -150,7 +110,7 @@ namespace Budget.API.Services
 
         string buildBodyAcctFrom()
         {
-            if (this._config.AccountType == OFXRequestBuilderConfigAccountType.CREDITCARD)
+            if (this._config.AccountType == OFXRequestConfigAccountType.CREDITCARD)
             {
                 return buildBodyAcctFromCC();
             }
@@ -213,7 +173,7 @@ namespace Budget.API.Services
             string MSGSRQ = "BANKMSGSRQV1>";
             string STMTTRNRQ = "STMTTRNRQ>";
             string STMTRQ = "STMTRQ>";
-            if (this._config.AccountType == OFXRequestBuilderConfigAccountType.CREDITCARD)
+            if (this._config.AccountType == OFXRequestConfigAccountType.CREDITCARD)
             {
                 MSGSRQ = "CREDITCARDMSGSRQV1>";
                 STMTTRNRQ = "CCSTMTTRNRQ>";

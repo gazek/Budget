@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Web;
+﻿using System.Net;
 
-namespace Budget.API.Services
+namespace Budget.API.Services.OFXClient
 {
-    public class OFXStatementRequestor
+    public class OFXRequestor
     {
         public string RequestStatus
         {
@@ -17,12 +12,12 @@ namespace Budget.API.Services
         {
             get { return _response; }
         }
-        OFXStatementRequestConfig _config;
+        OFXRequestConfig _config;
         OFXStatementRequestBuilder _requestBuilder;
         private string _response;
         private string _status;
 
-        public OFXStatementRequestor(OFXStatementRequestConfig config)
+        public OFXRequestor(OFXRequestConfig config)
         {
             _config = config;
             _requestBuilder = new OFXStatementRequestBuilder(_config);
