@@ -13,7 +13,7 @@ namespace Budget.API.Services
         CREDITCARD
     }
 
-    public class OFXRequestBuilderConfig
+    public class OFXStatementRequestConfig
     {
         public string UserId { get; set; }
         public string password { get; set; }
@@ -25,15 +25,28 @@ namespace Budget.API.Services
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public bool IncludeTransactions { get; set; }
+        public Uri URL { get; set; }
 
-        public OFXRequestBuilderConfig()
+        public OFXStatementRequestConfig()
         {
             IncludeTransactions = true;
         }
 
+        public void VerifyConfig()
+        {
+            foreach (PropertyInfo prop in typeof(OFXStatementRequestConfig).GetProperties())
+            {
+                if (this.GetType().GetProperty(prop.Name).GetValue(this) == null)
+                {
+                    throw new System.ArgumentException("Config property cannot be null", prop.Name); ;
+                }
+            }
+
+        }
+
     }
 
-    public class OFXRequestBuilder
+    public class OFXStatementRequestBuilder
     {
         public string Header
         { get
@@ -58,7 +71,15 @@ namespace Budget.API.Services
             }
         }
 
-        OFXRequestBuilderConfig _config;
+        public OFXStatementRequestConfig Config
+        {
+            get
+            {
+                return this._config;
+            }
+        }
+
+        OFXStatementRequestConfig _config;
         string _header;
         string _body;
         string _request;
@@ -66,25 +87,13 @@ namespace Budget.API.Services
         string _APPVER = "1900";
         string _TRNUID = "1001";
 
-        public OFXRequestBuilder(OFXRequestBuilderConfig config)
+        public OFXStatementRequestBuilder(OFXStatementRequestConfig config)
         {
-            this.VerifyConfig(config);
+            config.VerifyConfig();
             this._config = config;
             this.buildHeader();
             this.buildBody();
             this.buildRequest();
-        }
-
-        private void VerifyConfig(OFXRequestBuilderConfig config)
-        {
-            foreach (PropertyInfo prop in typeof(OFXRequestBuilderConfig).GetProperties())
-            {
-                if (config.GetType().GetProperty(prop.Name).GetValue(config) == null)
-                {
-                    throw new System.ArgumentException("Config property cannot be null", prop.Name); ;
-                }
-            }
-
         }
 
         private void buildHeader ()

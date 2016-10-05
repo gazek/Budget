@@ -168,6 +168,7 @@
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
     <Compile Include="Results\ChallengeResult.cs" />
     <Compile Include="Services\OFXRequestBuilder.cs" />
+    <Compile Include="Services\OFXStatementRequestor.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>

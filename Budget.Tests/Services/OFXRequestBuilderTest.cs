@@ -15,7 +15,7 @@ namespace Budget.Tests.Controllers
             var config = CreateValidRequestBuilderConfig();
 
             // Act
-            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
+            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
 
             // Assert
             Assert.IsNotNull(ofxBuilder);
@@ -37,7 +37,7 @@ namespace Budget.Tests.Controllers
                 "NEWFILEUID:1" };
             string expectedHeader = string.Join(" ", header);
             var config = CreateValidRequestBuilderConfig();
-            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
+            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
 
             // Act
             string result = ofxBuilder.Header;
@@ -51,10 +51,10 @@ namespace Budget.Tests.Controllers
         public void OFXRequestBuilderConfigTest()
         {
             // Arrange
-            var config = new OFXRequestBuilderConfig();
+            var config = new OFXStatementRequestConfig();
 
             // Act
-            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
+            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
 
             // Assert
 
@@ -68,7 +68,7 @@ namespace Budget.Tests.Controllers
             string expectedBody = GetValidRequestBodyString(OFXRequestBuilderConfigAccountType.CHECKING, true);
 
             // Act
-            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
+            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
 
             // Assert
             Assert.AreEqual(ofxBuilder.Body, expectedBody);
@@ -83,7 +83,7 @@ namespace Budget.Tests.Controllers
             string expectedBody = GetValidRequestBodyString(OFXRequestBuilderConfigAccountType.CREDITCARD, true);
 
             // Act
-            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
+            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
 
             // Assert
             Assert.AreEqual(ofxBuilder.Body, expectedBody);
@@ -98,15 +98,15 @@ namespace Budget.Tests.Controllers
             string expectedBody = GetValidRequestBodyString(OFXRequestBuilderConfigAccountType.CHECKING, false);
 
             // Act
-            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
+            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
 
             // Assert
             Assert.AreEqual(ofxBuilder.Body, expectedBody);
         }
 
-        private OFXRequestBuilderConfig CreateValidRequestBuilderConfig()
+        private OFXStatementRequestConfig CreateValidRequestBuilderConfig()
         {
-            var config = new OFXRequestBuilderConfig()
+            var config = new OFXStatementRequestConfig()
             {
                 UserId = "testUser",
                 password = "testPassword",
@@ -117,6 +117,7 @@ namespace Budget.Tests.Controllers
                 AccountType = OFXRequestBuilderConfigAccountType.CHECKING,
                 StartDate = new DateTime(2016, 9, 1),
                 EndDate = new DateTime(2016, 9, 30),
+                URL = new Uri("https://fake.com"),
                 //IncludeTransactions = true
             };
             return config;
