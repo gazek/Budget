@@ -20,7 +20,7 @@ namespace Budget.API.Services
         public string InstitutionName { get; set; }
         public int InstitutionId { get; set; }
         public int InstitutionRoutingNumber { get; set; }
-        public int AccountNumber { get; set; }
+        public string AccountNumber { get; set; }
         public OFXRequestBuilderConfigAccountType AccountType { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
@@ -41,9 +41,7 @@ namespace Budget.API.Services
                     throw new System.ArgumentException("Config property cannot be null", prop.Name); ;
                 }
             }
-
         }
-
     }
 
     public class OFXStatementRequestBuilder
@@ -168,7 +166,7 @@ namespace Budget.API.Services
             List<List<string>> AcctFromList = new List<List<string>>();
             AcctFromList.Add(new List<string> { "<BANKACCTFROM>" });
             AcctFromList.Add(new List<string> { "<BANKID>", this._config.InstitutionRoutingNumber.ToString() });
-            AcctFromList.Add(new List<string> { "<ACCTID>", this._config.AccountNumber.ToString() });
+            AcctFromList.Add(new List<string> { "<ACCTID>", this._config.AccountNumber });
             AcctFromList.Add(new List<string> { "<ACCTTYPE>", this._config.AccountType.ToString() });
             AcctFromList.Add(new List<string> { "</BANKACCTFROM>" });
 
@@ -181,7 +179,7 @@ namespace Budget.API.Services
             // set OFX request body AcctFrom contents
             List<List<string>> AcctFromList = new List<List<string>>();
             AcctFromList.Add(new List<string> { "<CCACCTFROM>" });
-            AcctFromList.Add(new List<string> { "<ACCTID>", this._config.AccountNumber.ToString() });
+            AcctFromList.Add(new List<string> { "<ACCTID>", this._config.AccountNumber });
             AcctFromList.Add(new List<string> { "</CCACCTFROM>" });
 
             // build request body AcctFrom string
@@ -253,6 +251,22 @@ namespace Budget.API.Services
             // build request body Message Set Request string
             this._body = string.Join("", bodyList.Select(x => string.Join("", x)).ToArray());
         }
+
+        /*
+         * 
+         *      Account List Request
+         *      Replaces MsgSRq
+         * 
+                <SIGNUPMSGSRQV1>
+                <ACCTINFOTRNRQ>
+                <TRNUID>394859
+                <ACCTINFORQ>
+                <DTACCTUP>20121012111027.000
+                </ACCTINFORQ>
+                </ACCTINFOTRNRQ>
+                </SIGNUPMSGSRQV1>
+         * 
+         */
 
         private void buildRequest()
         {

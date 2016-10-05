@@ -113,7 +113,7 @@ namespace Budget.Tests.Controllers
                 InstitutionName = "Some Bank",
                 InstitutionId = 123,
                 InstitutionRoutingNumber = 456,
-                AccountNumber = 789,
+                AccountNumber = "789",
                 AccountType = OFXRequestBuilderConfigAccountType.CHECKING,
                 StartDate = new DateTime(2016, 9, 1),
                 EndDate = new DateTime(2016, 9, 30),
