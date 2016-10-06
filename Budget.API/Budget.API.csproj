@@ -170,7 +170,7 @@
     <Compile Include="Services\OFXClient\OFXRequestBuilder.cs" />
     <Compile Include="Services\OFXClient\OFXRequestConfig.cs" />
     <Compile Include="Services\OFXClient\OFXRequestor.cs" />
-    <Compile Include="Services\OFXClient\OFXToXMLConvertor.cs" />
+    <Compile Include="Services\OFXClient\OFXTagCloser.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,8 +1,9 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 namespace Budget.API.Services.OFXClient
 {
-    public class OFXToXMLConvertor
+    public class OFXTagCloser
     {
         // Converting from (pre-version 2.0) OFX to XML is just a matter of
         // adding closing tags to atom elements
@@ -19,7 +20,7 @@ namespace Budget.API.Services.OFXClient
         string _xml;
         string _ofx;
 
-        public void Convert()
+        public void CloseTags()
         {
             // build new xml string
             StringBuilder xml = new StringBuilder();
@@ -48,10 +49,15 @@ namespace Budget.API.Services.OFXClient
                     inTag = true;
                 }
 
-                // Add closing tag
+                // Add closing tag if it is not already there
                 if (_ofx[i] == '<' && prevChar != '>')
                 {
-                    xml.Append("</"+tag+">");
+                    string nextTag = _ofx.Substring(i, Math.Min(tag.Length + 3, _ofx.Length - i));
+                    if (nextTag != "</" + tag + ">")
+                    {
+                        xml.Append("</" + tag + ">");
+                    }
+                   
                 }
 
                 // build XML string
