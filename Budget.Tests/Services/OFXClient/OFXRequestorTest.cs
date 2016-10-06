@@ -15,7 +15,7 @@ namespace Budget.Tests.Services
             {
                 RequestType = OFXRequestConfigRequestType.Statement,
                 UserId = "fakeuser",
-                password = "fakepass!",
+                password = "fakepass",
                 InstitutionName = "First Tech Federal Credit Union",
                 InstitutionId = 3169,
                 InstitutionRoutingNumber = 321180379,
@@ -23,8 +23,7 @@ namespace Budget.Tests.Services
                 AccountType = OFXRequestConfigAccountType.SAVINGS,
                 StartDate = new DateTime(2016, 9, 1),
                 EndDate = new DateTime(2016, 9, 30),
-                URL = new Uri("https://ofx.firsttechfed.com"),
-                IncludeTransactions = true
+                URL = new Uri("https://ofx.firsttechfed.com")
             };
             OFXRequestor request = new OFXRequestor(config);
             string expectedHeader = "OFXHEADER:100 DATA:OFXSGML VERSION:102 SECURITY:NONE ENCODING:USASCII CHARSET:1252 COMPRESSION:NONE OLDFILEUID:NONE NEWFILEUID:NONE\r\nDATA:OFXSGML\r\nVERSION:102\r\nSECURITY:NONE\r\nENCODING:USASCII\r\nCHARSET:1252\r\nCOMPRESSION:NONE\r\nOLDFILEUID:NONE\r\nNEWFILEUID:NONE\r\n\r\n";
