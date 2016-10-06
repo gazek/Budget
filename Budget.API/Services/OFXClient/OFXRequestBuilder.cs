@@ -44,6 +44,7 @@ namespace Budget.API.Services.OFXClient
         string _APPID = "QWIN";
         string _APPVER = "1900";
         string _TRNUID = "1001";
+        string _DTACCTUP = "20000101";
 
         public OFXStatementRequestBuilder(OFXRequestConfig config)
         {
@@ -148,10 +149,10 @@ namespace Budget.API.Services.OFXClient
 
         string buildBodyIncTran()
         {
-            string include = "Y";
-            if (!this._config.IncludeTransactions)
+            string include = "N";
+            if (this._config.RequestType == OFXRequestConfigRequestType.Statement)
             {
-                include = "N";
+                include = "Y";
             }
 
             // set OFX request body IncTran contents
@@ -196,10 +197,42 @@ namespace Budget.API.Services.OFXClient
             return string.Join("", MsgSRqList.Select(x => string.Join("", x)).ToArray());
         }
 
+        string buildSignUpMsgSRqAccountList()
+        {
+            // set OFX request body Message Set Request contents
+            List<List<string>> MsgSRqList = new List<List<string>>();
+            MsgSRqList.Add(new List<string> { "<SIGNUPMSGSRQV1>" });
+            MsgSRqList.Add(new List<string> { "<ACCTINFOTRNRQ>" });
+            MsgSRqList.Add(new List<string> { "<TRNUID>", this._TRNUID });
+            MsgSRqList.Add(new List<string> { "<ACCTINFORQ>" });
+            MsgSRqList.Add(new List<string> { "<DTACCTUP>", this._DTACCTUP });
+            MsgSRqList.Add(new List<string> { "</ACCTINFORQ>" });
+            MsgSRqList.Add(new List<string> { "</ACCTINFOTRNRQ>" });
+            MsgSRqList.Add(new List<string> { "</SIGNUPMSGSRQV1>" });
+
+            // build request body Message Set Request string
+            return string.Join("", MsgSRqList.Select(x => string.Join("", x)).ToArray());
+        }
+
         void buildBody()
         {
             string signon = buildBodySignon();
-            string msgSRq = buildBodyMsgSRq();
+            string msgSRq = "";
+            switch (_config.RequestType)
+            {
+                case OFXRequestConfigRequestType.Statement:
+                    msgSRq = buildBodyMsgSRq();
+                    break;
+                case OFXRequestConfigRequestType.Balance:
+                    msgSRq = buildBodyMsgSRq();
+                    break;
+                case OFXRequestConfigRequestType.AccountList:
+                    msgSRq = buildSignUpMsgSRqAccountList();
+                    break;
+                case OFXRequestConfigRequestType.SignOn:
+                    msgSRq = "";
+                    break;
+            }
 
             // set OFX request body contents
             List<List<string>> bodyList = new List<List<string>>();
@@ -211,22 +244,6 @@ namespace Budget.API.Services.OFXClient
             // build request body Message Set Request string
             this._body = string.Join("", bodyList.Select(x => string.Join("", x)).ToArray());
         }
-
-        /*
-         * 
-         *      Account List Request
-         *      Replaces MsgSRq
-         * 
-                <SIGNUPMSGSRQV1>
-                <ACCTINFOTRNRQ>
-                <TRNUID>394859
-                <ACCTINFORQ>
-                <DTACCTUP>20121012111027.000
-                </ACCTINFORQ>
-                </ACCTINFOTRNRQ>
-                </SIGNUPMSGSRQV1>
-         * 
-         */
 
         private void buildRequest()
         {
