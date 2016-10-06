@@ -15,12 +15,10 @@ namespace Budget.API.Services.OFXClient
         public OFXRequestConfigAccountType AccountType { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public bool IncludeTransactions { get; set; }
         public Uri URL { get; set; }
 
         public OFXRequestConfig()
         {
-            IncludeTransactions = true;
         }
 
         public void VerifyConfig()
