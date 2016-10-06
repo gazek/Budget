@@ -185,7 +185,7 @@ namespace Budget.Tests.Controllers
                 "<ACCTINFORQ>",
                 "<DTACCTUP>20000101",
                 "</ACCTINFORQ>",
-                 "</ACCTINFOTRNRQ>",
+                "</ACCTINFOTRNRQ>",
                 "</SIGNUPMSGSRQV1>"
             };
 
