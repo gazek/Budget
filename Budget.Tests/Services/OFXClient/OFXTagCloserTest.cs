@@ -13,30 +13,26 @@ namespace Budget.Tests.Services.OFXClient
         public void OFXWithOpenTagsCloseTagsTest()
         {
             // Arrange
-            OFXTagCloser convertor = new OFXTagCloser();
             string expectedXml = ofxWithoutOpenTags;
-            convertor.Ofx = ofxWithOpenTags;
 
             // Act
-            convertor.CloseTags();
+            string result = OFXTagCloser.CloseTags(ofxWithOpenTags);
 
             // Assert
-            Assert.AreEqual(convertor.Xml, expectedXml);
+            Assert.AreEqual(expectedXml, result);
         }
 
         [TestMethod]
         public void OFXWithoutOpenTagsCloseTagsTest()
         {
             // Arrange
-            OFXTagCloser convertor = new OFXTagCloser();
             string expectedXml = ofxWithoutOpenTags;
-            convertor.Ofx = ofxWithoutOpenTags;
 
             // Act
-            convertor.CloseTags();
+            string result = OFXTagCloser.CloseTags(ofxWithoutOpenTags);
 
             // Assert
-            Assert.AreEqual(convertor.Xml, expectedXml);
+            Assert.AreEqual(expectedXml, result);
         }
     }
 }
