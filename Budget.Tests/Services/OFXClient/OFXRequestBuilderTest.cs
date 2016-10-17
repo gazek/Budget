@@ -47,25 +47,11 @@ namespace Budget.Tests.Controllers
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentException), "Config property cannot be null")]
-        public void OFXRequestBuilderConfigTest()
-        {
-            // Arrange
-            var config = new OFXRequestConfig();
-
-            // Act
-            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
-
-            // Assert
-
-        }
-
-        [TestMethod]
-        public void OFXRequestBuildeBankStatementTest()
+        public void OFXRequestBuildeBankStatementWithoutCLientUIDTest()
         {
             // Arrange
             var config = CreateValidRequestBuilderConfig();
-            string expectedBody = GetValidStatementRequestBodyString(OFXRequestConfigAccountType.CHECKING);
+            string expectedBody = GetValidStatementRequestBodyString(OFXRequestConfigAccountType.CHECKING, false);
 
             // Act
             OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
@@ -75,12 +61,12 @@ namespace Budget.Tests.Controllers
         }
 
         [TestMethod]
-        public void OFXRequestBuilderCreditCardStatementTest()
+        public void OFXRequestBuilderCreditCardStatementWithoutCLientUIDTest()
         {
             // Arrange
             var config = CreateValidRequestBuilderConfig();
             config.AccountType = OFXRequestConfigAccountType.CREDITCARD;
-            string expectedBody = GetValidStatementRequestBodyString(OFXRequestConfigAccountType.CREDITCARD);
+            string expectedBody = GetValidStatementRequestBodyString(OFXRequestConfigAccountType.CREDITCARD, false);
 
             // Act
             OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
@@ -90,12 +76,12 @@ namespace Budget.Tests.Controllers
         }
 
         [TestMethod]
-        public void OFXRequestBuilderBalanceTest()
+        public void OFXRequestBuilderBalanceWithoutCLientUIDTest()
         {
             // Arrange
             var config = CreateValidRequestBuilderConfig();
             config.RequestType = OFXRequestConfigRequestType.Balance;
-            string expectedBody = GetValidBalanceRequestBodyString(OFXRequestConfigAccountType.CHECKING);
+            string expectedBody = GetValidBalanceRequestBodyString(OFXRequestConfigAccountType.CHECKING, false);
 
             // Act
             OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
@@ -105,12 +91,12 @@ namespace Budget.Tests.Controllers
         }
 
         [TestMethod]
-        public void OFXRequestBuilderAccountListTest()
+        public void OFXRequestBuilderAccountListWithoutCLientUIDTest()
         {
             // Arrange
             var config = CreateValidRequestBuilderConfig();
             config.RequestType = OFXRequestConfigRequestType.AccountList;
-            string expectedBody = GetValidAccountListRequestBodyString();
+            string expectedBody = GetValidAccountListRequestBodyString(false);
 
             // Act
             OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
@@ -120,12 +106,12 @@ namespace Budget.Tests.Controllers
         }
 
         [TestMethod]
-        public void OFXRequestBuilderSignOnTest()
+        public void OFXRequestBuilderSignOnWithoutCLientUIDTest()
         {
             // Arrange
             var config = CreateValidRequestBuilderConfig();
             config.RequestType = OFXRequestConfigRequestType.SignOn;
-            string expectedBody = GetValidSignOnRequestBodyString();
+            string expectedBody = GetValidSignOnRequestBodyString(false);
 
             // Act
             OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
@@ -153,8 +139,13 @@ namespace Budget.Tests.Controllers
             return config;
         }
 
-        private string GetValidSignOnRequestString()
+        private string GetValidSignOnRequestString(bool includeClientUID=false)
         {
+            string clientUID="";
+            if (includeClientUID)
+            {
+                clientUID = "<CLIENTUID>94f92863-15c1-4874-9fe5-0c84351ac0c2";
+            }
             string[] body = {
                 "<SIGNONMSGSRQV1>",
                 "<SONRQ>",
@@ -168,6 +159,7 @@ namespace Budget.Tests.Controllers
                 "</FI>",
                 "<APPID>QWIN",
                 "<APPVER>2200",
+                clientUID,
                 "</SONRQ>",
                 "</SIGNONMSGSRQV1>"
             };
@@ -250,30 +242,30 @@ namespace Budget.Tests.Controllers
             return result;
         }
 
-        string GetValidStatementRequestBodyString(OFXRequestConfigAccountType accountType)
+        string GetValidStatementRequestBodyString(OFXRequestConfigAccountType accountType, bool includeClientUID=false)
         {
-            string signon = GetValidSignOnRequestString();
+            string signon = GetValidSignOnRequestString(includeClientUID);
             string request = GetValidBankRequestString(accountType, true);
             return "<OFX>" + signon + request + "</OFX>";
         }
 
-        string GetValidBalanceRequestBodyString(OFXRequestConfigAccountType accountType)
+        string GetValidBalanceRequestBodyString(OFXRequestConfigAccountType accountType, bool includeClientUID = false)
         {
-            string signon = GetValidSignOnRequestString();
+            string signon = GetValidSignOnRequestString(includeClientUID);
             string request = GetValidBankRequestString(accountType, false);
             return "<OFX>" + signon + request + "</OFX>";
         }
 
-        string GetValidAccountListRequestBodyString()
+        string GetValidAccountListRequestBodyString(bool includeClientUID = false)
         {
-            string signon = GetValidSignOnRequestString();
+            string signon = GetValidSignOnRequestString(includeClientUID);
             string request = GetValidAccountListRequestString();
             return "<OFX>" + signon + request + "</OFX>";
         }
 
-        string GetValidSignOnRequestBodyString()
+        string GetValidSignOnRequestBodyString(bool includeClientUID = false)
         {
-            string signon = GetValidSignOnRequestString();
+            string signon = GetValidSignOnRequestString(includeClientUID);
             return "<OFX>" + signon + "</OFX>";
         }
     }
