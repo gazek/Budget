@@ -35,6 +35,24 @@ namespace Budget.API.Services.OFXClient
         // internal OFX and XML Doc
         string _ofx;
         XmlDocument _doc;
+        string _ofxType;
+
+        // paths to XML nodes
+        static string _signOnStatusNode = "OFX/SIGNONMSGSRSV1/SONRS/STATUS";
+        static string _accountListStatusNode = "OFX/SIGNUPMSGSRSV1/ACCTINFOTRNRS/STATUS";
+        static string _accountListDataNode = "OFX/SIGNUPMSGSRSV1/ACCTINFOTRNRS/";
+        static string _bankBalanceStatusNode = "OFX/BANKMSGSRSV1/STMTTRNRS/STATUS";
+        static string _bankBalanceDataNode = "OFX/BANKMSGSRSV1/STMTTRNRS/STMTRS/LEDGERBAL";
+        static string _ccBalanceStatusNode = "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/STATUS";
+        static string _ccBalanceDataNode = "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/CCSTMTRS/LEDGERBAL";
+        static string _bankStatementStatusNode = "OFX/BANKMSGSRSV1/STMTTRNRS/STATUS";
+        static string _bankStatementDataNode = "";
+        static string _ccStatementStatusNode = "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/STATUS";
+        static string _ccStatementDataNode = "";
+        string _balanceStatusNode;
+        string _balanceDataNode;
+        string _statementStatusNode;
+        string _statementDataNode;
 
         public OFXParser(string ofx)
         {
@@ -54,6 +72,12 @@ namespace Budget.API.Services.OFXClient
             // parse signon info
             ParseSignOn();
 
+            // determine request type
+            GetStatementType();
+
+            // set node paths
+            SetStatementNodePaths();
+
             // Continue if signon was successfull
             if (_signOnRequest.Status)
             {
@@ -66,61 +90,275 @@ namespace Budget.API.Services.OFXClient
             }
         }
 
+        private void GetStatementType()
+        {
+            if (_doc.GetElementsByTagName("CREDITCARDMSGSRSV1").Count > 0)
+            {
+                _ofxType = "cc";
+                return;
+            }
+
+            if (_doc.GetElementsByTagName("BANKMSGSRSV1").Count > 0)
+            {
+                _ofxType = "bank";
+                return;
+            }
+
+            _ofxType = "";
+        }
+
+        private void SetStatementNodePaths()
+        {
+            if (_ofxType == "bank")
+            {
+                _balanceStatusNode = _bankBalanceStatusNode;
+                _balanceDataNode = _bankBalanceDataNode;
+                _statementStatusNode = _bankStatementStatusNode;
+                _statementDataNode = _bankStatementDataNode;
+                return;
+            }
+
+            if(_ofxType == "cc")
+            {
+                _balanceStatusNode = _ccBalanceStatusNode;
+                _balanceDataNode = _ccBalanceDataNode;
+                _statementStatusNode = _ccStatementStatusNode;
+                _statementDataNode = _ccStatementDataNode;
+                return;
+            }
+        }
+
         private void ParseSignOn()
         {
+            #region sign on OFX response sample
+            /*
+             *
+                <OFX>
+                    <SIGNONMSGSRSV1>
+                        <SONRS>
+                            <STATUS>
+                                <CODE>0
+                                <SEVERITY>INFO
+                                <MESSAGE>The operation succeeded.
+                            </STATUS>
+                            <DTSERVER>20161006125453.101[-7:PDT]
+                            <LANGUAGE>ENG
+                            <FI>
+                                <ORG>First Tech Federal Credit Union
+                                <FID>3169
+                            </FI>
+                        </SONRS>
+                    </SIGNONMSGSRSV1>
+                </OFX>
+             * 
+             */
+            #endregion
+
             // set base location to relevent signon info
-            XmlNode doc = _doc.SelectSingleNode("OFX/SIGNONMSGSRSV1/SONRS/STATUS");
+            XmlNode status = _doc.SelectSingleNode(_signOnStatusNode);
 
             // make sure there is a signon block
-            if (doc == null)
+            if (status == null)
             {
                 _signOnRequest.Status = false;
                 return;
             }
 
             // parse signon info
-            ParseStatus(doc, _signOnRequest);
+            ParseStatus(status, _signOnRequest);
         }
 
         private void ParseAccountList()
         {
-            // set base location to account block
-            string basePath = "OFX/SIGNUPMSGSRSV1/ACCTINFOTRNRS/";
-
             // parse status
-            XmlNode status = _doc.SelectSingleNode(basePath+"STATUS");
-            ParseStatus(status, _accountListRequest);
+            ParseAccountListStatus();
 
-            // parse account list
+            // parse data
             if (_accountListRequest.Status)
             {
-
+                ParseAccountListData();
             }
+        }
+
+        private void ParseAccountListStatus()
+        {
+            // get status node
+            XmlNode status = _doc.SelectSingleNode(_accountListStatusNode);
+
+            // leave status as null if node is not found
+            if (status == null)
+            {
+                return;
+            }
+
+            // parse status node
+            ParseStatus(status, _accountListRequest);
+        }
+
+        private void ParseAccountListData()
+        {
+            #region Account List OFX Response Sample
+            /*
+             *  C R E D I T  C A R D
+             *  
+                <OFX>
+                    <SIGNUPMSGSRSV1>
+                        <ACCTINFOTRNRS>
+                            <TRNUID>1001
+                            <STATUS>
+                                <CODE>0
+                                <SEVERITY>INFO
+                            </STATUS>
+                            <ACCTINFORS>
+                                <DTACCTUP>20161017093512.346[-4:EDT]
+                                <ACCTINFO>
+                                    <DESC>CREDIT CARD
+                                    <CCACCTINFO>
+                                        <CCACCTFROM>
+                                            <ACCTID>1234567890
+                                        </CCACCTFROM>
+                                        <SUPTXDL>Y
+                                        <XFERSRC>N
+                                        <XFERDEST>N
+                                        <SVCSTATUS>ACTIVE
+                                    </CCACCTINFO>
+                                </ACCTINFO>
+                            </ACCTINFORS>
+                        </ACCTINFOTRNRS>
+                    </SIGNUPMSGSRSV1>
+                </OFX>
+             *
+             * B A N K
+             * 
+                <OFX>
+                    <SIGNUPMSGSRSV1>
+                        <ACCTINFOTRNRS>
+                            <TRNUID>1001
+                            <STATUS>
+                                <CODE>0
+                                <SEVERITY>INFO
+                            </STATUS>
+                            <ACCTINFORS>
+                                <DTACCTUP>20161006125454.929[-7:PDT]
+                                <ACCTINFO>
+                                    <DESC>This Account Name
+                                    <BANKACCTINFO>
+                                        <BANKACCTFROM>
+                                            <BANKID>1234567890
+                                            <BRANCHID>00
+                                            <ACCTID>1234567890
+                                            <ACCTTYPE>SAVINGS
+                                        </BANKACCTFROM>
+                                        <SUPTXDL>Y
+                                        <XFERSRC>Y
+                                        <XFERDEST>Y
+                                        <SVCSTATUS>ACTIVE
+                                    </BANKACCTINFO>
+                                </ACCTINFO>
+                            </ACCTINFORS>
+                        </ACCTINFOTRNRS>
+                    </SIGNUPMSGSRSV1>
+                </OFX>
+             */
+            #endregion
+
+
         }
 
         private void ParseBalance()
         {
-            // set base location to account block
-            string basePath = "OFX/BANKMSGSRSV1/STMTTRNRS";
-
             // parse status
-            XmlNode status = _doc.SelectSingleNode(basePath + "STATUS");
-            ParseStatus(status, _balanceRequest);
+            ParseBalanceStatus();
 
             // parse balance
-            if (_accountListRequest.Status)
+            if (_balanceRequest.Status)
             {
-
+                ParseBalanceData();
             }
+        }
+
+        private void ParseBalanceStatus()
+        {
+            // get status node
+            XmlNode status = _doc.SelectSingleNode(_balanceStatusNode);
+
+            // leave status as null if node is not found
+            if (status == null)
+            {
+                return;
+            }
+
+            // parse status node
+            ParseStatus(status, _balanceRequest);
+        }
+
+        private void ParseBalanceData()
+        {
+            #region OFX Balance Response Sample
+            /*
+             *  C R E D I T  C A R D
+             * 
+                <OFX>
+                    <CREDITCARDMSGSRSV1>
+                        <CCSTMTTRNRS>
+                            <TRNUID>1001
+                            <CCSTMTRS>
+                                <CURDEF>USD
+                                <CCACCTFROM>
+                                    <ACCTID>1234567890
+                                </CCACCTFROM>
+                                <LEDGERBAL>
+                                    <BALAMT>-123.45
+                                    <DTASOF>20161017080000.000[-4:EDT]
+                                </LEDGERBAL>
+                                <AVAILBAL>
+                                    <BALAMT>123.45
+                                    <DTASOF>20161017080000.000[-4:EDT]
+                                </AVAILBAL>
+                            </CCSTMTRS>
+                        </CCSTMTTRNRS>
+                    </CREDITCARDMSGSRSV1>
+                </OFX>
+             * 
+             * B A N K
+             *  
+                <OFX>
+                    <BANKMSGSRSV1>
+                        <STMTTRNRS>
+                            <TRNUID>1001
+                            <STMTRS>
+                                <CURDEF>USD
+                                <BANKACCTFROM>
+                                    <BANKID>1234567890
+                                    <ACCTID>1234567890
+                                    <ACCTTYPE>CHECKING
+                                </BANKACCTFROM>
+                                <LEDGERBAL>
+                                    <BALAMT>123.45
+                                    <DTASOF>20161006125942.700[-7:PDT]
+                                </LEDGERBAL>
+                            </STMTRS>
+                        </STMTTRNRS>
+                    </BANKMSGSRSV1>
+                </OFX>
+             */
+            #endregion
+
+
         }
 
         private void ParseStatement()
         {
-            // set base location to account block
-            string basePath = "OFX/BANKMSGSRSV1/STMTTRNRS";
+            // get status node
+            XmlNode status = _doc.SelectSingleNode(_statementStatusNode);
 
-            // parse status
-            XmlNode status = _doc.SelectSingleNode(basePath + "STATUS");
+            // leave status as null if node is not found
+            if (status == null)
+            {
+                return;
+            }
+
+            // parse status node
             ParseStatus(status, _statmentRequest);
 
             // parse statment
@@ -132,6 +370,72 @@ namespace Budget.API.Services.OFXClient
 
         private void ParseStatus(XmlNode doc, OFXResponseStatus status)
         {
+            #region OFX Response Status Samples
+            /*
+             * S I G N O N
+                <OFX>
+                    <SIGNONMSGSRSV1>
+                        <SONRS>
+                            <STATUS>
+                                <CODE>0
+                                <SEVERITY>INFO
+                                <MESSAGE>The operation succeeded.
+                            </STATUS>
+                            <DTSERVER>20161006123316.060[-7:PDT]
+                            <LANGUAGE>ENG
+                            <FI>
+                                <ORG>First Tech Federal Credit Union
+                                <FID>3169
+                            </FI>
+                        </SONRS>
+                    </SIGNONMSGSRSV1>
+                </OFX>
+             *
+             * A C C O U N T  L I S T
+             * 
+                <OFX>
+                    <SIGNUPMSGSRSV1>
+                        <ACCTINFOTRNRS>
+                            <TRNUID>1001
+                            <STATUS>
+                                <CODE>0
+                                <SEVERITY>INFO
+                            </STATUS>
+                        </ACCTINFOTRNRS>
+                    </SIGNUPMSGSRSV1>
+                <OFX>
+             * 
+             *  B A N K  S T A T E M E N T  A N D  B A L A N C E
+             * 
+                <OFX>
+                    <BANKMSGSRSV1>
+                        <STMTTRNRS>
+                            <TRNUID>1001
+                            <STATUS>
+                                <CODE>0
+                                <SEVERITY>INFO
+                            </STATUS>
+                        <STMTTRNRS>
+                    </BANKMSGSRSV1>
+                </OFX>
+
+             * 
+             *  C R E D I T  C A R D   S T A T E M E N T  A N D  B A L A N C E
+             * 
+                <OFX>
+                    <CREDITCARDMSGSRSV1>
+                        <CCSTMTTRNRS>
+                            <TRNUID>1001
+                            <STATUS>
+                                <CODE>0
+                                <SEVERITY>INFO
+                            </STATUS>
+                        </CCSTMTTRNRS>
+                    </CREDITCARDMSGSRSV1>
+                </OFX>
+             */
+            #endregion
+
             // grab CODE tag
             string rawStatusCode = doc.SelectSingleNode("CODE").InnerText;
 
