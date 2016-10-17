@@ -49,11 +49,10 @@ namespace Budget.API.Services.OFXClient
             ServicePointManager.Expect100Continue = false;
             using (var client = new WebClient())
             {
-                client.BaseAddress = _config.URL.AbsoluteUri;
                 client.Headers.Set("Content-Type", "application/x-ofx");
                 try
                 {
-                    _response = client.UploadString("", _requestBuilder.Request);
+                    _response = client.UploadString(_config.URL.AbsoluteUri, _requestBuilder.Request);
                     _status = true;
                 }
                 catch(WebException e)
