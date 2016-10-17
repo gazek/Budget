@@ -4,61 +4,40 @@ namespace Budget.API.Services.OFXClient
 {
     public class OFXRequestor
     {
-        public string Response
-        {
-            get { return _response; }
-        }
-
-        public string Header
-        {
-            get { return _header; }
-        }
-
-        public string OFX
-        {
-            get { return _ofx; }
-        }
-
-        public bool Status
-        {
-            get { return _status; }
-        }
-
-        public string ErrorMessage
-        {
-            get { return _errorMessage; }
-        }
-
-        public HttpStatusCode StatusCode
-        {
-            get { return _statusCode; }
-        }
-
-        public string StatusDescription
-        {
-            get { return _statusDescription; }
-        }
-
-        OFXRequestConfig _config;
-        OFXStatementRequestBuilder _requestBuilder;
+        public string Response { get { return _response; } }
         private string _response;
+
+        public string Header { get { return _header; } }
         private string _header;
+
+        public string OFX  {  get { return _ofx; } }
         private string _ofx;
+
+        public bool Status { get { return _status; } }
         private bool _status;
-        private HttpStatusCode _statusCode;
-        private string _statusDescription;
+
+        public string ErrorMessage { get { return _errorMessage; } }
         private string _errorMessage;
 
-        public OFXRequestor(OFXRequestConfig config)
+        public HttpStatusCode StatusCode { get { return _statusCode; } }
+        private HttpStatusCode _statusCode;
+
+        public string StatusDescription { get { return _statusDescription; } }
+        private string _statusDescription;
+
+        OFXRequestConfig _config;
+        OFXRequestBuilder _requestBuilder;
+
+        public OFXRequestor(OFXRequestBuilder requestBuilder)
         {
-            _config = config;
-            _requestBuilder = new OFXStatementRequestBuilder(_config);
+            _requestBuilder = requestBuilder;
+            _config = requestBuilder.Config;
             _status = false;
         }
 
         public void Post()
         {
-            this.PostToFinancialInsitution();
+            PostToFinancialInsitution();
             if (_status && _response != null)
             {
                 PartitionResponse();
