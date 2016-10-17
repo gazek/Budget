@@ -61,6 +61,20 @@ namespace Budget.Tests.Controllers
         }
 
         [TestMethod]
+        public void OFXRequestBuildeBankStatementWithCLientUIDTest()
+        {
+            // Arrange
+            var config = CreateValidRequestBuilderConfig(true);
+            string expectedBody = GetValidStatementRequestBodyString(OFXRequestConfigAccountType.CHECKING, true);
+
+            // Act
+            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
+
+            // Assert
+            Assert.AreEqual(expectedBody, ofxBuilder.Body);
+        }
+
+        [TestMethod]
         public void OFXRequestBuilderCreditCardStatementWithoutCLientUIDTest()
         {
             // Arrange
@@ -120,7 +134,7 @@ namespace Budget.Tests.Controllers
             Assert.AreEqual(expectedBody, ofxBuilder.Body);
         }
 
-        private OFXRequestConfig CreateValidRequestBuilderConfig()
+        private OFXRequestConfig CreateValidRequestBuilderConfig(bool includeClientUID = false)
         {
             var config = new OFXRequestConfig()
             {
@@ -136,6 +150,12 @@ namespace Budget.Tests.Controllers
                 EndDate = new DateTime(2016, 9, 30),
                 URL = new Uri("https://fake.com")
             };
+
+            if (includeClientUID)
+            {
+                config.ClientUID = new Guid("09fd60be-ecb0-447e-ab4a-4c433b853a10");
+            }
+
             return config;
         }
 
@@ -144,7 +164,7 @@ namespace Budget.Tests.Controllers
             string clientUID="";
             if (includeClientUID)
             {
-                clientUID = "<CLIENTUID>94f92863-15c1-4874-9fe5-0c84351ac0c2";
+                clientUID = "<CLIENTUID>09fd60be-ecb0-447e-ab4a-4c433b853a10";
             }
             string[] body = {
                 "<SIGNONMSGSRQV1>",
