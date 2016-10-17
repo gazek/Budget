@@ -68,8 +68,17 @@ namespace Budget.API.Services.OFXClient
         void PartitionResponse()
         {
             int ofxStartIndex = _response.IndexOf("<OFX>");
-            _header = _response.Substring(0, ofxStartIndex);
-            _ofx = _response.Substring(ofxStartIndex);
+            int ofxEndIndex = _response.IndexOf("</OFX>") + "</OFX>".Length;
+
+            if (ofxStartIndex >= 0)
+            {
+                _header = _response.Substring(0, ofxStartIndex);
+            }
+
+            if (ofxStartIndex >= 0 && ofxEndIndex > ofxStartIndex)
+            {
+                _ofx = _response.Substring(ofxStartIndex, ofxEndIndex - ofxStartIndex);
+            }
         }
     }
 }
