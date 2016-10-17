@@ -23,7 +23,8 @@ namespace Budget.Tests.Services
                 AccountType = OFXRequestConfigAccountType.SAVINGS,
                 StartDate = new DateTime(2016, 9, 1),
                 EndDate = new DateTime(2016, 9, 30),
-                URL = new Uri("https://ofx.firsttechfed.com")
+                URL = new Uri("https://ofx.firsttechfed.com"),
+                //ClientUID = new Guid("94f92863-15c1-4874-9fe5-0c84351ac0c2")
             };
             OFXRequestBuilder requestBuilder = new OFXRequestBuilder(config);
             OFXRequestor request = new OFXRequestor(requestBuilder);
@@ -39,6 +40,7 @@ namespace Budget.Tests.Services
             request.Post();
 
             // Assert
+            Assert.IsTrue(request.Status);
             //Assert.AreEqual(expectedHeader.Replace("\r\n ", string.Empty), request.Header.Replace("\r\n ", string.Empty));
             Assert.AreEqual(expectedOfx.Substring(0, indexOfxL), request.OFX.Substring(0, indexOfxL));
             Assert.AreEqual(expectedOfx.Substring(indexOfxR), request.OFX.Substring(indexOfxR));
