@@ -33,11 +33,15 @@ namespace Budget.API.Services.OFXClient
         string _COMPRESSION = "NONE";
         string _OLDFILEUID = "NONE";
         string _NEWFILEUID = "NONE";
+        string _CLIENTUID = "";
 
         public OFXRequestBuilder(OFXRequestConfig config)
         {
-            config.VerifyConfig();
             _config = config;
+            if (_config.ClientUID != new Guid())
+            {
+                _CLIENTUID = _config.ClientUID.ToString();
+            }
             buildHeader();
             buildBody();
             buildRequest();
@@ -90,6 +94,10 @@ namespace Budget.API.Services.OFXClient
             signonList.Add(new List<string> { fi });
             signonList.Add(new List<string> { "<APPID>", _APPID });
             signonList.Add(new List<string> { "<APPVER>", _APPVER });
+            if (_CLIENTUID != "")
+            {
+                signonList.Add(new List<string> { "<CLIENTUID>", _CLIENTUID });
+            }
             signonList.Add(new List<string> { "</SONRQ>" });
             signonList.Add(new List<string> { "</SIGNONMSGSRQV1>" });
 
