@@ -16,21 +16,14 @@ namespace Budget.API.Services.OFXClient
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public Uri URL { get; set; }
+        public Guid ClientUID { get; set; }
 
         public OFXRequestConfig()
         {
+            // set default value
+            ClientUID = new Guid();
         }
-
-        public void VerifyConfig()
-        {
-            foreach (PropertyInfo prop in typeof(OFXRequestConfig).GetProperties())
-            {
-                if (this.GetType().GetProperty(prop.Name).GetValue(this) == null)
-                {
-                    throw new System.ArgumentException("Config property cannot be null", prop.Name); ;
-                }
-            }
-        }
+        
     }
 
     public enum OFXRequestConfigRequestType
