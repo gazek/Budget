@@ -15,7 +15,7 @@ namespace Budget.Tests.Controllers
             var config = CreateValidRequestBuilderConfig();
 
             // Act
-            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
+            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
 
             // Assert
             Assert.IsNotNull(ofxBuilder);
@@ -28,7 +28,7 @@ namespace Budget.Tests.Controllers
             string[] header = {
                 "OFXHEADER:100",
                 "DATA:OFXSGML",
-                "VERSION:102",
+                "VERSION:103",
                 "SECURITY:NONE",
                 "ENCODING:USASCII",
                 "CHARSET:1252",
@@ -37,13 +37,13 @@ namespace Budget.Tests.Controllers
                 "NEWFILEUID:NONE" };
             string expectedHeader = string.Join(" ", header);
             var config = CreateValidRequestBuilderConfig();
-            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
+            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
 
             // Act
             string result = ofxBuilder.Header;
 
             //Assert
-            Assert.AreEqual(result, expectedHeader);
+            Assert.AreEqual(expectedHeader, result);
         }
 
         [TestMethod]
@@ -54,7 +54,7 @@ namespace Budget.Tests.Controllers
             var config = new OFXRequestConfig();
 
             // Act
-            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
+            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
 
             // Assert
 
@@ -68,10 +68,10 @@ namespace Budget.Tests.Controllers
             string expectedBody = GetValidStatementRequestBodyString(OFXRequestConfigAccountType.CHECKING);
 
             // Act
-            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
+            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
 
             // Assert
-            Assert.AreEqual(ofxBuilder.Body, expectedBody);
+            Assert.AreEqual(expectedBody, ofxBuilder.Body);
         }
 
         [TestMethod]
@@ -83,10 +83,10 @@ namespace Budget.Tests.Controllers
             string expectedBody = GetValidStatementRequestBodyString(OFXRequestConfigAccountType.CREDITCARD);
 
             // Act
-            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
+            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
 
             // Assert
-            Assert.AreEqual(ofxBuilder.Body, expectedBody);
+            Assert.AreEqual(expectedBody, ofxBuilder.Body);
         }
 
         [TestMethod]
@@ -98,10 +98,10 @@ namespace Budget.Tests.Controllers
             string expectedBody = GetValidBalanceRequestBodyString(OFXRequestConfigAccountType.CHECKING);
 
             // Act
-            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
+            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
 
             // Assert
-            Assert.AreEqual(ofxBuilder.Body, expectedBody);
+            Assert.AreEqual(expectedBody, ofxBuilder.Body);
         }
 
         [TestMethod]
@@ -113,10 +113,10 @@ namespace Budget.Tests.Controllers
             string expectedBody = GetValidAccountListRequestBodyString();
 
             // Act
-            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
+            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
 
             // Assert
-            Assert.AreEqual(ofxBuilder.Body, expectedBody);
+            Assert.AreEqual(expectedBody, ofxBuilder.Body);
         }
 
         [TestMethod]
@@ -128,10 +128,10 @@ namespace Budget.Tests.Controllers
             string expectedBody = GetValidSignOnRequestBodyString();
 
             // Act
-            OFXStatementRequestBuilder ofxBuilder = new OFXStatementRequestBuilder(config);
+            OFXRequestBuilder ofxBuilder = new OFXRequestBuilder(config);
 
             // Assert
-            Assert.AreEqual(ofxBuilder.Body, expectedBody);
+            Assert.AreEqual(expectedBody, ofxBuilder.Body);
         }
 
         private OFXRequestConfig CreateValidRequestBuilderConfig()
@@ -167,7 +167,7 @@ namespace Budget.Tests.Controllers
                 "<FID>123",
                 "</FI>",
                 "<APPID>QWIN",
-                "<APPVER>1900",
+                "<APPVER>2200",
                 "</SONRQ>",
                 "</SIGNONMSGSRQV1>"
             };
