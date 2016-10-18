@@ -46,9 +46,9 @@ namespace Budget.API.Services.OFXClient
         static string _ccBalanceStatusNode = "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/STATUS";
         static string _ccBalanceDataNode = "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/CCSTMTRS/LEDGERBAL";
         static string _bankStatementStatusNode = "OFX/BANKMSGSRSV1/STMTTRNRS/STATUS";
-        static string _bankStatementDataNode = "";
+        static string _bankStatementDataNode = "OFX/BANKMSGSRSV1/STMTTRNRS/STMTRS/BANKTRANLIST";
         static string _ccStatementStatusNode = "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/STATUS";
-        static string _ccStatementDataNode = "";
+        static string _ccStatementDataNode = "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/CCSTMTRS/BANKTRANLIST";
         string _balanceStatusNode;
         string _balanceDataNode;
         string _statementStatusNode;
@@ -268,6 +268,7 @@ namespace Budget.API.Services.OFXClient
              */
             #endregion
 
+            
         }
 
         /*
