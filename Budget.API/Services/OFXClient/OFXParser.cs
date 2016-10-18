@@ -128,9 +128,12 @@ namespace Budget.API.Services.OFXClient
             }
         }
 
+        /*
+         *    S I G N O N
+         */
         private void ParseSignOn()
         {
-            #region sign on OFX response sample
+            #region OFX sign on response sample
             /*
              *
                 <OFX>
@@ -168,6 +171,9 @@ namespace Budget.API.Services.OFXClient
             ParseStatus(status, _signOnRequest);
         }
 
+        /*
+         *    A C C O U N T  L I S T
+         */
         private void ParseAccountList()
         {
             // parse status
@@ -197,7 +203,7 @@ namespace Budget.API.Services.OFXClient
 
         private void ParseAccountListData()
         {
-            #region Account List OFX Response Sample
+            #region OFX Account List Response Sample
             /*
              *  C R E D I T  C A R D
              *  
@@ -262,9 +268,11 @@ namespace Budget.API.Services.OFXClient
              */
             #endregion
 
-
         }
 
+        /*
+         *    B A L A N C E
+         */
         private void ParseBalance()
         {
             // parse status
@@ -347,7 +355,22 @@ namespace Budget.API.Services.OFXClient
 
         }
 
+        /*
+         *    S T A T E M E N T
+         */
         private void ParseStatement()
+        {
+            // parse status
+            ParseStatementStatus();
+
+            // parse statement
+            if (_statmentRequest.Status)
+            {
+                ParseStatementData();
+            }
+        }
+
+        private void ParseStatementStatus()
         {
             // get status node
             XmlNode status = _doc.SelectSingleNode(_statementStatusNode);
@@ -360,14 +383,84 @@ namespace Budget.API.Services.OFXClient
 
             // parse status node
             ParseStatus(status, _statmentRequest);
-
-            // parse statment
-            if (_accountListRequest.Status)
-            {
-
-            }
         }
 
+        private void ParseStatementData()
+        {
+            #region OFX Statement Response
+            /*
+             *  C R E D I T  C A R D
+             * 
+                <OFX>
+                    <CREDITCARDMSGSRSV1>
+                        <CCSTMTTRNRS>
+                            <TRNUID>1001
+                            <CCSTMTRS>
+                                <CURDEF>USD
+                                <CCACCTFROM>
+                                    <ACCTID>1234567890
+                                </CCACCTFROM>
+                                <BANKTRANLIST>
+                                    <DTSTART>20160829200000.000[-4:EDT]
+                                    <DTEND>20160901200000.000[-4:EDT]
+                                    <STMTTRN>
+                                        <TRNTYPE>DEBIT
+                                        <DTPOSTED>20160831120000[0:GMT]
+                                        <TRNAMT>-123.45
+                                        <FITID>1234567890
+                                        <NAME>Amazon.com
+                                    </STMTTRN>
+                                </BANKTRANLIST>
+                            </CCSTMTRS>
+                        </CCSTMTTRNRS>
+                    </CREDITCARDMSGSRSV1>
+                </OFX>
+             * 
+             * B A N K
+             * 
+                <OFX>
+                    <BANKMSGSRSV1>
+                        <STMTTRNRS>
+                            <TRNUID>1001
+                            <STATUS>
+                                <CODE>0
+                                <SEVERITY>INFO
+                            </STATUS>
+                            <STMTRS>
+                                <CURDEF>USD
+                                <BANKACCTFROM>
+                                    <BANKID>321180379
+                                    <ACCTID>1234567890
+                                    <ACCTTYPE>CHECKING
+                                </BANKACCTFROM>
+                                <BANKTRANLIST>
+                                    <DTSTART>20160831170000.000[-7:PDT]
+                                    <DTEND>20160930170000.000[-7:PDT]
+                                    <STMTTRN>
+                                        <TRNTYPE>DEBIT
+                                        <DTPOSTED>20160901120000.000
+                                        <DTAVAIL>20160901120000.000
+                                        <TRNAMT>-123.45
+                                        <FITID>1234567890
+                                        <NAME>IN *PIGTAILS  CREWCUT 2219 NW AL
+                                        <MEMO>POS Transaction--IN *PIGTAILS  CREWCUT 2219 NW ALLIE AVE SUITE503-3364778  O 
+                                    </STMTTRN>
+                                </BANKTRANLIST>
+                            </STMTRS>
+                        </STMTTRNRS>
+                    </BANKMSGSRSV1>
+                </OFX>
+             * 
+             * 
+             */
+            #endregion
+
+
+        }
+
+        /*
+         *    S T A T U S
+         */
         private void ParseStatus(XmlNode doc, OFXResponseStatus status)
         {
             #region OFX Response Status Samples
