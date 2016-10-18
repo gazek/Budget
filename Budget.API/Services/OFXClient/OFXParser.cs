@@ -268,7 +268,18 @@ namespace Budget.API.Services.OFXClient
              */
             #endregion
 
-            
+            // create new XML Document containing only the tag of interest
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(_doc.SelectSingleNode(_accountListDataNode).ToString());
+
+            // get all account elements
+            XmlNodeList accounts = doc.GetElementsByTagName("ACCTINFO");
+
+            // populate list of account models
+            foreach (XmlNode a in accounts)
+            {
+
+            }
         }
 
         /*
@@ -353,6 +364,14 @@ namespace Budget.API.Services.OFXClient
              */
             #endregion
 
+            // get node of interest
+            XmlNode node = _doc.SelectSingleNode(_bankBalanceDataNode);
+
+            // get values from node
+            decimal balance = decimal.Parse(node.SelectSingleNode("BALAMT").Value);
+            DateTime date = DateTime.Parse(node.SelectSingleNode("DTASOF").Value);
+
+            // populate balance model
 
         }
 
@@ -456,7 +475,18 @@ namespace Budget.API.Services.OFXClient
              */
             #endregion
 
+            // create new XML Document containing only the tag of interest
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(_doc.SelectSingleNode(_statementDataNode).ToString());
 
+            // get all account elements
+            XmlNodeList transactions = doc.GetElementsByTagName("STMTTRN");
+
+            // populate list of transaction models
+            foreach (XmlNode t in transactions)
+            {
+
+            }
         }
 
         /*
