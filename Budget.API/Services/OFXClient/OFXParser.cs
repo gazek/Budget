@@ -38,22 +38,25 @@ namespace Budget.API.Services.OFXClient
         string _ofxType;
 
         // paths to XML nodes
-        static string _signOnStatusNode = "OFX/SIGNONMSGSRSV1/SONRS/STATUS";
-        static string _accountListStatusNode = "OFX/SIGNUPMSGSRSV1/ACCTINFOTRNRS/STATUS";
-        static string _accountListDataNode = "OFX/SIGNUPMSGSRSV1/ACCTINFOTRNRS/";
-        static string _bankBalanceStatusNode = "OFX/BANKMSGSRSV1/STMTTRNRS/STATUS";
-        static string _bankBalanceDataNode = "OFX/BANKMSGSRSV1/STMTTRNRS/STMTRS/LEDGERBAL";
-        static string _ccBalanceStatusNode = "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/STATUS";
-        static string _ccBalanceDataNode = "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/CCSTMTRS/LEDGERBAL";
-        static string _bankStatementStatusNode = "OFX/BANKMSGSRSV1/STMTTRNRS/STATUS";
-        static string _bankStatementDataNode = "OFX/BANKMSGSRSV1/STMTTRNRS/STMTRS/BANKTRANLIST";
-        static string _ccStatementStatusNode = "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/STATUS";
-        static string _ccStatementDataNode = "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/CCSTMTRS/BANKTRANLIST";
-        string _balanceStatusNode;
-        string _balanceDataNode;
-        string _statementStatusNode;
-        string _statementDataNode;
-
+        Dictionary<string, string> _ofxPath = new Dictionary<string, string>()
+        {
+            { "signOnStatus", "OFX/SIGNONMSGSRSV1/SONRS/STATUS" },
+            { "accountListStatus", "OFX/SIGNUPMSGSRSV1/ACCTINFOTRNRS/STATUS" },
+            { "accountListData", "OFX/SIGNUPMSGSRSV1/ACCTINFOTRNRS" },
+            { "bankBalanceStatus", "OFX/BANKMSGSRSV1/STMTTRNRS/STATUS"},
+            { "bankBalanceData", "OFX/SIGNUPMSGSRSV1/ACCTINFOTRNRS" },
+            { "ccBalanceStatus", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/STATUS" },
+            { "ccBalanceData", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/CCSTMTRS/LEDGERBAL" },
+            { "bankStatementStatus", "OFX/BANKMSGSRSV1/STMTTRNRS/STATUS" },
+            { "bankStatementData", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/CCSTMTRS/LEDGERBAL" },
+            { "ccStatementStatus", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/STATUS" },
+            { "ccStatementData", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/CCSTMTRS/BANKTRANLIST" },
+            { "balanceStatus", "" },
+            { "balanceData", "" },
+            { "statementStatus", "" },
+            { "statementData", "" }
+        };
+        
         public OFXParser(string ofx)
         {
             _ofx = OFXTagCloser.CloseTags(ofx);
@@ -111,19 +114,19 @@ namespace Budget.API.Services.OFXClient
         {
             if (_ofxType == "bank")
             {
-                _balanceStatusNode = _bankBalanceStatusNode;
-                _balanceDataNode = _bankBalanceDataNode;
-                _statementStatusNode = _bankStatementStatusNode;
-                _statementDataNode = _bankStatementDataNode;
+                _ofxPath["balanceStatus"] = _ofxPath["bankBalanceStatus"];
+                _ofxPath["balanceData"] = _ofxPath["bankBalanceData"];
+                _ofxPath["statementStatus"] = _ofxPath["bankStatementStatus"];
+                _ofxPath["statementData"] = _ofxPath["bankStatementData"];
                 return;
             }
 
             if(_ofxType == "cc")
             {
-                _balanceStatusNode = _ccBalanceStatusNode;
-                _balanceDataNode = _ccBalanceDataNode;
-                _statementStatusNode = _ccStatementStatusNode;
-                _statementDataNode = _ccStatementDataNode;
+                _ofxPath["balanceStatus"] = _ofxPath["ccBalanceStatus"];
+                _ofxPath["balanceData"] = _ofxPath["ccBalanceData"];
+                _ofxPath["statementStatus"] = _ofxPath["ccStatementStatus"];
+                _ofxPath["statementData"] = _ofxPath["ccStatementData"];
                 return;
             }
         }
@@ -158,7 +161,7 @@ namespace Budget.API.Services.OFXClient
             #endregion
 
             // set base location to relevent signon info
-            XmlNode status = _doc.SelectSingleNode(_signOnStatusNode);
+            XmlNode status = _doc.SelectSingleNode(_ofxPath["signOnStatus"]);
 
             // make sure there is a signon block
             if (status == null)
@@ -189,7 +192,7 @@ namespace Budget.API.Services.OFXClient
         private void ParseAccountListStatus()
         {
             // get status node
-            XmlNode status = _doc.SelectSingleNode(_accountListStatusNode);
+            XmlNode status = _doc.SelectSingleNode(_ofxPath["accountListStatus"]);
 
             // leave status as null if node is not found
             if (status == null)
@@ -270,7 +273,7 @@ namespace Budget.API.Services.OFXClient
 
             // create new XML Document containing only the tag of interest
             XmlDocument doc = new XmlDocument();
-            doc.LoadXml(_doc.SelectSingleNode(_accountListDataNode).ToString());
+            doc.LoadXml(_doc.SelectSingleNode(_ofxPath["accountListData"]).ToString());
 
             // get all account elements
             XmlNodeList accounts = doc.GetElementsByTagName("ACCTINFO");
@@ -300,7 +303,7 @@ namespace Budget.API.Services.OFXClient
         private void ParseBalanceStatus()
         {
             // get status node
-            XmlNode status = _doc.SelectSingleNode(_balanceStatusNode);
+            XmlNode status = _doc.SelectSingleNode(_ofxPath["balanceStatus"]);
 
             // leave status as null if node is not found
             if (status == null)
@@ -365,7 +368,7 @@ namespace Budget.API.Services.OFXClient
             #endregion
 
             // get node of interest
-            XmlNode node = _doc.SelectSingleNode(_bankBalanceDataNode);
+            XmlNode node = _doc.SelectSingleNode(_ofxPath["bankBalanceData"]);
 
             // get values from node
             decimal balance = decimal.Parse(node.SelectSingleNode("BALAMT").Value);
@@ -393,7 +396,7 @@ namespace Budget.API.Services.OFXClient
         private void ParseStatementStatus()
         {
             // get status node
-            XmlNode status = _doc.SelectSingleNode(_statementStatusNode);
+            XmlNode status = _doc.SelectSingleNode(_ofxPath["statementStatus"]);
 
             // leave status as null if node is not found
             if (status == null)
@@ -477,7 +480,7 @@ namespace Budget.API.Services.OFXClient
 
             // create new XML Document containing only the tag of interest
             XmlDocument doc = new XmlDocument();
-            doc.LoadXml(_doc.SelectSingleNode(_statementDataNode).ToString());
+            doc.LoadXml(_doc.SelectSingleNode(_ofxPath["statementData"]).ToString());
 
             // get all account elements
             XmlNodeList transactions = doc.GetElementsByTagName("STMTTRN");
