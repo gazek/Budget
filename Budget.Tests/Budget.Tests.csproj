@@ -80,7 +80,9 @@
     <Compile Include="Services\OFXClient\OFXTagCloserTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App.config" />
+    <Content Include="App.config">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -89,6 +91,10 @@
     <ProjectReference Include="..\Budget.API\Budget.API.csproj">
       <Project>{46F5A0C7-7DF7-4C54-9F7F-63351CD25F98}</Project>
       <Name>Budget.API</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Budget.DAL\Budget.DAL.csproj">
+      <Project>{4870d2f4-85d1-45e8-844e-fc2f6c10c497}</Project>
+      <Name>Budget.DAL</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
