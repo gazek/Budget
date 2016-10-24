@@ -7,6 +7,7 @@ namespace Budget.DAL.Models
 {
     public class AccountModel
     {
+        [Key]
         [Required]
         [Display(Name = "Account ID")]
         public int Id { get; set; }
@@ -19,10 +20,12 @@ namespace Budget.DAL.Models
         [Display(Name = "Account Name")]
         public string Name { get; set; }
 
+        [Key]
         [Required]
         [Display(Name = "Financial Institution ID")]
         public int fiId { get; set; }
 
+        [Key]
         [Required]
         [Display(Name = "Account Number")]
         public string Number { get; set; }
