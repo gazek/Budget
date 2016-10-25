@@ -1,15 +1,19 @@
 ﻿using System;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Budget.API.Services.OFXClient
 {
     public static class OFXTagCloser
     {
         // Converting from (pre-version 2.0) OFX to XML is just a matter of
-        // adding closing tags to atom elements
+        // adding closing tags of atom elements
 
         public static string CloseTags(string ofx)
         {
+            // remove white space from between tags
+            ofx = RemoveWhiteSpaceBetweenTags(ofx);
+
             // build new xml string
             StringBuilder xml = new StringBuilder();
 
@@ -68,6 +72,19 @@ namespace Budget.API.Services.OFXClient
                 prevChar = ofx[i];
             }
             return xml.ToString();
+        }
+
+        private static string RemoveWhiteSpaceBetweenTags(string ofx)
+        {
+            // look for any white space framed by a closing ">" and openning "<" bracket 
+            string pattern = ">\\s+<";
+            // and replace with just a closing and openning "><"
+            string replace = "><";
+            // do regex replacement
+            Regex regex = new Regex(pattern);
+            string newOfx = regex.Replace(ofx, replace);
+            //return new string
+            return newOfx;
         }
     }
 }
