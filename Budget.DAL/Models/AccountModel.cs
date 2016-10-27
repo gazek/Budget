@@ -7,7 +7,6 @@ namespace Budget.DAL.Models
 {
     public class AccountModel
     {
-        [Key]
         [Required]
         [Display(Name = "Account ID")]
         public int Id { get; set; }
@@ -48,12 +47,10 @@ namespace Budget.DAL.Models
         [JsonIgnore]
         public virtual IdentityUser Owner { get; set; }
 
-        /*
         // needed for foreign key
         [ForeignKey("FiId")]
         [JsonIgnore]
-        public virtual FinancialInstitutionModel FI { get; set; }
-        */
+        public virtual FinancialInstitutionModel FinancialInstitution { get; set; }
     }
 
     public enum AccountType
