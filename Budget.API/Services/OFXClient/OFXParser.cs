@@ -28,6 +28,8 @@ namespace Budget.API.Services.OFXClient
         // Balance
         public OFXResponseStatus BalanceRequest { get { return _balanceRequest; } }
         private OFXResponseStatus _balanceRequest;
+        public BalanceModel Balance { get { return _balance; } }
+        private BalanceModel _balance;
 
         // Statment
         public OFXResponseStatus StatmentRequest { get { return _statmentRequest; } }
@@ -36,7 +38,7 @@ namespace Budget.API.Services.OFXClient
         // internal OFX and XML Doc
         string _ofx;
         XmlDocument _doc;
-        string _ofxType;
+        string _ofxType = "";
 
         // paths to XML nodes
         Dictionary<string, string> _ofxPath = new Dictionary<string, string>()
@@ -45,11 +47,11 @@ namespace Budget.API.Services.OFXClient
             { "accountListStatus", "OFX/SIGNUPMSGSRSV1/ACCTINFOTRNRS/STATUS" },
             { "accountListData", "OFX/SIGNUPMSGSRSV1/ACCTINFOTRNRS" },
             { "bankBalanceStatus", "OFX/BANKMSGSRSV1/STMTTRNRS/STATUS"},
-            { "bankBalanceData", "OFX/SIGNUPMSGSRSV1/ACCTINFOTRNRS" },
+            { "bankBalanceData", "OFX/BANKMSGSRSV1/STMTTRNRS/STMTRS/LEDGERBAL" },
             { "ccBalanceStatus", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/STATUS" },
             { "ccBalanceData", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/CCSTMTRS/LEDGERBAL" },
             { "bankStatementStatus", "OFX/BANKMSGSRSV1/STMTTRNRS/STATUS" },
-            { "bankStatementData", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/CCSTMTRS/LEDGERBAL" },
+            { "bankStatementData", "OFX/CREDITCARDMSGSRSV1/STMTTRNRS/STMTRS/BANKTRANLIST" },
             { "ccStatementStatus", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/STATUS" },
             { "ccStatementData", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/CCSTMTRS/BANKTRANLIST" },
             { "balanceStatus", "" },
@@ -78,7 +80,7 @@ namespace Budget.API.Services.OFXClient
             ParseSignOn();
 
             // determine request type
-            GetStatementType();
+            GetOfxType();
 
             // set node paths
             SetStatementNodePaths();
@@ -95,26 +97,24 @@ namespace Budget.API.Services.OFXClient
             }
         }
 
-        private void GetStatementType()
+        private void GetOfxType()
         {
             if (_doc.GetElementsByTagName("CREDITCARDMSGSRSV1").Count > 0)
             {
-                _ofxType = "cc";
+                _ofxType = "CC";
                 return;
             }
 
             if (_doc.GetElementsByTagName("BANKMSGSRSV1").Count > 0)
             {
-                _ofxType = "bank";
+                _ofxType = "BANK";
                 return;
             }
-
-            _ofxType = "";
         }
 
         private void SetStatementNodePaths()
         {
-            if (_ofxType == "bank")
+            if (_ofxType == "BANK")
             {
                 _ofxPath["balanceStatus"] = _ofxPath["bankBalanceStatus"];
                 _ofxPath["balanceData"] = _ofxPath["bankBalanceData"];
@@ -123,7 +123,7 @@ namespace Budget.API.Services.OFXClient
                 return;
             }
 
-            if(_ofxType == "cc")
+            if(_ofxType == "CC")
             {
                 _ofxPath["balanceStatus"] = _ofxPath["ccBalanceStatus"];
                 _ofxPath["balanceData"] = _ofxPath["ccBalanceData"];
@@ -310,6 +310,11 @@ namespace Budget.API.Services.OFXClient
             string accountType;
             foreach (XmlNode a in accounts)
             {
+                // Determine account type
+                // account type is used to set xpath
+                // It may be possible that both BANKACCTINFO and CCACCTINFO tags
+                // could be present in a single account list response so it may
+                // not be safe to use _ofxType to set prefix
                 string prefix = "";
                 if (a.SelectSingleNode("BANKACCTINFO") != null)
                 {
@@ -319,6 +324,8 @@ namespace Budget.API.Services.OFXClient
                 {
                     prefix = "CC";
                 }
+
+                // Collect account info fm XML
                 currentAccount = new AccountModel();
                 currentAccount.Description = a.SelectSingleNode("DESC").InnerText;
                 currentAccount.Name = a.SelectSingleNode("DESC").InnerText;
@@ -340,6 +347,7 @@ namespace Budget.API.Services.OFXClient
                         currentAccount.Type = AccountType.Checking;
                     }
                 }
+
                 // add to list
                 _accounts.Add(currentAccount);
             }
@@ -429,14 +437,21 @@ namespace Budget.API.Services.OFXClient
             #endregion
 
             // get node of interest
-            XmlNode node = _doc.SelectSingleNode(_ofxPath["bankBalanceData"]);
+            XmlNode node = _doc.SelectSingleNode(_ofxPath["balanceData"]);
 
             // get values from node
-            decimal balance = decimal.Parse(node.SelectSingleNode("BALAMT").Value);
-            DateTime date = DateTime.Parse(node.SelectSingleNode("DTASOF").Value);
+            decimal amount = decimal.Parse(node.SelectSingleNode("BALAMT").InnerText);
+            string rawDate = node.SelectSingleNode("DTASOF").InnerText;
+            rawDate = rawDate.Substring(0, 4) + "-" + rawDate.Substring(4, 2) + "-" + rawDate.Substring(6, 2);
+            DateTime date = DateTime.Parse(rawDate);
 
             // populate balance model
+            BalanceModel balance = new BalanceModel();
+            balance.Amount = amount;
+            balance.AsOfDate = date;
 
+            // add balance to property
+            _balance = balance;
         }
 
         /*
@@ -540,9 +555,18 @@ namespace Budget.API.Services.OFXClient
              */
             #endregion
 
+            // look for statement node
+            XmlNode node = _doc.SelectSingleNode(_ofxPath["statementData"]);
+
+            // Verify node was found
+            if (node == null)
+            {
+                return;
+            }
+
             // create new XML Document containing only the tag of interest
             XmlDocument doc = new XmlDocument();
-            doc.LoadXml(_doc.SelectSingleNode(_ofxPath["statementData"]).ToString());
+            doc.LoadXml(node.ToString());
 
             // get all account elements
             XmlNodeList transactions = doc.GetElementsByTagName("STMTTRN");

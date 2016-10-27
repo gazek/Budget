@@ -1,6 +1,7 @@
 ﻿using Budget.API.Services.OFXClient;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Budget.DAL.Models;
+using System;
 
 namespace Budget.Tests.Services.OFXClient
 {
@@ -94,6 +95,42 @@ namespace Budget.Tests.Services.OFXClient
             Assert.AreNotEqual("INFO", parser.AccountListRequest.Severity);
         }
 
+        [TestMethod]
+        public void OFXParserBalanceSuccess()
+        {
+            // Arrange
+            string ofx = GetOfxString(OFXRequestConfigRequestType.Balance, true);
+            OFXParser parser = new OFXParser(ofx);
+
+            // Act
+            parser.Parse();
+
+            // Assert
+            Assert.IsTrue(parser.BalanceRequest.Status);
+            Assert.AreEqual(0, parser.BalanceRequest.Code);
+            Assert.AreEqual("INFO", parser.BalanceRequest.Severity);
+            Assert.IsNotNull(parser.Balance);
+            Assert.AreEqual(1234.56m, parser.Balance.Amount);
+            Assert.AreEqual(DateTime.Parse("2016-10-06"), parser.Balance.AsOfDate);
+        }
+
+        [TestMethod]
+        public void OFXParserBalanceFailure()
+        {
+            // Arrange
+            string ofx = GetOfxString(OFXRequestConfigRequestType.Balance, false);
+            OFXParser parser = new OFXParser(ofx);
+
+            // Act
+            parser.Parse();
+
+            // Assert
+            Assert.IsFalse(parser.BalanceRequest.Status);
+            Assert.AreNotEqual(0, parser.BalanceRequest.Code);
+            Assert.AreNotEqual("", parser.BalanceRequest.Severity);
+            Assert.IsNull(parser.Balance);
+        }
+
         private string GetOfxString(OFXRequestConfigRequestType type, bool isSuccessful)
         {
             string response = "";
@@ -106,10 +143,10 @@ namespace Budget.Tests.Services.OFXClient
             accountListSuccess += "<ACCTINFO><DESC>CREDIT CARD<CCACCTINFO><CCACCTFROM><ACCTID>1234567890</CCACCTFROM><SUPTXDL>Y<XFERSRC>N<XFERDEST>N<SVCSTATUS>ACTIVE</CCACCTINFO></ACCTINFO>";
             accountListSuccess += "</ACCTINFORS></ACCTINFOTRNRS></SIGNUPMSGSRSV1>";
             string accountListFailure = "<SIGNUPMSGSRSV1><ACCTINFOTRNRS><TRNUID>1001<STATUS><CODE>15500<SEVERITY>ERROR</STATUS></ACCTINFOTRNRS></SIGNUPMSGSRSV1>";
-            string balanceSuccess = "";
-            string balanceFailure = "";
-            string StatementSuccess = "";
-            string StatementFailure = "<BANKMSGSRSV1><STMTTRNRS><TRNUID>1001<STATUS><CODE>2003<SEVERITY>ERROR</STATUS></STMTTRNRS></BANKMSGSRSV1>";
+            string bankBalanceSuccess = "<BANKMSGSRSV1><STMTTRNRS><TRNUID>1001<STATUS><CODE>0<SEVERITY>INFO</STATUS><STMTRS><CURDEF>USD<BANKACCTFROM><BANKID>321180379<ACCTID>1234567890<ACCTTYPE>CHECKING</BANKACCTFROM><LEDGERBAL><BALAMT>1234.56<DTASOF>20161006125942.700[-7:PDT]</LEDGERBAL></STMTRS></STMTTRNRS></BANKMSGSRSV1>";
+            string bankBalanceFailure = "<BANKMSGSRSV1><STMTTRNRS><TRNUID>1001<STATUS><CODE>2003<SEVERITY>ERROR</STATUS></STMTTRNRS></BANKMSGSRSV1>";
+            string bankStatementSuccess = "";
+            string bankStatementFailure = bankBalanceFailure;
             
             // Sign On
             if (type == OFXRequestConfigRequestType.SignOn && !isSuccessful)
@@ -140,11 +177,11 @@ namespace Budget.Tests.Services.OFXClient
             {
                 if (isSuccessful)
                 {
-                    response += balanceSuccess;
+                    response += bankBalanceSuccess;
                 }
                 else
                 {
-                    response += balanceFailure;
+                    response += bankBalanceFailure;
                 }
             }
 
@@ -153,11 +190,11 @@ namespace Budget.Tests.Services.OFXClient
             {
                 if (isSuccessful)
                 {
-                    response += StatementSuccess;
+                    response += bankStatementSuccess;
                 }
                 else
                 {
-                    response += StatementFailure;
+                    response += bankStatementFailure;
                 }
             }
 
