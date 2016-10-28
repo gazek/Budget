@@ -64,6 +64,7 @@
     <Compile Include="Models\AccountModel.cs" />
     <Compile Include="Models\BalanceModel.cs" />
     <Compile Include="Models\FinancialInstitutionModel.cs" />
+    <Compile Include="Models\TransactionModel.cs" />
     <Compile Include="Models\UserAccountBindingModels.cs" />
     <Compile Include="Models\UserAccountViewModels.cs" />
     <Compile Include="Models\IdentityModels.cs" />
