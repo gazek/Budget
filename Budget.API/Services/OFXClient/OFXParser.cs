@@ -11,6 +11,12 @@ namespace Budget.API.Services.OFXClient
         public int Code { get; set; }
         public string Severity { get; set; }
         public string Message { get; set; }
+
+        public OFXResponseStatus()
+        {
+            Status = false;
+            Code = -1;
+        }
     }
 
     public class OFXParser
@@ -34,6 +40,8 @@ namespace Budget.API.Services.OFXClient
         // Statment
         public OFXResponseStatus StatmentRequest { get { return _statmentRequest; } }
         private OFXResponseStatus _statmentRequest;
+        public List<TransactionModel> StatementTransactions {  get { return _transactions; } }
+        private List<TransactionModel> _transactions;
 
         // internal OFX and XML Doc
         string _ofx;
@@ -51,7 +59,7 @@ namespace Budget.API.Services.OFXClient
             { "ccBalanceStatus", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/STATUS" },
             { "ccBalanceData", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/CCSTMTRS/LEDGERBAL" },
             { "bankStatementStatus", "OFX/BANKMSGSRSV1/STMTTRNRS/STATUS" },
-            { "bankStatementData", "OFX/CREDITCARDMSGSRSV1/STMTTRNRS/STMTRS/BANKTRANLIST" },
+            { "bankStatementData", "OFX/BANKMSGSRSV1/STMTTRNRS/STMTRS/BANKTRANLIST" },
             { "ccStatementStatus", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/STATUS" },
             { "ccStatementData", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/CCSTMTRS/BANKTRANLIST" },
             { "balanceStatus", "" },
@@ -59,7 +67,7 @@ namespace Budget.API.Services.OFXClient
             { "statementStatus", "" },
             { "statementData", "" }
         };
-        
+
         public OFXParser(string ofx)
         {
             _ofx = OFXTagCloser.CloseTags(ofx);
@@ -68,6 +76,7 @@ namespace Budget.API.Services.OFXClient
             _balanceRequest = new OFXResponseStatus();
             _statmentRequest = new OFXResponseStatus();
             _accounts = new List<AccountModel>();
+            _transactions = new List<TransactionModel>();
         }
 
         public void Parse()
@@ -123,7 +132,7 @@ namespace Budget.API.Services.OFXClient
                 return;
             }
 
-            if(_ofxType == "CC")
+            if (_ofxType == "CC")
             {
                 _ofxPath["balanceStatus"] = _ofxPath["ccBalanceStatus"];
                 _ofxPath["balanceData"] = _ofxPath["ccBalanceData"];
@@ -156,7 +165,12 @@ namespace Budget.API.Services.OFXClient
                 return false;
             }
         }
-
+        
+        private DateTime OfxDateToDateTime(string ofxDate)
+        {
+            return DateTime.Parse(ofxDate.Substring(0, 4) + "-" + ofxDate.Substring(4, 2) + "-" + ofxDate.Substring(6, 2));
+        }
+        
         /*
          *    S I G N O N
          */
@@ -439,11 +453,15 @@ namespace Budget.API.Services.OFXClient
             // get node of interest
             XmlNode node = _doc.SelectSingleNode(_ofxPath["balanceData"]);
 
+            // exit if node not found
+            if (node == null)
+            {
+                return;
+            }
+
             // get values from node
             decimal amount = decimal.Parse(node.SelectSingleNode("BALAMT").InnerText);
-            string rawDate = node.SelectSingleNode("DTASOF").InnerText;
-            rawDate = rawDate.Substring(0, 4) + "-" + rawDate.Substring(4, 2) + "-" + rawDate.Substring(6, 2);
-            DateTime date = DateTime.Parse(rawDate);
+            DateTime date = OfxDateToDateTime(node.SelectSingleNode("DTASOF").InnerText);
 
             // populate balance model
             BalanceModel balance = new BalanceModel();
@@ -566,15 +584,29 @@ namespace Budget.API.Services.OFXClient
 
             // create new XML Document containing only the tag of interest
             XmlDocument doc = new XmlDocument();
-            doc.LoadXml(node.ToString());
+            doc.LoadXml(node.OuterXml);
 
             // get all account elements
             XmlNodeList transactions = doc.GetElementsByTagName("STMTTRN");
 
             // populate list of transaction models
+            TransactionModel transModel;
             foreach (XmlNode t in transactions)
             {
-
+                // create new class instance
+                transModel = new TransactionModel();
+                // get amount
+                transModel.Amount = decimal.Parse(t.SelectSingleNode("TRNAMT").InnerText);
+                // get ref val
+                transModel.ReferenceValue = t.SelectSingleNode("FITID").InnerText;
+                // get date
+                transModel.Date = OfxDateToDateTime(t.SelectSingleNode("DTPOSTED").InnerText);
+                // get payee
+                transModel.OriginalPayeeName = t.SelectSingleNode("NAME").InnerText;
+                // get memo
+                transModel.OriginalMemo = t.SelectSingleNode("MEMO").InnerText;
+                // add transaction to list
+                _transactions.Add(transModel);
             }
         }
 
@@ -654,7 +686,7 @@ namespace Budget.API.Services.OFXClient
 
             // try to convert to int
             int code;
-            if (!Int32.TryParse(rawStatusCode, out code))
+            if (!int.TryParse(rawStatusCode, out code))
             {
                 status.Status = false;
                 status.Code = -1;
@@ -671,7 +703,7 @@ namespace Budget.API.Services.OFXClient
                 status.Message = message.InnerText;
             }
 
-            if (status.Code == 0 && status.Severity == "INFO")
+            if (status.Code == 0)
             {
                 status.Status = true;
             }
