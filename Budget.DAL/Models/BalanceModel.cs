@@ -7,10 +7,8 @@ namespace Budget.DAL.Models
 {
     public class BalanceModel
     {
-        [Required]
-        public int Id { get; set; }
-
         [Key]
+        [Column(Order = 1)]
         [Required]
         public int AccountId { get; set; }
 
@@ -18,6 +16,7 @@ namespace Budget.DAL.Models
         public decimal Amount { get; set; }
 
         [Key]
+        [Column(Order = 2)]
         [Required]
         [Display(Name = "Balance As Of Date")]
         public DateTime AsOfDate { get; set; }

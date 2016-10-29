@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace Budget.DAL.Models
 {
@@ -20,11 +21,13 @@ namespace Budget.DAL.Models
         public string Name { get; set; }
 
         [Key]
+        [Column(Order = 1)]
         [Required]
         [Display(Name = "Financial Institution ID")]
-        public int fiId { get; set; }
+        public int FiId { get; set; }
 
         [Key]
+        [Column(Order = 2)]
         [Required]
         [Display(Name = "Account Number")]
         public string Number { get; set; }
@@ -37,10 +40,8 @@ namespace Budget.DAL.Models
         [Display(Name = "Account Description")]
         public string Description { get; set; }
 
-        /*
         [Required]
-        public IEnumerable<Transaction> Transactions
-        */
+        public IEnumerable<TransactionModel> Transactions { get; set; }
 
         // needed for foreign key
         [ForeignKey("UserId")]

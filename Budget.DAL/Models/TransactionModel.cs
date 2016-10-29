@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -31,7 +30,6 @@ namespace Budget.DAL.Models
         [Required]
         public DateTime Date { get; set; }
 
-
         // Finncial institution provided name of payee
         public string OriginalPayeeName { get; set; }
 
@@ -39,6 +37,7 @@ namespace Budget.DAL.Models
         public string OriginalMemo { get; set; }
 
         [Required]
+        // TODO: set default value to current date
         public DateTime DateAdded { get; set; }
 
         //public IEnumerable<TransactionDetailModel> Details { get; set; }
