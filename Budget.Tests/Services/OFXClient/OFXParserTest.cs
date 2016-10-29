@@ -96,10 +96,10 @@ namespace Budget.Tests.Services.OFXClient
         }
 
         [TestMethod]
-        public void OFXParserBalanceSuccess()
+        public void OFXParserBankBalanceSuccess()
         {
             // Arrange
-            string ofx = GetOfxString(OFXRequestConfigRequestType.Balance, true);
+            string ofx = GetOfxString(OFXRequestConfigRequestType.Balance, true, "bank");
             OFXParser parser = new OFXParser(ofx);
 
             // Act
@@ -115,10 +115,10 @@ namespace Budget.Tests.Services.OFXClient
         }
 
         [TestMethod]
-        public void OFXParserBalanceFailure()
+        public void OFXParserBankBalanceFailure()
         {
             // Arrange
-            string ofx = GetOfxString(OFXRequestConfigRequestType.Balance, false);
+            string ofx = GetOfxString(OFXRequestConfigRequestType.Balance, false, "bank");
             OFXParser parser = new OFXParser(ofx);
 
             // Act
@@ -135,7 +135,7 @@ namespace Budget.Tests.Services.OFXClient
         public void OFXParserBankStatementSuccess()
         {
             // Arrange
-            string ofx = GetOfxString(OFXRequestConfigRequestType.Statement, true);
+            string ofx = GetOfxString(OFXRequestConfigRequestType.Statement, true, "bank");
             OFXParser parser = new OFXParser(ofx);
 
             // Act
@@ -161,7 +161,7 @@ namespace Budget.Tests.Services.OFXClient
         public void OFXParserBankStatementFailure()
         {
             // Arrange
-            string ofx = GetOfxString(OFXRequestConfigRequestType.Statement, false);
+            string ofx = GetOfxString(OFXRequestConfigRequestType.Statement, false, "bank");
             OFXParser parser = new OFXParser(ofx);
 
             // Act
@@ -174,15 +174,81 @@ namespace Budget.Tests.Services.OFXClient
             }
 
         [TestMethod]
+        public void OFXParserCCBalanceSuccess()
+        {
+            // Arrange
+            string ofx = GetOfxString(OFXRequestConfigRequestType.Balance, true, "cc");
+            OFXParser parser = new OFXParser(ofx);
+
+            // Act
+            parser.Parse();
+
+            // Assert
+            Assert.IsTrue(parser.BalanceRequest.Status);
+            Assert.AreEqual(0, parser.BalanceRequest.Code);
+            Assert.AreEqual("INFO", parser.BalanceRequest.Severity);
+            Assert.IsNotNull(parser.Balance);
+            Assert.AreEqual(-1234.56m, parser.Balance.Amount);
+            Assert.AreEqual(DateTime.Parse("2016-10-16"), parser.Balance.AsOfDate);
+        }
+
+        [TestMethod]
+        public void OFXParserCCBalanceFailure()
+        {
+            // Arrange
+            string ofx = GetOfxString(OFXRequestConfigRequestType.Balance, false, "cc");
+            OFXParser parser = new OFXParser(ofx);
+
+            // Act
+            parser.Parse();
+
+            // Assert
+            Assert.IsFalse(parser.BalanceRequest.Status);
+            Assert.AreNotEqual(0, parser.BalanceRequest.Code);
+            Assert.AreNotEqual("", parser.BalanceRequest.Severity);
+            Assert.IsNull(parser.Balance);
+        }
+
+        [TestMethod]
         public void OFXParserCCStatementSuccess()
         {
-            Assert.IsTrue(false);
+            // Arrange
+            string ofx = GetOfxString(OFXRequestConfigRequestType.Statement, true, "cc");
+            OFXParser parser = new OFXParser(ofx);
+
+            // Act
+            parser.Parse();
+
+            // Assert
+            Assert.IsNotNull(parser);
+            Assert.IsTrue(parser.StatmentRequest.Status);
+            Assert.AreEqual(2, parser.StatementTransactions.Count);
+            Assert.AreEqual(1234.56m, parser.StatementTransactions[0].Amount);
+            Assert.AreEqual(DateTime.Parse("2016-09-01"), parser.StatementTransactions[0].Date);
+            Assert.AreEqual("some memo", parser.StatementTransactions[0].OriginalMemo);
+            Assert.AreEqual("just a payee name", parser.StatementTransactions[0].OriginalPayeeName);
+            Assert.AreEqual("1234567891", parser.StatementTransactions[0].ReferenceValue);
+            Assert.AreEqual(-123.45m, parser.StatementTransactions[1].Amount);
+            Assert.AreEqual(DateTime.Parse("2016-09-01"), parser.StatementTransactions[1].Date);
+            Assert.AreEqual("POS Transaction--IN *PIGTAILS  CREWCUT 2219 NW ALLIE AVE SUITE503-3364778  O", parser.StatementTransactions[1].OriginalMemo);
+            Assert.AreEqual("IN *PIGTAILS  CREWCUT 2219 NW AL", parser.StatementTransactions[1].OriginalPayeeName);
+            Assert.AreEqual("1234567890", parser.StatementTransactions[1].ReferenceValue);
         }
 
         [TestMethod]
         public void OFXParserCCStatementFailure()
         {
-            Assert.IsTrue(false);
+            // Arrange
+            string ofx = GetOfxString(OFXRequestConfigRequestType.Statement, false, "cc");
+            OFXParser parser = new OFXParser(ofx);
+
+            // Act
+            parser.Parse();
+
+            // Assert
+            Assert.IsNotNull(parser);
+            Assert.IsFalse(parser.StatmentRequest.Status);
+            Assert.AreNotEqual(0, parser.StatmentRequest.Code);
         }
 
         private string GetOfxString(OFXRequestConfigRequestType type, bool isSuccessful, string fiType="bank")
@@ -206,10 +272,12 @@ namespace Budget.Tests.Services.OFXClient
             string trans2 = "<STMTTRN><TRNTYPE>DEBIT<DTPOSTED>20160901120000.000<DTAVAIL>20160901120000.000<TRNAMT>-123.45<FITID>1234567890<NAME>IN *PIGTAILS  CREWCUT 2219 NW AL<MEMO>POS Transaction--IN *PIGTAILS  CREWCUT 2219 NW ALLIE AVE SUITE503-3364778  O</STMTTRN>";
             string bankStatementSuccess = @"<BANKMSGSRSV1><STMTTRNRS><TRNUID>1001<STATUS><CODE>0<SEVERITY>INFO</STATUS><STMTRS><CURDEF>USD<BANKACCTFROM><BANKID>321180379<ACCTID>1234567890<ACCTTYPE>CHECKING</BANKACCTFROM><BANKTRANLIST><DTSTART>20160831170000.000[-7:PDT]<DTEND>20160930170000.000[-7:PDT]" + trans1 + trans2 + "</BANKTRANLIST><LEDGERBAL><BALAMT>1234.56<DTASOF>20161006125942.700[-7:PDT]</LEDGERBAL></STMTRS></STMTTRNRS></BANKMSGSRSV1>";
             string bankStatementFailure = bankBalanceFailure;
-            string ccStatementSuccess = "<CREDITCARDMSGSRSV1><CCSTMTTRNRS><TRNUID>1001<CCSTMTRS><CURDEF>USD<CCACCTFROM><ACCTID>1234567890</CCACCTFROM><BANKTRANLIST><DTSTART>20160829200000.000[-4:EDT]<DTEND>20160901200000.000[-4:EDT]" + trans1 + trans2 + "</BANKTRANLIST></CCSTMTRS></CCSTMTTRNRS></CREDITCARDMSGSRSV1>";
-            string ccStatementFailure = bankBalanceFailure;
-            string ccBalanceSuccess = "";
-            string ccBalanceFailure = "";
+            string ccBalance = "<LEDGERBAL><BALAMT>-1234.56<DTASOF>20161016120000[0:GMT]</LEDGERBAL><AVAILBAL><BALAMT>98765.43<DTASOF>20161016120000[0:GMT]</AVAILBAL>";
+            string ccBalanceSuccess = "<CREDITCARDMSGSRSV1><CCSTMTTRNRS><TRNUID>1001<STATUS><CODE>0<SEVERITY>INFO</STATUS><CCSTMTRS><CURDEF>USD<CCACCTFROM><ACCTID>1234567890</CCACCTFROM>"+ ccBalance + "</CCSTMTRS></CCSTMTTRNRS></CREDITCARDMSGSRSV1>";
+            string ccBalanceFailure = "<CREDITCARDMSGSRSV1><CCSTMTTRNRS><TRNUID>1001<STATUS><CODE>2003<SEVERITY>ERROR</STATUS><CCSTMTRS><CURDEF>USD<CCACCTFROM><ACCTID>1234567890</CCACCTFROM></CCSTMTRS></CCSTMTTRNRS></CREDITCARDMSGSRSV1>";
+            string ccStatementSuccess = "<CREDITCARDMSGSRSV1><CCSTMTTRNRS><TRNUID>1001<STATUS><CODE>0<SEVERITY>INFO</STATUS><CCSTMTRS><CURDEF>USD<CCACCTFROM><ACCTID>1234567890</CCACCTFROM><BANKTRANLIST><DTSTART>20160829200000.000[-4:EDT]<DTEND>20160901200000.000[-4:EDT]" + trans1 + trans2 + "</BANKTRANLIST></CCSTMTRS></CCSTMTTRNRS></CREDITCARDMSGSRSV1>";
+            string ccStatementFailure = ccBalanceFailure;
+            
 
             // Sign On
             if (type == OFXRequestConfigRequestType.SignOn && !isSuccessful)
