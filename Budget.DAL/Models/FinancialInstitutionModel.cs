@@ -25,6 +25,6 @@ namespace Budget.DAL.Models
 
         [Required]
         [Display(Name = "OFX Org Attribute")]
-        public string Org { get; set; }
+        public string OfxOrg { get; set; }
     }
 }
