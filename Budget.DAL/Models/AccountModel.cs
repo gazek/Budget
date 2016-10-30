@@ -24,7 +24,7 @@ namespace Budget.DAL.Models
         [Column(Order = 1)]
         [Required]
         [Display(Name = "Financial Institution ID")]
-        public int FiId { get; set; }
+        public int FinancialInstitutionId { get; set; }
 
         [Key]
         [Column(Order = 2)]
@@ -43,13 +43,11 @@ namespace Budget.DAL.Models
         [Required]
         public IEnumerable<TransactionModel> Transactions { get; set; }
 
-        // needed for foreign key
         [ForeignKey("UserId")]
         [JsonIgnore]
         public virtual IdentityUser Owner { get; set; }
 
-        // needed for foreign key
-        [ForeignKey("FiId")]
+        [ForeignKey("FinancialInstitutionId")]
         [JsonIgnore]
         public virtual FinancialInstitutionModel FinancialInstitution { get; set; }
     }
