@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -37,10 +38,12 @@ namespace Budget.DAL.Models
         public string OriginalMemo { get; set; }
 
         [Required]
-        // TODO: set default value to current date
         public DateTime DateAdded { get; set; }
 
-        //public IEnumerable<TransactionDetailModel> Details { get; set; }
+        [Required]
+        public TransactionMetaModel Meta { get; set; }
+        
+        public IEnumerable<TransactionDetailModel> Details { get; set; }
 
         [ForeignKey("AccountId")]
         [JsonIgnore]
