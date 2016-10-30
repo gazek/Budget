@@ -22,6 +22,9 @@ namespace Budget.DAL.Models
         [Required]
         public string PasswordHash { get; set; }
 
+        [ForeignKey("FinancialInstitutionId")]
+        public virtual FinancialInstitutionModel FinancialInstitution { get; set; }
+
         // User override of default value or forced inclusion of OFX Fields
         // null or empty string will cause default value to be used
         public string CLIENTUID { get; set; }
