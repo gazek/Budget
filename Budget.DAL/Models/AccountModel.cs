@@ -40,8 +40,9 @@ namespace Budget.DAL.Models
         [Display(Name = "Account Description")]
         public string Description { get; set; }
 
-        [Required]
         public IEnumerable<TransactionModel> Transactions { get; set; }
+
+        public IEnumerable<BalanceModel> BalanceHistory { get; set; }
 
         [ForeignKey("UserId")]
         [JsonIgnore]
