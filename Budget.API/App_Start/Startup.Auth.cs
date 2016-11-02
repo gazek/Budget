@@ -5,7 +5,7 @@ using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OAuth;
 using Owin;
 using Budget.API.Providers;
-using Budget.DAL.Models;
+using Budget.DAL;
 
 namespace Budget.API
 {
