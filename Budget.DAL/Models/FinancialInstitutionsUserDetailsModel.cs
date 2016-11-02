@@ -8,6 +8,7 @@ namespace Budget.DAL.Models
         [Key]
         [Column(Order = 1)]
         [Required]
+        [Display(Name = "OFX FID Attribute")]
         public FinancialInstitutionModel FinancialInstitutionId { get; set; }
 
         [Key]
