@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Budget.DAL.Models
 {
@@ -10,6 +11,14 @@ namespace Budget.DAL.Models
 
         [Required]
         public string Name { get; set; }
+
+        [Required]
+        [Display(Name = "User ID")]
+        public string UserId { get; set; }
+
+        public IEnumerable<PayeeDefaultDetails> DefaultDetails { get; set; }
+
+        public IEnumerable<ImportNameToPayeeModel> ImportNames { get; set; }
 
     }
 }
