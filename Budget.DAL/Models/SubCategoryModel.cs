@@ -7,12 +7,10 @@ namespace Budget.DAL.Models
     public class SubCategoryModel
     {
         [Key]
-        [Column(Order = 1)]
         [Required]
+        [Index(IsUnique = true)]
         public int Id { get; set; }
 
-        [Key]
-        [Column(Order = 2)]
         [Required]
         public int CategoryId { get; set; }
 

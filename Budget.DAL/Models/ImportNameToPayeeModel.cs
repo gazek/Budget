@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -15,7 +14,7 @@ namespace Budget.DAL.Models
         [Key]
         [Column(Order = 2)]
         [Required]
-        public String ImportName { get; set; }
+        public string ImportName { get; set; }
 
         [ForeignKey("PayeeId")]
         [JsonIgnore]

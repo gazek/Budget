@@ -8,11 +8,13 @@ namespace Budget.DAL.Models
 {
     public class AccountModel
     {
+        [Key]
         [Required]
+        [Index(IsUnique = true)]
         [Display(Name = "Account ID")]
         public int Id { get; set; }
 
-        // ID of account owner
+        // App ID of account owner
         [Required]
         [Display(Name = "User ID")]
         public string UserId { get; set; }
@@ -20,14 +22,10 @@ namespace Budget.DAL.Models
         [Display(Name = "Account Name")]
         public string Name { get; set; }
 
-        [Key]
-        [Column(Order = 1)]
         [Required]
         [Display(Name = "Financial Institution ID")]
         public int FinancialInstitutionId { get; set; }
 
-        [Key]
-        [Column(Order = 2)]
         [Required]
         [Display(Name = "Account Number")]
         public string Number { get; set; }
@@ -46,7 +44,7 @@ namespace Budget.DAL.Models
 
         [ForeignKey("UserId")]
         [JsonIgnore]
-        public virtual IdentityUser Owner { get; set; }
+        public virtual IdentityUser User { get; set; }
 
         [ForeignKey("FinancialInstitutionId")]
         [JsonIgnore]

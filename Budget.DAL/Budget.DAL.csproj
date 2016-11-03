@@ -61,11 +61,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Context\AppDbContext.cs" />
-    <Compile Include="Context\IAppDbContext.cs" />
+    <Compile Include="Context\ApplicationDbContext.cs" />
+    <Compile Include="Context\IApplicationDbContext.cs" />
     <Compile Include="Models\AccountModel.cs" />
     <Compile Include="Models\BalanceModel.cs" />
-    <Compile Include="Models\FinancialInstitutionsUserDetailsModel.cs" />
     <Compile Include="Models\PayeeDefaultDetails.cs" />
     <Compile Include="Models\ImportNameToPayeeModel.cs" />
     <Compile Include="Models\CategoryModel.cs" />
@@ -73,7 +72,6 @@
     <Compile Include="Models\SubCategoryModel.cs" />
     <Compile Include="Models\PayeeModel.cs" />
     <Compile Include="Models\TransactionDetailModel.cs" />
-    <Compile Include="Models\TransactionMetaModel.cs" />
     <Compile Include="Models\TransactionModel.cs" />
     <Compile Include="Models\UserAccountBindingModels.cs" />
     <Compile Include="Models\UserAccountViewModels.cs" />
@@ -86,7 +84,6 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

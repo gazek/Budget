@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.AspNet.Identity.EntityFramework;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Budget.DAL.Models
 {
@@ -7,6 +10,7 @@ namespace Budget.DAL.Models
     {
         [Key]
         [Required]
+        [Index(IsUnique = true)]
         public int Id { get; set; }
 
         [Required]
@@ -16,9 +20,14 @@ namespace Budget.DAL.Models
         [Display(Name = "User ID")]
         public string UserId { get; set; }
 
+        [Required]
         public IEnumerable<PayeeDefaultDetails> DefaultDetails { get; set; }
 
+        [Required]
         public IEnumerable<ImportNameToPayeeModel> ImportNames { get; set; }
 
+        [ForeignKey("UserId")]
+        [JsonIgnore]
+        public virtual IdentityUser User { get; set; }
     }
 }

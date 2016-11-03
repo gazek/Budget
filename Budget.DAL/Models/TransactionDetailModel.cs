@@ -12,10 +12,6 @@ namespace Budget.DAL.Models
         public int TransactionId { get; set; }
 
         [Key]
-        [Column(Order = 2)]
-        public int PayeeId { get; set; }
-
-        [Key]
         [Column(Order = 3)]
         public int CategoryId { get; set; }
 
@@ -29,26 +25,21 @@ namespace Budget.DAL.Models
 
         public string Memo { get; set; }
 
+        [Required]
         public DateTime LastEditDate { get; set; }
 
         [ForeignKey("TransactionId")]
         [JsonIgnore]
         public TransactionModel Transaction { get; set; }
-        /*
-        [ForeignKey("PayeeId")]
-        [JsonIgnore]
-        public PayeeModel Payee { get; set; }
-        */
-        /*
+        
         [ForeignKey("CategoryId")]
         [JsonIgnore]
-        public CategoryModel CategoryId { get; set; }
-        */
-        /*
+        public CategoryModel Category { get; set; }
+        
         [ForeignKey("SubCategoryId")]
         [JsonIgnore]
         public SubCategoryModel SubCategory { get; set; }
-        */
+        
         [ForeignKey("TransferTransactionId")]
         [JsonIgnore]
         public TransactionModel TransferMatch { get; set; }
