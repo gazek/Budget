@@ -8,23 +8,21 @@ namespace Budget.DAL.Models
 {
     public class TransactionModel
     {
+        [Key]
         [Required]
         [Index(IsUnique = true)]
         public int Id { get; set; }
 
-        [Key]
-        [Column(Order = 1)]
+        [Index("IX_AccountIdReferenceValueAndDate", 1, IsUnique = true)]
         [Required]
         public int AccountId { get; set; }
 
-        [Key]
-        [Column(Order = 2)]
+        [Index("IX_AccountIdReferenceValueAndDate", 2, IsUnique = true)]
         [Required]
         // Finncial institution provided transaction reference value/identifier
-        public string ReferenceValue { get; set; }
+        public int ReferenceValue { get; set; }
 
-        [Key]
-        [Column(Order = 3)]
+        [Index("IX_AccountIdReferenceValueAndDate", 3, IsUnique = true)]
         [Required]
         public DateTime Date { get; set; }
 
@@ -55,7 +53,7 @@ namespace Budget.DAL.Models
         public DateTime LastEditDate { get; set; }
 
         [Required]
-        public IEnumerable<TransactionDetailModel> Details { get; set; }
+        public ICollection<TransactionDetailModel> Details { get; set; }
 
         [ForeignKey("AccountId")]
         [JsonIgnore]
