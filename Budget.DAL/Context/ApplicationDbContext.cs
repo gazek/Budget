@@ -28,6 +28,8 @@ namespace Budget.DAL
                 .HasForeignKey(a => a.UserId)
                 .WillCascadeOnDelete(false);
 
+            modelBuilder.Entity<BalanceModel>();
+
             modelBuilder.Entity<CategoryModel>()
                 .HasRequired<IdentityUser>(c => c.User)
                 .WithMany()
@@ -40,11 +42,29 @@ namespace Budget.DAL
                 .HasForeignKey(fi => fi.UserId)
                 .WillCascadeOnDelete(false);
 
+            modelBuilder.Entity<ImportNameToPayeeModel>();
+
+            modelBuilder.Entity<PayeeDefaultDetails>();
+
             modelBuilder.Entity<PayeeModel>()
                 .HasRequired<IdentityUser>(p => p.User)
                 .WithMany()
                 .HasForeignKey(p => p.UserId)
                 .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<SubCategoryModel>()
+                .HasRequired(s => s.Category)
+                .WithMany()
+                .HasForeignKey(c => c.CategoryId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<TransactionDetailModel>()
+                .HasRequired(d => d.TransferMatch)
+                .WithMany()
+                .HasForeignKey(m => m.TransferTransactionId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<TransactionModel>();
         }
 
         public static ApplicationDbContext Create()
