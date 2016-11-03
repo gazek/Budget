@@ -19,10 +19,12 @@ namespace Budget.DAL.Models
         [Column(Order = 4)]
         public int SubCategoryId { get; set; }
 
+        [Required]
         public decimal Amount { get; set; }
 
         public int TransferTransactionId { get; set; }
 
+        [StringLength(400)]
         public string Memo { get; set; }
 
         [Required]

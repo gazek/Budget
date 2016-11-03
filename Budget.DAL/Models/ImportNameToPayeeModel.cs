@@ -14,6 +14,7 @@ namespace Budget.DAL.Models
         [Key]
         [Column(Order = 2)]
         [Required]
+        [StringLength(100)]
         public string ImportName { get; set; }
 
         [ForeignKey("PayeeId")]

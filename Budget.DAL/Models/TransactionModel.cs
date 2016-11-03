@@ -9,8 +9,6 @@ namespace Budget.DAL.Models
     public class TransactionModel
     {
         [Key]
-        [Required]
-        [Index(IsUnique = true)]
         public int Id { get; set; }
 
         [Index("IX_AccountIdReferenceValueAndDate", 1, IsUnique = true)]
@@ -19,8 +17,9 @@ namespace Budget.DAL.Models
 
         [Index("IX_AccountIdReferenceValueAndDate", 2, IsUnique = true)]
         [Required]
+        [StringLength(100)]
         // Finncial institution provided transaction reference value/identifier
-        public int ReferenceValue { get; set; }
+        public string ReferenceValue { get; set; }
 
         [Index("IX_AccountIdReferenceValueAndDate", 3, IsUnique = true)]
         [Required]
@@ -31,10 +30,12 @@ namespace Budget.DAL.Models
 
         // Finncial institution provided name of payee
         [Required]
+        [StringLength(200)]
         public string OriginalPayeeName { get; set; }
 
         // Finncial institution provided memo
         [Required]
+        [StringLength(200)]
         public string OriginalMemo { get; set; }
 
         [Required]
@@ -45,6 +46,7 @@ namespace Budget.DAL.Models
 
         public int TopPayeeId { get; set; }
 
+        [StringLength(400)]
         public string TopMemo { get; set; }
 
         public int CheckNum { get; set; }
@@ -52,7 +54,6 @@ namespace Budget.DAL.Models
         [Required]
         public DateTime LastEditDate { get; set; }
 
-        [Required]
         public ICollection<TransactionDetailModel> Details { get; set; }
 
         [ForeignKey("AccountId")]

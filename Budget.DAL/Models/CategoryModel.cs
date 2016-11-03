@@ -8,18 +8,19 @@ namespace Budget.DAL.Models
     public class CategoryModel
     {
         [Key]
-        [Required]
-        [Index(IsUnique = true)]
+        [Display(Name = "Category ID")]
         public int Id { get; set; }
 
         [Required]
+        [Index("IX_NameUsderId", 1, IsUnique = true)]
+        [StringLength(100)]
         public string Name { get; set; }
 
         [Required]
+        [Index("IX_NameUsderId", 2, IsUnique = true)]
         public string UserId { get; set; }
 
-        [Required]
-        public IEnumerable<SubCategoryModel> SubCategories { get; set; }
+        public ICollection<SubCategoryModel> SubCategories { get; set; }
 
         [ForeignKey("UserId")]
         [JsonIgnore]

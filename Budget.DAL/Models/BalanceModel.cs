@@ -8,14 +8,15 @@ namespace Budget.DAL.Models
     public class BalanceModel
     {
         [Key]
-        [Column(Order = 1)]
+        [Display(Name = "Balance ID")]
+        public int Id { get; set; }
+
         [Required]
-        [Index(IsUnique = true)]
+        [Index("IX_AccountIdAsOfDate", 1, IsUnique = true)]
         public int AccountId { get; set; }
 
-        [Key]
-        [Column(Order = 2)]
         [Required]
+        [Index("IX_AccountIdAsOfDate", 2, IsUnique = true)]
         [Display(Name = "Balance As Of Date")]
         public DateTime AsOfDate { get; set; }
 
@@ -24,7 +25,7 @@ namespace Budget.DAL.Models
 
         [ForeignKey("AccountId")]
         [JsonIgnore]
-        public AccountModel Account { get; set; }
+        public virtual AccountModel Account { get; set; }
 
     }
 }
