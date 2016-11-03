@@ -6,18 +6,11 @@ namespace Budget.API.Services.OFXClient
 {
     public class OFXRequestBuilder
     {
-        public string Header { get { return _header; } }
-        string _header;
+        public string Header { get; private set; }
+        public string Body { get; private set; }
+        public string Request { get; private set; }
+        public OFXRequestConfig Config { get; private set; }
 
-        public string Body { get { return _body; } }
-        string _body;
-
-        public string Request { get { return _request; } }
-        string _request;
-
-        public OFXRequestConfig Config { get { return _config; } }
-        OFXRequestConfig _config;
-        
         // TODO: move this to a config
         string _APPID = "QWIN";
         string _APPVER = "2200";
@@ -37,10 +30,10 @@ namespace Budget.API.Services.OFXClient
 
         public OFXRequestBuilder(OFXRequestConfig config)
         {
-            _config = config;
-            if (_config.ClientUID != new Guid())
+            Config = config;
+            if (Config.ClientUID != new Guid())
             {
-                _CLIENTUID = _config.ClientUID.ToString();
+                _CLIENTUID = Config.ClientUID.ToString();
             }
             buildHeader();
             buildBody();
@@ -62,7 +55,7 @@ namespace Budget.API.Services.OFXClient
             headerList.Add(new List<string> { "NEWFILEUID", _NEWFILEUID });
 
             // build request header string
-            _header = string.Join(" ", headerList.Select(x => string.Join(":", x)).ToArray());
+            Header = string.Join(" ", headerList.Select(x => string.Join(":", x)).ToArray());
         }
 
         string buildBodyFI()
@@ -70,8 +63,8 @@ namespace Budget.API.Services.OFXClient
             // set OFX request body FI contents
             List<List<string>> fiList = new List<List<string>>();
             fiList.Add(new List<string> { "<FI>" });
-            fiList.Add(new List<string> { "<ORG>", _config.InstitutionName });
-            fiList.Add(new List<string> { "<FID>", _config.InstitutionId.ToString() });
+            fiList.Add(new List<string> { "<ORG>", Config.InstitutionName });
+            fiList.Add(new List<string> { "<FID>", Config.InstitutionId.ToString() });
             fiList.Add(new List<string> { "</FI>" });
 
             // build request body FI string
@@ -88,8 +81,8 @@ namespace Budget.API.Services.OFXClient
             signonList.Add(new List<string> { "<SIGNONMSGSRQV1>" });
             signonList.Add(new List<string> { "<SONRQ>" });
             signonList.Add(new List<string> { "<DTCLIENT>", date });
-            signonList.Add(new List<string> { "<USERID>", _config.UserId });
-            signonList.Add(new List<string> { "<USERPASS>", _config.password });
+            signonList.Add(new List<string> { "<USERID>", Config.UserId });
+            signonList.Add(new List<string> { "<USERPASS>", Config.password });
             signonList.Add(new List<string> { "<LANGUAGE>", _LANGUAGE });
             signonList.Add(new List<string> { fi });
             signonList.Add(new List<string> { "<APPID>", _APPID });
@@ -107,7 +100,7 @@ namespace Budget.API.Services.OFXClient
 
         string buildBodyAcctFrom()
         {
-            if (_config.AccountType == OFXRequestConfigAccountType.CREDITCARD)
+            if (Config.AccountType == OFXRequestConfigAccountType.CREDITCARD)
             {
                 return buildBodyAcctFromCC();
             }
@@ -122,9 +115,9 @@ namespace Budget.API.Services.OFXClient
             // set OFX request body AcctFrom contents
             List<List<string>> AcctFromList = new List<List<string>>();
             AcctFromList.Add(new List<string> { "<BANKACCTFROM>" });
-            AcctFromList.Add(new List<string> { "<BANKID>", _config.InstitutionRoutingNumber.ToString() });
-            AcctFromList.Add(new List<string> { "<ACCTID>", _config.AccountNumber });
-            AcctFromList.Add(new List<string> { "<ACCTTYPE>", _config.AccountType.ToString() });
+            AcctFromList.Add(new List<string> { "<BANKID>", Config.InstitutionRoutingNumber.ToString() });
+            AcctFromList.Add(new List<string> { "<ACCTID>", Config.AccountNumber });
+            AcctFromList.Add(new List<string> { "<ACCTTYPE>", Config.AccountType.ToString() });
             AcctFromList.Add(new List<string> { "</BANKACCTFROM>" });
 
             // build request body AcctFrom string
@@ -136,7 +129,7 @@ namespace Budget.API.Services.OFXClient
             // set OFX request body AcctFrom contents
             List<List<string>> AcctFromList = new List<List<string>>();
             AcctFromList.Add(new List<string> { "<CCACCTFROM>" });
-            AcctFromList.Add(new List<string> { "<ACCTID>", _config.AccountNumber });
+            AcctFromList.Add(new List<string> { "<ACCTID>", Config.AccountNumber });
             AcctFromList.Add(new List<string> { "</CCACCTFROM>" });
 
             // build request body AcctFrom string
@@ -146,7 +139,7 @@ namespace Budget.API.Services.OFXClient
         string buildBodyIncTran()
         {
             string include = "N";
-            if (_config.RequestType == OFXRequestConfigRequestType.Statement)
+            if (Config.RequestType == OFXRequestConfigRequestType.Statement)
             {
                 include = "Y";
             }
@@ -154,8 +147,8 @@ namespace Budget.API.Services.OFXClient
             // set OFX request body IncTran contents
             List<List<string>> IncTranList = new List<List<string>>();
             IncTranList.Add(new List<string> { "<INCTRAN>" });
-            IncTranList.Add(new List<string> { "<DTSTART>", _config.StartDate.ToString("yyyyMMdd") });
-            IncTranList.Add(new List<string> { "<DTEND>", _config.EndDate.ToString("yyyyMMdd") });
+            IncTranList.Add(new List<string> { "<DTSTART>", Config.StartDate.ToString("yyyyMMdd") });
+            IncTranList.Add(new List<string> { "<DTEND>", Config.EndDate.ToString("yyyyMMdd") });
             IncTranList.Add(new List<string> { "<INCLUDE>" , include });
             IncTranList.Add(new List<string> { "</INCTRAN>" });
 
@@ -170,7 +163,7 @@ namespace Budget.API.Services.OFXClient
             string MSGSRQ = "BANKMSGSRQV1>";
             string STMTTRNRQ = "STMTTRNRQ>";
             string STMTRQ = "STMTRQ>";
-            if (_config.AccountType == OFXRequestConfigAccountType.CREDITCARD)
+            if (Config.AccountType == OFXRequestConfigAccountType.CREDITCARD)
             {
                 MSGSRQ = "CREDITCARDMSGSRQV1>";
                 STMTTRNRQ = "CCSTMTTRNRQ>";
@@ -214,7 +207,7 @@ namespace Budget.API.Services.OFXClient
         {
             string signon = buildBodySignon();
             string msgSRq = "";
-            switch (_config.RequestType)
+            switch (Config.RequestType)
             {
                 case OFXRequestConfigRequestType.Statement:
                     msgSRq = buildBodyMsgSRq();
@@ -238,12 +231,12 @@ namespace Budget.API.Services.OFXClient
             bodyList.Add(new List<string> { "</OFX>" });
 
             // build request body Message Set Request string
-            _body = string.Join("", bodyList.Select(x => string.Join("", x)).ToArray());
+            Body = string.Join("", bodyList.Select(x => string.Join("", x)).ToArray());
         }
 
         private void buildRequest()
         {
-            _request = _header + "\n\n" + _body;
+            Request = Header + "\n\n" + Body;
         }
 
     }

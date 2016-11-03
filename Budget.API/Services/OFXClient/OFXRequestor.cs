@@ -4,26 +4,13 @@ namespace Budget.API.Services.OFXClient
 {
     public class OFXRequestor
     {
-        public string Response { get { return _response; } }
-        private string _response;
-
-        public string Header { get { return _header; } }
-        private string _header;
-
-        public string OFX  {  get { return _ofx; } }
-        private string _ofx;
-
-        public bool Status { get { return _status; } }
-        private bool _status;
-
-        public string ErrorMessage { get { return _errorMessage; } }
-        private string _errorMessage;
-
-        public HttpStatusCode StatusCode { get { return _statusCode; } }
-        private HttpStatusCode _statusCode;
-
-        public string StatusDescription { get { return _statusDescription; } }
-        private string _statusDescription;
+        public string Response { get; private set; }
+        public string Header { get; private set; }
+        public string OFX { get; private set; }
+        public bool Status { get; private set; }
+        public string ErrorMessage { get; private set; }
+        public HttpStatusCode StatusCode { get; private set; }
+        public string StatusDescription { get; private set; }
 
         OFXRequestConfig _config;
         OFXRequestBuilder _requestBuilder;
@@ -32,13 +19,13 @@ namespace Budget.API.Services.OFXClient
         {
             _requestBuilder = requestBuilder;
             _config = requestBuilder.Config;
-            _status = false;
+            Status = false;
         }
 
         public void Post()
         {
             PostToFinancialInsitution();
-            if (_status && _response != null)
+            if (Status && Response != null)
             {
                 PartitionResponse();
             }
@@ -52,32 +39,32 @@ namespace Budget.API.Services.OFXClient
                 client.Headers.Set("Content-Type", "application/x-ofx");
                 try
                 {
-                    _response = client.UploadString(_config.URL.AbsoluteUri, _requestBuilder.Request);
-                    _status = true;
+                    Response = client.UploadString(_config.URL.AbsoluteUri, _requestBuilder.Request);
+                    Status = true;
                 }
                 catch(WebException e)
                 {
-                    _status = false;
-                    _errorMessage = e.Message;
-                    _statusCode = ((HttpWebResponse)e.Response).StatusCode;
-                    _statusDescription = ((HttpWebResponse)e.Response).StatusDescription;
+                    Status = false;
+                    ErrorMessage = e.Message;
+                    StatusCode = ((HttpWebResponse)e.Response).StatusCode;
+                    StatusDescription = ((HttpWebResponse)e.Response).StatusDescription;
                 }
             }
         }
 
         void PartitionResponse()
         {
-            int ofxStartIndex = _response.IndexOf("<OFX>");
-            int ofxEndIndex = _response.IndexOf("</OFX>") + "</OFX>".Length;
+            int ofxStartIndex = Response.IndexOf("<OFX>");
+            int ofxEndIndex = Response.IndexOf("</OFX>") + "</OFX>".Length;
 
             if (ofxStartIndex >= 0)
             {
-                _header = _response.Substring(0, ofxStartIndex);
+                Header = Response.Substring(0, ofxStartIndex);
             }
 
             if (ofxStartIndex >= 0 && ofxEndIndex > ofxStartIndex)
             {
-                _ofx = _response.Substring(ofxStartIndex, ofxEndIndex - ofxStartIndex);
+                OFX = Response.Substring(ofxStartIndex, ofxEndIndex - ofxStartIndex);
             }
         }
     }
