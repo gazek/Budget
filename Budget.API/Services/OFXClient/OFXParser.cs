@@ -591,7 +591,7 @@ namespace Budget.API.Services.OFXClient
                 // get amount
                 transModel.Amount = decimal.Parse(t.SelectSingleNode("TRNAMT").InnerText);
                 // get ref val
-                transModel.ReferenceValue = Int32.Parse(t.SelectSingleNode("FITID").InnerText);
+                transModel.ReferenceValue = t.SelectSingleNode("FITID").InnerText;
                 // get date
                 transModel.Date = OfxDateToDateTime(t.SelectSingleNode("DTPOSTED").InnerText);
                 // get payee
