@@ -42,7 +42,7 @@ namespace Budget.DAL.Models
 
         [ForeignKey("UserId")]
         [JsonIgnore]
-        public virtual IdentityUser User { get; set; }
+        public virtual ApplicationUser User { get; set; }
 
         // User override of default value or forced inclusion of OFX Fields
         // null or empty string will cause default value to be used

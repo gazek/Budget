@@ -28,6 +28,6 @@ namespace Budget.DAL.Models
 
         [ForeignKey("UserId")]
         [JsonIgnore]
-        public virtual IdentityUser User { get; set; }
+        public virtual ApplicationUser User { get; set; }
     }
 }
