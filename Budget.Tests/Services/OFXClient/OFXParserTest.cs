@@ -149,12 +149,12 @@ namespace Budget.Tests.Services.OFXClient
             Assert.AreEqual(DateTime.Parse("2016-09-01"), parser.StatementTransactions[0].Date);
             Assert.AreEqual("some memo", parser.StatementTransactions[0].OriginalMemo);
             Assert.AreEqual("just a payee name", parser.StatementTransactions[0].OriginalPayeeName);
-            Assert.AreEqual("1234567891", parser.StatementTransactions[0].ReferenceValue);
+            Assert.AreEqual(1234567891, parser.StatementTransactions[0].ReferenceValue);
             Assert.AreEqual(-123.45m, parser.StatementTransactions[1].Amount);
             Assert.AreEqual(DateTime.Parse("2016-09-01"), parser.StatementTransactions[1].Date);
             Assert.AreEqual("POS Transaction--IN *PIGTAILS  CREWCUT 2219 NW ALLIE AVE SUITE503-3364778  O", parser.StatementTransactions[1].OriginalMemo);
             Assert.AreEqual("IN *PIGTAILS  CREWCUT 2219 NW AL", parser.StatementTransactions[1].OriginalPayeeName);
-            Assert.AreEqual("1234567890", parser.StatementTransactions[1].ReferenceValue);
+            Assert.AreEqual(1234567890, parser.StatementTransactions[1].ReferenceValue);
         }
 
         [TestMethod]
@@ -227,12 +227,12 @@ namespace Budget.Tests.Services.OFXClient
             Assert.AreEqual(DateTime.Parse("2016-09-01"), parser.StatementTransactions[0].Date);
             Assert.AreEqual("some memo", parser.StatementTransactions[0].OriginalMemo);
             Assert.AreEqual("just a payee name", parser.StatementTransactions[0].OriginalPayeeName);
-            Assert.AreEqual("1234567891", parser.StatementTransactions[0].ReferenceValue);
+            Assert.AreEqual(1234567891, parser.StatementTransactions[0].ReferenceValue);
             Assert.AreEqual(-123.45m, parser.StatementTransactions[1].Amount);
             Assert.AreEqual(DateTime.Parse("2016-09-01"), parser.StatementTransactions[1].Date);
             Assert.AreEqual("POS Transaction--IN *PIGTAILS  CREWCUT 2219 NW ALLIE AVE SUITE503-3364778  O", parser.StatementTransactions[1].OriginalMemo);
             Assert.AreEqual("IN *PIGTAILS  CREWCUT 2219 NW AL", parser.StatementTransactions[1].OriginalPayeeName);
-            Assert.AreEqual("1234567890", parser.StatementTransactions[1].ReferenceValue);
+            Assert.AreEqual(1234567890, parser.StatementTransactions[1].ReferenceValue);
         }
 
         [TestMethod]
