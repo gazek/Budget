@@ -22,26 +22,19 @@ namespace Budget.API.Services.OFXClient
     public class OFXParser
     {
         // SignOn
-        public OFXResponseStatus SignOnRequest { get { return _signOnRequest; } }
-        private OFXResponseStatus _signOnRequest;
+        public OFXResponseStatus SignOnRequest { get; private set; }
 
         // Account List
-        public OFXResponseStatus AccountListRequest { get { return _accountListRequest; } }
-        private OFXResponseStatus _accountListRequest;
-        public List<AccountModel> Accounts { get { return _accounts; } }
-        private List<AccountModel> _accounts;
+        public OFXResponseStatus AccountListRequest { get; private set; }
+        public List<AccountModel> Accounts { get; private set; }
 
         // Balance
-        public OFXResponseStatus BalanceRequest { get { return _balanceRequest; } }
-        private OFXResponseStatus _balanceRequest;
-        public BalanceModel Balance { get { return _balance; } }
-        private BalanceModel _balance;
+        public OFXResponseStatus BalanceRequest { get; private set; }
+        public BalanceModel Balance { get; private set; }
 
         // Statment
-        public OFXResponseStatus StatmentRequest { get { return _statmentRequest; } }
-        private OFXResponseStatus _statmentRequest;
-        public List<TransactionModel> StatementTransactions {  get { return _transactions; } }
-        private List<TransactionModel> _transactions;
+        public OFXResponseStatus StatmentRequest { get; private set; }
+        public List<TransactionModel> StatementTransactions { get; private set; }
 
         // internal OFX and XML Doc
         string _ofx;
@@ -71,12 +64,12 @@ namespace Budget.API.Services.OFXClient
         public OFXParser(string ofx)
         {
             _ofx = OFXTagCloser.CloseTags(ofx);
-            _signOnRequest = new OFXResponseStatus();
-            _accountListRequest = new OFXResponseStatus();
-            _balanceRequest = new OFXResponseStatus();
-            _statmentRequest = new OFXResponseStatus();
-            _accounts = new List<AccountModel>();
-            _transactions = new List<TransactionModel>();
+            SignOnRequest = new OFXResponseStatus();
+            AccountListRequest = new OFXResponseStatus();
+            BalanceRequest = new OFXResponseStatus();
+            StatmentRequest = new OFXResponseStatus();
+            Accounts = new List<AccountModel>();
+            StatementTransactions = new List<TransactionModel>();
         }
 
         public void Parse()
@@ -95,7 +88,7 @@ namespace Budget.API.Services.OFXClient
             SetStatementNodePaths();
 
             // Continue if signon was successfull
-            if (_signOnRequest.Status)
+            if (SignOnRequest.Status)
             {
                 // look for account list response to parse
                 ParseAccountList();
@@ -203,7 +196,7 @@ namespace Budget.API.Services.OFXClient
             // Check if element exists
             if (!StatusPathExists(_ofxPath["signOnStatus"]))
             {
-                _signOnRequest.Status = false;
+                SignOnRequest.Status = false;
                 return;
             }
 
@@ -211,7 +204,7 @@ namespace Budget.API.Services.OFXClient
             XmlNode status = _doc.SelectSingleNode(_ofxPath["signOnStatus"]);
 
             // parse signon info
-            ParseStatus(status, _signOnRequest);
+            ParseStatus(status, SignOnRequest);
         }
 
         /*
@@ -230,7 +223,7 @@ namespace Budget.API.Services.OFXClient
             ParseAccountListStatus();
 
             // parse data
-            if (_accountListRequest.Status)
+            if (AccountListRequest.Status)
             {
                 ParseAccountListData();
             }
@@ -242,7 +235,7 @@ namespace Budget.API.Services.OFXClient
             XmlNode status = _doc.SelectSingleNode(_ofxPath["accountListStatus"]);
 
             // parse status node
-            ParseStatus(status, _accountListRequest);
+            ParseStatus(status, AccountListRequest);
         }
 
         private void ParseAccountListData()
@@ -363,7 +356,7 @@ namespace Budget.API.Services.OFXClient
                 }
 
                 // add to list
-                _accounts.Add(currentAccount);
+                Accounts.Add(currentAccount);
             }
         }
 
@@ -383,7 +376,7 @@ namespace Budget.API.Services.OFXClient
             ParseBalanceStatus();
 
             // parse balance
-            if (_balanceRequest.Status)
+            if (BalanceRequest.Status)
             {
                 ParseBalanceData();
             }
@@ -395,7 +388,7 @@ namespace Budget.API.Services.OFXClient
             XmlNode status = _doc.SelectSingleNode(_ofxPath["balanceStatus"]);
 
             // parse status node
-            ParseStatus(status, _balanceRequest);
+            ParseStatus(status, BalanceRequest);
         }
 
         private void ParseBalanceData()
@@ -469,7 +462,7 @@ namespace Budget.API.Services.OFXClient
             balance.AsOfDate = date;
 
             // add balance to property
-            _balance = balance;
+            Balance = balance;
         }
 
         /*
@@ -488,7 +481,7 @@ namespace Budget.API.Services.OFXClient
             ParseStatementStatus();
 
             // parse statement
-            if (_statmentRequest.Status)
+            if (StatmentRequest.Status)
             {
                 ParseStatementData();
             }
@@ -500,7 +493,7 @@ namespace Budget.API.Services.OFXClient
             XmlNode status = _doc.SelectSingleNode(_ofxPath["statementStatus"]);
 
             // parse status node
-            ParseStatus(status, _statmentRequest);
+            ParseStatus(status, StatmentRequest);
         }
 
         private void ParseStatementData()
@@ -598,7 +591,7 @@ namespace Budget.API.Services.OFXClient
                 // get amount
                 transModel.Amount = decimal.Parse(t.SelectSingleNode("TRNAMT").InnerText);
                 // get ref val
-                transModel.ReferenceValue = t.SelectSingleNode("FITID").InnerText;
+                transModel.ReferenceValue = Int32.Parse(t.SelectSingleNode("FITID").InnerText);
                 // get date
                 transModel.Date = OfxDateToDateTime(t.SelectSingleNode("DTPOSTED").InnerText);
                 // get payee
@@ -606,7 +599,7 @@ namespace Budget.API.Services.OFXClient
                 // get memo
                 transModel.OriginalMemo = t.SelectSingleNode("MEMO").InnerText;
                 // add transaction to list
-                _transactions.Add(transModel);
+                StatementTransactions.Add(transModel);
             }
         }
 
