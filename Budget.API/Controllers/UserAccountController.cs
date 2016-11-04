@@ -19,17 +19,17 @@ using Budget.API.Results;
 namespace Budget.API.Controllers
 {
     [Authorize]
-    [RoutePrefix("api/Account")]
-    public class AccountController : ApiController
+    [RoutePrefix("api/UserAccount")]
+    public class UserAccountController : ApiController
     {
         private const string LocalLoginProvider = "Local";
         private ApplicationUserManager _userManager;
 
-        public AccountController()
+        public UserAccountController()
         {
         }
 
-        public AccountController(ApplicationUserManager userManager,
+        public UserAccountController(ApplicationUserManager userManager,
             ISecureDataFormat<AuthenticationTicket> accessTokenFormat)
         {
             UserManager = userManager;
@@ -50,7 +50,7 @@ namespace Budget.API.Controllers
 
         public ISecureDataFormat<AuthenticationTicket> AccessTokenFormat { get; private set; }
 
-        // GET api/Account/UserInfo
+        // GET api/UserAccount/UserInfo
         [HostAuthentication(DefaultAuthenticationTypes.ExternalBearer)]
         [Route("UserInfo")]
         public UserInfoViewModel GetUserInfo()
@@ -65,7 +65,7 @@ namespace Budget.API.Controllers
             };
         }
 
-        // POST api/Account/Logout
+        // POST api/UserAccount/Logout
         [Route("Logout")]
         public IHttpActionResult Logout()
         {
@@ -73,7 +73,7 @@ namespace Budget.API.Controllers
             return Ok();
         }
 
-        // GET api/Account/ManageInfo?returnUrl=%2F&generateState=true
+        // GET api/UserAccount/ManageInfo?returnUrl=%2F&generateState=true
         [Route("ManageInfo")]
         public async Task<ManageInfoViewModel> GetManageInfo(string returnUrl, bool generateState = false)
         {
@@ -113,7 +113,7 @@ namespace Budget.API.Controllers
             };
         }
 
-        // POST api/Account/ChangePassword
+        // POST api/UserAccount/ChangePassword
         [Route("ChangePassword")]
         public async Task<IHttpActionResult> ChangePassword(ChangePasswordBindingModel model)
         {
@@ -133,7 +133,7 @@ namespace Budget.API.Controllers
             return Ok();
         }
 
-        // POST api/Account/SetPassword
+        // POST api/UserAccount/SetPassword
         [Route("SetPassword")]
         public async Task<IHttpActionResult> SetPassword(SetPasswordBindingModel model)
         {
@@ -152,7 +152,7 @@ namespace Budget.API.Controllers
             return Ok();
         }
 
-        // POST api/Account/AddExternalLogin
+        // POST api/UserAccount/AddExternalLogin
         [Route("AddExternalLogin")]
         public async Task<IHttpActionResult> AddExternalLogin(AddExternalLoginBindingModel model)
         {
@@ -190,7 +190,7 @@ namespace Budget.API.Controllers
             return Ok();
         }
 
-        // POST api/Account/RemoveLogin
+        // POST api/UserAccount/RemoveLogin
         [Route("RemoveLogin")]
         public async Task<IHttpActionResult> RemoveLogin(RemoveLoginBindingModel model)
         {
@@ -219,7 +219,7 @@ namespace Budget.API.Controllers
             return Ok();
         }
 
-        // GET api/Account/ExternalLogin
+        // GET api/UserAccount/ExternalLogin
         [OverrideAuthentication]
         [HostAuthentication(DefaultAuthenticationTypes.ExternalCookie)]
         [AllowAnonymous]
@@ -276,7 +276,7 @@ namespace Budget.API.Controllers
             return Ok();
         }
 
-        // GET api/Account/ExternalLogins?returnUrl=%2F&generateState=true
+        // GET api/UserAccount/ExternalLogins?returnUrl=%2F&generateState=true
         [AllowAnonymous]
         [Route("ExternalLogins")]
         public IEnumerable<ExternalLoginViewModel> GetExternalLogins(string returnUrl, bool generateState = false)
@@ -317,7 +317,7 @@ namespace Budget.API.Controllers
             return logins;
         }
 
-        // POST api/Account/Register
+        // POST api/UserAccount/Register
         [AllowAnonymous]
         [Route("Register")]
         public async Task<IHttpActionResult> Register(RegisterBindingModel model)
@@ -339,7 +339,7 @@ namespace Budget.API.Controllers
             return Ok();
         }
 
-        // POST api/Account/RegisterExternal
+        // POST api/UserAccount/RegisterExternal
         [OverrideAuthentication]
         [HostAuthentication(DefaultAuthenticationTypes.ExternalBearer)]
         [Route("RegisterExternal")]
