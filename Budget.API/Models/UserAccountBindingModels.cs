@@ -6,13 +6,6 @@ namespace Budget.DAL.Models
 {
     // Models used as parameters to AccountController actions.
 
-    public class AddExternalLoginBindingModel
-    {
-        [Required]
-        [Display(Name = "External access token")]
-        public string ExternalAccessToken { get; set; }
-    }
-
     public class ChangePasswordBindingModel
     {
         [Required]
@@ -52,24 +45,6 @@ namespace Budget.DAL.Models
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
-    }
-
-    public class RegisterExternalBindingModel
-    {
-        [Required]
-        [Display(Name = "Email")]
-        public string Email { get; set; }
-    }
-
-    public class RemoveLoginBindingModel
-    {
-        [Required]
-        [Display(Name = "Login provider")]
-        public string LoginProvider { get; set; }
-
-        [Required]
-        [Display(Name = "Provider key")]
-        public string ProviderKey { get; set; }
     }
 
     public class SetPasswordBindingModel

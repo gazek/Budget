@@ -78,8 +78,6 @@
     <Compile Include="Models\PayeeModel.cs" />
     <Compile Include="Models\TransactionDetailModel.cs" />
     <Compile Include="Models\TransactionModel.cs" />
-    <Compile Include="Models\UserAccountBindingModels.cs" />
-    <Compile Include="Models\UserAccountViewModels.cs" />
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
