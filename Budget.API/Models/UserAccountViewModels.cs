@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Budget.DAL.Models
+namespace Budget.API.Models
 {
     // Models returned by AccountController actions.
 

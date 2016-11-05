@@ -4,6 +4,7 @@ using System.Web;
 using System.Web.Http;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
+using Budget.API.Models;
 using Budget.DAL.Models;
 
 namespace Budget.API.Controllers

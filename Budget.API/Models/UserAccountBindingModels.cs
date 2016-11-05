@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 //using Newtonsoft.Json;
 
-namespace Budget.DAL.Models
+namespace Budget.API.Models
 {
     // Models used as parameters to AccountController actions.
 
