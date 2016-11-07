@@ -20,21 +20,20 @@ namespace Budget.Tests.Services
 
         public ModelMapperTest()
         {
+            // create user mock
             var userMock = new Moq.Mock<IPrincipal>();
 
+            // Create a fake Identity
+            // Cannot use Moq since GetUserId() is an extension method
             string userId = Guid.NewGuid().ToString();
-
             List<Claim> claims = new List<Claim>
             {
                 new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", userId)
             };
+            var identityMock = new ClaimsIdentity(claims);
+            userMock.SetupGet(x => x.Identity).Returns(identityMock);
 
-            var testIdentity = new ClaimsIdentity(claims);
-
-            var identityMock = new Moq.Mock<IIdentity>();
-            //identityMock.SetupGet(x => x.Name).Returns("applicationUserName");
-            //userMock.SetupGet(x => x.Identity).Returns(identityMock.Object);
-            userMock.SetupGet(x => x.Identity).Returns(testIdentity);
+            // assign to field
             _user = userMock.Object;
         }
 
@@ -82,12 +81,15 @@ namespace Budget.Tests.Services
         public void FiBindingToEntityRequiredFieldsOnly()
         {
             // Arrange
-            var model = new FinancialInstitutionBindingModel
+            var model = new FinancialInstitutionCreateBindingModel
             {
                 Name = "Some FI Name",
                 OfxFid = 1234,
                 OfxUrl = "Https://ofx.bank.com",
                 OfxOrg = "MYORGNAME",
+                Username = "someusername",
+                Password = "highlysecurepassword",
+                ConfirmPassword = "highlysecurepassword",
             };
 
             // Act
@@ -101,8 +103,10 @@ namespace Budget.Tests.Services
             Assert.AreEqual(model.OfxUrl, result.OfxUrl);
             Assert.AreEqual(model.OfxOrg, result.OfxOrg);
             Assert.AreEqual(_user.Identity.GetUserId(), result.UserId);
-            Assert.IsNull(result.Username);
-            Assert.IsNull(result.PasswordHash);
+            Assert.AreEqual(model.Username, result.Username);
+            Assert.AreNotEqual(model.Password, result.PasswordHash);
+            Assert.AreNotEqual("", result.PasswordHash);
+            Assert.IsNotNull(result.PasswordHash);
             Assert.IsNull(result.CLIENTUID);
         }
 
@@ -110,13 +114,16 @@ namespace Budget.Tests.Services
         public void FiBindingToEntityWithOptionalFields()
         {
             // Arrange
-            var model = new FinancialInstitutionBindingModel
+            var model = new FinancialInstitutionCreateBindingModel
             {
                 Id = 1234,
                 Name = "Some FI Name",
                 OfxFid = 5678,
                 OfxUrl = "Https://ofx.bank.com",
                 OfxOrg = "MYORGNAME",
+                Username = "someusername",
+                Password = "highlysecurepassword",
+                ConfirmPassword = "highlysecurepassword",
                 CLIENTUID = Guid.NewGuid().ToString()
             };
 
@@ -131,8 +138,10 @@ namespace Budget.Tests.Services
             Assert.AreEqual(model.OfxUrl, result.OfxUrl);
             Assert.AreEqual(model.OfxOrg, result.OfxOrg);
             Assert.AreEqual(_user.Identity.GetUserId(), result.UserId);
-            Assert.IsNull(result.Username);
-            Assert.IsNull(result.PasswordHash);
+            Assert.AreEqual(model.Username, result.Username);
+            Assert.AreNotEqual(model.Password, result.PasswordHash);
+            Assert.AreNotEqual("", result.PasswordHash);
+            Assert.IsNotNull(result.PasswordHash);
             Assert.AreEqual(model.CLIENTUID, result.CLIENTUID);
         }
 
@@ -148,7 +157,7 @@ namespace Budget.Tests.Services
                 OfxUrl = "Https://ofx.bank.com",
                 OfxOrg = "MYORGNAME",
                 UserId = "SomeName",
-                PasswordHash = Guid.NewGuid().ToString(),
+                PasswordHash = new byte[] { 0x20, 0x20 },
                 User = new ApplicationUser()
             };
 
@@ -178,7 +187,7 @@ namespace Budget.Tests.Services
                 OfxUrl = "Https://ofx.bank.com",
                 OfxOrg = "MYORGNAME",
                 UserId = "SomeName",
-                PasswordHash = Guid.NewGuid().ToString(),
+                PasswordHash = new byte[] { 0x20, 0x20 },
                 CLIENTUID = Guid.NewGuid().ToString(),
                 User = new ApplicationUser()
             };

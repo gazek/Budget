@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Budget.API.Models
 {
-    public class FinancialInstitutionBindingModel
+    public class FinancialInstitutionCreateBindingModel
     {
         [Display(Name = "Financial Institution ID")]
         public int Id { get; set; }
@@ -29,13 +29,26 @@ namespace Budget.API.Models
         [StringLength(50)]
         public string OfxOrg { get; set; }
 
+        [Required]
+        [Display(Name = "Username")]
+        public string Username { get; set; }
+
+        [Required]
+        [Display(Name = "Password")]
+        public string Password { get; set; }
+
+        [Required]
+        [Display(Name = "Confirm Password")]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; }
+
         // User override of default value or forced inclusion of OFX Fields
         // null or empty string will cause default value to be used
         [Display(Name = "OFX CLIENTUID field")]
         public string CLIENTUID { get; set; }
     }
 
-    public class FinancialInstitutionLoginBindingModel
+    public class FinancialInstitutionUpdateLoginBindingModel
     {
         [Required]
         [Display(Name = "Username")]
