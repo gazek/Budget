@@ -97,6 +97,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Services\AesServiceTest.cs" />
     <Compile Include="Services\ModelMapperTest.cs" />
     <Compile Include="Services\OFXClient\OFXParserTest.cs" />
     <Compile Include="Services\OFXClient\OFXRequestorTest.cs" />
