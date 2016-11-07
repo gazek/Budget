@@ -2,13 +2,23 @@
 using Budget.API.Models;
 using System.Security.Principal;
 using Microsoft.AspNet.Identity;
+using System.Security.Cryptography;
 
 namespace Budget.API.Services
 {
     public class ModelMapper
     {
-        public static FinancialInstitutionModel BindingToEntity(FinancialInstitutionBindingModel model, IPrincipal user)
+        // TODO: Add real values for these
+        private static byte[] Key = new byte[] { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
+                                                 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
+                                                 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
+                                                 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20};
+        private static byte[] IV = new byte[] { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
+                                                 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20};
+
+        public static FinancialInstitutionModel BindingToEntity(FinancialInstitutionCreateBindingModel model, IPrincipal user)
         {
+            byte[] hash = AesService.EncryptStringToBytes(model.Password, Key, IV);
             return new FinancialInstitutionModel
             {
                 Id = model.Id,
@@ -16,6 +26,8 @@ namespace Budget.API.Services
                 OfxFid = model.OfxFid,
                 OfxUrl = model.OfxUrl,
                 OfxOrg = model.OfxOrg,
+                Username = model.Username,
+                PasswordHash = hash,
                 UserId = user.Identity.GetUserId(),
                 CLIENTUID = model.CLIENTUID
             };
