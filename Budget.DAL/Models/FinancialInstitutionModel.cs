@@ -43,7 +43,7 @@ namespace Budget.DAL.Models
         public string Username { get; set; }
 
         [Required]
-        public string PasswordHash { get; set; }
+        public byte[] PasswordHash { get; set; }
 
         [ForeignKey("UserId")]
         [JsonIgnore]

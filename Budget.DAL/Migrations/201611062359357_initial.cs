@@ -48,7 +48,7 @@ namespace Budget.DAL.Migrations
                         OfxOrg = c.String(nullable: false, maxLength: 50),
                         UserId = c.String(nullable: false, maxLength: 128),
                         Username = c.String(nullable: false, maxLength: 50),
-                        PasswordHash = c.String(nullable: false),
+                        PasswordHash = c.Binary(nullable: false),
                         CLIENTUID = c.String(),
                     })
                 .PrimaryKey(t => t.Id)
