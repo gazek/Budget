@@ -46,8 +46,11 @@ namespace Budget.API.Services.OFXClient
                 {
                     Status = false;
                     ErrorMessage = e.Message;
-                    StatusCode = ((HttpWebResponse)e.Response).StatusCode;
-                    StatusDescription = ((HttpWebResponse)e.Response).StatusDescription;
+                    if (e.Response != null)
+                    {
+                        StatusCode = ((HttpWebResponse)e.Response).StatusCode;
+                        StatusDescription = ((HttpWebResponse)e.Response).StatusDescription;
+                    }
                 }
             }
         }
