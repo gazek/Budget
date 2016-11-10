@@ -18,12 +18,7 @@ namespace Budget.API.Controllers
         public UserAccountController()
         {
         }
-
-        public UserAccountController(ApplicationUserManager userManager)
-        {
-            UserManager = userManager;
-        }
-
+        
         public ApplicationUserManager UserManager
         {
             get
