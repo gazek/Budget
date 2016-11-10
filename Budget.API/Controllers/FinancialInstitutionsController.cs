@@ -72,15 +72,26 @@ namespace Budget.API.Controllers
                 { 2601, "Operation failed because record already exists" }
             };
 
-            SqlException exception = (SqlException)ex.InnerException.InnerException;
-            if (exception.Number == 2601)
+            var exception = ex.InnerException;
+            while (exception.InnerException != null)
             {
-                return BadRequest(errors[exception.Number]);
+                exception = exception.InnerException;
             }
 
-            return BadRequest();
+            try
+            {
+                SqlException sqlEx = (SqlException)exception;
+                if (errors.ContainsKey(sqlEx.Number))
+                {
+                    return BadRequest(errors[sqlEx.Number]);
+                }
+            }
+            catch
+            {
+                return BadRequest(exception.Message);
+            }
+
+            return BadRequest(exception.Message);
         }
-
-
     }
 }
