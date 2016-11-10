@@ -12,6 +12,8 @@ using Budget.DAL.Models;
 using System.Web.Http.Results;
 using System.Web.Http;
 using System.Data.Entity.Infrastructure;
+using System.Data.SqlClient;
+using System.Runtime.Serialization;
 
 namespace Budget.API.Tests.Controllers
 {
@@ -73,14 +75,16 @@ namespace Budget.API.Tests.Controllers
             var fiMock = new Moq.Mock<DbSet<FinancialInstitutionModel>>();
             fiMock.Setup(x => x.Add(Moq.It.IsAny<FinancialInstitutionModel>())).Returns(entityWithId);
             contextMock.SetupGet(x => x.FinancialInstitutions).Returns(fiMock.Object);
-            contextMock.Setup(x => x.SaveChanges()).Throws<DbUpdateException>();
+            var inner2 = FormatterServices.GetUninitializedObject(typeof(SqlException)) as SqlException;
+            var inner1 = new Exception("", inner2);
+            contextMock.Setup(x => x.SaveChanges()).Throws(new DbUpdateException("", inner1));
             FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
 
             // Act
             IHttpActionResult result = controller.Create(bindingModel);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+            Assert.IsInstanceOfType(result, typeof(BadRequestErrorMessageResult));
         }
 
         private FinancialInstitutionCreateBindingModel GetValidBindingModel()
