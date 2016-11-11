@@ -6,6 +6,9 @@ using Budget.DAL;
 using Microsoft.AspNet.Identity.Owin;
 using Budget.API.Services;
 using System.Data.SqlClient;
+using Budget.DAL.Models;
+using System.Linq;
+using Microsoft.AspNet.Identity;
 
 namespace Budget.API.Controllers
 {
@@ -55,13 +58,36 @@ namespace Budget.API.Controllers
                 return GetErrorResult(ex);
             }
 
-            return Ok(ModelMapper.EntityToView(record));
+            return Created<FinancialInstitutionViewModel>(Url.Link("GetFiById", new { id = record.Id }), ModelMapper.EntityToView(record));
         }
-        
-        // POST add new FI
+
+        [Route("{id}", Name="GetFiById")]
+        [HttpGet]
+        [Authorize]
+        public IHttpActionResult Get(int id)
+        {
+            FinancialInstitutionModel entity = _dbContext
+                .FinancialInstitutions
+                .Where(x => x.Id == id)
+                .FirstOrDefault();
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            if (entity.UserId == User.Identity.GetUserId())
+            {
+                return Ok(ModelMapper.EntityToView(entity));
+            }
+            else
+            {
+                return Unauthorized();
+            }
+        }
+                
         // PUT Update existing FI (excluding login credentials and only if owned by requesting user)
-        // PUT Add or change FI login credentials (only if owned by requesting user)
-        // DELETE Delete FI
+        // PUT Update FI login credentials (only if owned by requesting user)
         // GET Get all FIs owned by a specific user
         // GET Get FI by ID (only if owned by requesting user)
 
