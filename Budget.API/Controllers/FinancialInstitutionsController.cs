@@ -66,10 +66,7 @@ namespace Budget.API.Controllers
         [Authorize]
         public IHttpActionResult Get(int id)
         {
-            FinancialInstitutionModel entity = _dbContext
-                .FinancialInstitutions
-                .Where(x => x.Id == id)
-                .FirstOrDefault();
+            FinancialInstitutionModel entity = _dbContext.FinancialInstitutions.Find(id);
 
             if (entity == null)
             {
@@ -89,7 +86,6 @@ namespace Budget.API.Controllers
         // PUT Update existing FI (excluding login credentials and only if owned by requesting user)
         // PUT Update FI login credentials (only if owned by requesting user)
         // GET Get all FIs owned by a specific user
-        // GET Get FI by ID (only if owned by requesting user)
 
         private IHttpActionResult GetErrorResult(System.Data.Entity.Infrastructure.DbUpdateException ex)
         {
