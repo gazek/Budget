@@ -78,15 +78,16 @@ namespace Budget.API.Tests.Controllers
         public void FIGetExistsAndAuthorized()
         {
             // Arrange
-            var contextMock = GetContextMock();
-            var userId = contextMock.Object.FinancialInstitutions.Add(new FinancialInstitutionModel()).UserId;
+            var user = CreateUser();
+            var contextMock = GetContextMock(user);
             FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            controller.User = user;
 
             // Act
             IHttpActionResult result = controller.Get(1);
 
             // Assert
-            Assert.IsTrue(false);
+            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<FinancialInstitutionViewModel>));
         }
 
         [TestMethod]
@@ -101,21 +102,23 @@ namespace Budget.API.Tests.Controllers
             IHttpActionResult result = controller.Get(1);
 
             // Assert
-            Assert.IsTrue(false);
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedResult));
         }
 
         [TestMethod]
         public void FIGetDoesNotExist()
         {
             // Arrange
-            var contextMock = GetContextMock();
+            var user = CreateUser();
+            var contextMock = GetContextMock(user);
             FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            controller.User = user;
 
             // Act
-            IHttpActionResult result = controller.Get(1);
+            IHttpActionResult result = controller.Get(2);
 
             // Assert
-            Assert.IsTrue(false);
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
 
@@ -153,16 +156,17 @@ namespace Budget.API.Tests.Controllers
             return userMock.Object;
         }
 
-        private Moq.Mock<IApplicationDbContext> GetContextMock()
+        private Moq.Mock<IApplicationDbContext> GetContextMock(IPrincipal user = null)
         {
-            var entityWithId = ModelMapper.BindingToEntity(GetValidBindingModel(), CreateUser());
+            if (user == null)
+            {
+                user = CreateUser();
+            }
+            var entityWithId = ModelMapper.BindingToEntity(GetValidBindingModel(), user);
             entityWithId.Id = 1;
             var contextMock = new Moq.Mock<IApplicationDbContext>();
             var fiMock = new Moq.Mock<DbSet<FinancialInstitutionModel>>();
-            var iqueryFiMock = new Moq.Mock<IQueryable<FinancialInstitutionModel>>();
-            //iqueryFiMock.Setup(x => x.FirstOrDefault()).Returns(entityWithId);
-            //fiMock.Setup(x => x.Where(Moq.It.IsAny<Expression<Func<FinancialInstitutionModel, bool>>>()))
-            //    .Returns(iqueryFiMock.Object);
+            fiMock.Setup(x => x.Find(Moq.It.Is<int>(v => v.Equals(1)))).Returns(entityWithId);
             fiMock.Setup(x => x.Add(Moq.It.IsAny<FinancialInstitutionModel>())).Returns(entityWithId);
             contextMock.SetupGet(x => x.FinancialInstitutions).Returns(fiMock.Object);
             contextMock.Setup(x => x.SaveChanges()).Returns(1);
