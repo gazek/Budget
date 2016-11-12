@@ -9,6 +9,8 @@ using System.Data.SqlClient;
 using Budget.DAL.Models;
 using System.Linq;
 using Microsoft.AspNet.Identity;
+using System.Data.Entity.Infrastructure;
+using System;
 
 namespace Budget.API.Controllers
 {
@@ -53,7 +55,7 @@ namespace Budget.API.Controllers
             {
                 var result = _dbContext.SaveChanges();
             }
-            catch (System.Data.Entity.Infrastructure.DbUpdateException ex)
+            catch (DbUpdateException ex)
             {
                 return GetErrorResult(ex);
             }
@@ -82,11 +84,70 @@ namespace Budget.API.Controllers
                 return Unauthorized();
             }
         }
-                
-        // PUT Update existing FI (excluding login credentials and only if owned by requesting user)
-        // PUT Update FI login credentials (only if owned by requesting user)
-        // GET Get all FIs owned by a specific user
 
+        [Route("", Name = "GetAllFi")]
+        [HttpGet]
+        [Authorize]
+        public IHttpActionResult Get()
+        {
+            string userId = User.Identity.GetUserId();
+            List<FinancialInstitutionModel> entities = _dbContext.FinancialInstitutions
+                .Where(x => x.UserId == userId)
+                .ToList();
+
+            List<FinancialInstitutionViewModel> result = entities.Select(x => ModelMapper.EntityToView(x)).ToList();
+
+            return Ok(result);
+        }
+        
+        [Route("{id}", Name = "UpdateFI")]
+        [HttpPut]
+        [Authorize]
+        public IHttpActionResult Update(int id, FinancialInstitutionUpdateBindingModel model)
+        {
+            // look for record
+            FinancialInstitutionModel record = _dbContext.FinancialInstitutions.Find(id);
+
+            // check if record exists
+            if (record == null)
+            {
+                return NotFound();
+            }
+
+            // check if user owns record
+            if (record.UserId != User.Identity.GetUserId())
+            {
+                return Unauthorized();
+            }
+
+            // verify model is valid
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // make updates
+            foreach (string key in model.GetType().GetProperties().Select(x => x.Name))
+            {
+                record.GetType().GetProperty(key).SetValue(record, model.GetType().GetProperty(key).GetValue(model));
+            }
+
+            try
+            {
+                // commit changes
+                int result = _dbContext.SaveChanges();
+            }
+            catch (DbUpdateException ex)
+            {
+                return GetErrorResult(ex);
+            }
+            
+            // return updated record
+            return Ok();
+        }
+
+        // PUT Update FI login credentials (only if owned by requesting user)
+        // Get OFX request for account list from FI
         private IHttpActionResult GetErrorResult(System.Data.Entity.Infrastructure.DbUpdateException ex)
         {
             var errors = new Dictionary<int, string>
@@ -94,26 +155,51 @@ namespace Budget.API.Controllers
                 { 2601, "Operation failed because record already exists" }
             };
 
+            if (ex.InnerException == null)
+            {
+                return BadRequest(ex.Message);
+            }
+
             var exception = ex.InnerException;
             while (exception.InnerException != null)
             {
                 exception = exception.InnerException;
             }
 
-            try
+            SqlException sqlEx = (SqlException)exception;
+            if (errors.ContainsKey(sqlEx.Number))
             {
-                SqlException sqlEx = (SqlException)exception;
-                if (errors.ContainsKey(sqlEx.Number))
-                {
-                    return BadRequest(errors[sqlEx.Number]);
-                }
-            }
-            catch
-            {
-                return BadRequest(exception.Message);
+                return BadRequest(errors[sqlEx.Number]);
             }
 
             return BadRequest(exception.Message);
+        }
+        private IHttpActionResult __GetErrorResult(System.Data.Entity.Infrastructure.DbUpdateException ex)
+        {
+            var errors = new Dictionary<int, string>
+            {
+                { 2601, "Operation failed because record already exists" }
+            };
+
+            if (ex.InnerException == null)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            var exception = ex.InnerException;
+            while (exception != null && exception.InnerException != null)
+            {
+                exception = exception.InnerException;
+            }
+            
+            SqlException sqlEx = (SqlException)exception;
+
+            if (errors.ContainsKey(sqlEx.Number))
+            {
+                return BadRequest(errors[sqlEx.Number]);
+            }
+
+            return BadRequest(sqlEx.Message);
         }
     }
 }
