@@ -121,7 +121,116 @@ namespace Budget.API.Tests.Controllers
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
+        [TestMethod]
+        public void FiGetAllNonEmptySet()
+        {
+            // Arrange
+            var user = CreateUser();
+            var contextFake = GetContextMock(user);
+            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextFake.Object);
+            controller.User = user;
 
+            // Act
+            IHttpActionResult result = controller.Get();
+            var castResult = (OkNegotiatedContentResult<List<FinancialInstitutionViewModel>>)result;
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<FinancialInstitutionViewModel>>));
+            Assert.IsTrue(castResult.Content.Count > 0);
+        }
+
+        [TestMethod]
+        public void FiGetAllEmptySet()
+        {
+            // Arrange
+            var user = CreateUser();
+            var contextFake = GetContextMock(CreateUser());
+            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextFake.Object);
+            controller.User = user;
+
+            // Act
+            IHttpActionResult result = controller.Get();
+            var castResult = (OkNegotiatedContentResult<List<FinancialInstitutionViewModel>>)result;
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<FinancialInstitutionViewModel>>));
+            Assert.IsTrue(castResult.Content.Count == 0);
+        }
+
+        //update record
+        //  not authorized
+        //  not found
+        //  dbUpdateException
+        //  OK
+        [TestMethod]
+        public void FIUpdateOK()
+        {
+            // Arrange
+            var user = CreateUser();
+            var bindingModel = GetValidUpdateBindingModel();
+            bindingModel.Name = "different name";
+            var contextMock = GetContextMock(user);
+            var controller = new FinancialInstitutionsController(contextMock.Object);
+            controller.User = user;
+
+            // Act
+            var result = controller.Update(bindingModel.Id, bindingModel);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkResult));
+        }
+
+        [TestMethod]
+        public void FIUpdateNotFound()
+        {
+            // Arrange
+            var bindingModel = GetValidUpdateBindingModel();
+            var contextMock = GetContextMock();
+            var controller = new FinancialInstitutionsController(contextMock.Object);
+
+            // Act
+            var result = controller.Update(-1, bindingModel);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public void FIUpdateDbUpdateException()
+        {
+            // Arrange
+            var user = CreateUser();
+            var bindingModel = GetValidUpdateBindingModel();
+            bindingModel.Name = "different name";
+            var contextMock = GetContextMock(user);
+            var controller = new FinancialInstitutionsController(contextMock.Object);
+            controller.User = user;
+            contextMock.Setup(x => x.SaveChanges()).Throws(new DbUpdateException("some message"));
+
+            // Act
+            var result = controller.Update(bindingModel.Id, bindingModel);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestErrorMessageResult));
+        }
+
+        [TestMethod]
+        public void FIUpdateNotAuthorized()
+        {
+            // Arrange
+            var user = CreateUser();
+            var bindingModel = GetValidUpdateBindingModel();
+            bindingModel.Name = "different name";
+            var contextMock = GetContextMock();
+            var controller = new FinancialInstitutionsController(contextMock.Object);
+            controller.User = user;
+
+            // Act
+            var result = controller.Update(bindingModel.Id, bindingModel);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedResult));
+        }
 
         private FinancialInstitutionCreateBindingModel GetValidBindingModel()
         {
@@ -134,6 +243,18 @@ namespace Budget.API.Tests.Controllers
                 Username = "myUsername",
                 Password = "mySuperSecurePassword",
                 ConfirmPassword = "mySuperSecurePassword"
+            };
+        }
+
+        private FinancialInstitutionUpdateBindingModel GetValidUpdateBindingModel()
+        {
+            return new FinancialInstitutionUpdateBindingModel()
+            {
+                Id = 1,
+                Name = "My new FI",
+                OfxFid = 9876,
+                OfxOrg = "FI Org Name",
+                OfxUrl = "https://ofx.bank.com"
             };
         }
 
@@ -158,18 +279,34 @@ namespace Budget.API.Tests.Controllers
 
         private Moq.Mock<IApplicationDbContext> GetContextMock(IPrincipal user = null)
         {
+            // create user if needed
             if (user == null)
             {
                 user = CreateUser();
             }
+
+            // create data set
             var entityWithId = ModelMapper.BindingToEntity(GetValidBindingModel(), user);
             entityWithId.Id = 1;
-            var contextMock = new Moq.Mock<IApplicationDbContext>();
+            var data = new List<FinancialInstitutionModel>
+            {
+                entityWithId
+            }.AsQueryable();
+
+            // mock data set
             var fiMock = new Moq.Mock<DbSet<FinancialInstitutionModel>>();
             fiMock.Setup(x => x.Find(Moq.It.Is<int>(v => v.Equals(1)))).Returns(entityWithId);
             fiMock.Setup(x => x.Add(Moq.It.IsAny<FinancialInstitutionModel>())).Returns(entityWithId);
+            fiMock.As<IQueryable<FinancialInstitutionModel>>().Setup(m => m.Provider).Returns(data.Provider);
+            fiMock.As<IQueryable<FinancialInstitutionModel>>().Setup(m => m.Expression).Returns(data.Expression);
+            fiMock.As<IQueryable<FinancialInstitutionModel>>().Setup(m => m.ElementType).Returns(data.ElementType);
+            fiMock.As<IQueryable<FinancialInstitutionModel>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
+
+            // mock context
+            var contextMock = new Moq.Mock<IApplicationDbContext>();
             contextMock.SetupGet(x => x.FinancialInstitutions).Returns(fiMock.Object);
             contextMock.Setup(x => x.SaveChanges()).Returns(1);
+
             return contextMock;
         }
     }
