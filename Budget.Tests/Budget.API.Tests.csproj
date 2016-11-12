@@ -98,7 +98,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\FinancialInstitutionsControllerTest.cs" />
-    <Compile Include="Fakes\SqlExceptionBuilder.cs" />
+    <Compile Include="FakesAndMocks\MockDbSet.cs" />
+    <Compile Include="FakesAndMocks\UserBuilder.cs" />
+    <Compile Include="FakesAndMocks\SqlExceptionBuilder.cs" />
     <Compile Include="Services\AesServiceTest.cs" />
     <Compile Include="Services\ModelMapperTest.cs" />
     <Compile Include="Services\OFXClient\OFXParserTest.cs" />
