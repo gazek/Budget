@@ -48,6 +48,36 @@ namespace Budget.API.Models
         public string CLIENTUID { get; set; }
     }
 
+    public class FinancialInstitutionUpdateBindingModel
+    {
+        [Display(Name = "Financial Institution ID")]
+        public int Id { get; set; }
+
+        [Required]
+        [Display(Name = "Name of financial institution")]
+        [StringLength(100)]
+        public string Name { get; set; }
+
+        [Required]
+        [Display(Name = "OFX FID Attribute")]
+        public int OfxFid { get; set; }
+
+        [Required]
+        [Display(Name = "OFX URL")]
+        [Url]
+        public string OfxUrl { get; set; }
+
+        [Required]
+        [Display(Name = "OFX Org Attribute")]
+        [StringLength(50)]
+        public string OfxOrg { get; set; }
+
+        // User override of default value or forced inclusion of OFX Fields
+        // null or empty string will cause default value to be used
+        [Display(Name = "OFX CLIENTUID field")]
+        public string CLIENTUID { get; set; }
+    }
+
     public class FinancialInstitutionUpdateLoginBindingModel
     {
         [Required]
