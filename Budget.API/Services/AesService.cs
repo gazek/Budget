@@ -9,7 +9,21 @@ namespace Budget.API.Services
 {
     public static class AesService
     {
-        public static byte[] EncryptStringToBytes(string plainText, byte[] Key, byte[] IV)
+        // TODO: Add real values for these
+        private static byte[] Key = new byte[32];
+        private static byte[] IV = new byte[16];
+
+        public static byte[] EncryptStringToBytes(string plainText)
+        {
+            return _EncryptStringToBytes(plainText, Key, IV);
+        }
+
+        public static byte[] EncryptStringToBytes(string plainText, byte[] key, byte[] iv)
+        {
+            return _EncryptStringToBytes(plainText, Key,IV);
+        }
+
+        private static byte[] _EncryptStringToBytes(string plainText, byte[] key, byte[] iv)
         {
             // Check arguments.
             if (plainText == null || plainText.Length <= 0)
@@ -51,7 +65,7 @@ namespace Budget.API.Services
 
         }
 
-        public static string DecryptStringFromBytes(byte[] cipherText, byte[] Key, byte[] IV)
+        public static string DecryptStringFromBytes(byte[] cipherText, byte[] key, byte[] iv)
         {
             // Check arguments.
             if (cipherText == null || cipherText.Length <= 0)
@@ -69,8 +83,8 @@ namespace Budget.API.Services
             // with the specified key and IV.
             using (Aes aesAlg = Aes.Create())
             {
-                aesAlg.Key = Key;
-                aesAlg.IV = IV;
+                aesAlg.Key = key;
+                aesAlg.IV = iv;
 
                 // Create a decrytor to perform the stream transform.
                 ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
