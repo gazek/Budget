@@ -7,7 +7,7 @@ namespace Budget.API.Services.OFXClient
     {
         public OFXRequestConfigRequestType RequestType { get; set; }
         public string UserId { get; set; }
-        public string password { get; set; }
+        public string Password { get; set; }
         public string InstitutionName { get; set; }
         public int InstitutionId { get; set; }
         public int InstitutionRoutingNumber { get; set; }

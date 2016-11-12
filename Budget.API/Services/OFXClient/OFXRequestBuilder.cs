@@ -31,6 +31,7 @@ namespace Budget.API.Services.OFXClient
         public OFXRequestBuilder(OFXRequestConfig config)
         {
             Config = config;
+            // Use new Guid() as default value to block inclusion of this field
             if (Config.ClientUID != new Guid())
             {
                 _CLIENTUID = Config.ClientUID.ToString();
@@ -82,7 +83,7 @@ namespace Budget.API.Services.OFXClient
             signonList.Add(new List<string> { "<SONRQ>" });
             signonList.Add(new List<string> { "<DTCLIENT>", date });
             signonList.Add(new List<string> { "<USERID>", Config.UserId });
-            signonList.Add(new List<string> { "<USERPASS>", Config.password });
+            signonList.Add(new List<string> { "<USERPASS>", Config.Password });
             signonList.Add(new List<string> { "<LANGUAGE>", _LANGUAGE });
             signonList.Add(new List<string> { fi });
             signonList.Add(new List<string> { "<APPID>", _APPID });
