@@ -17,6 +17,8 @@ using System.Runtime.Serialization;
 using System.Web.Http.Routing;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
+using Budget.API.Tests.Fakes;
 
 namespace Budget.API.Tests.Controllers
 {
@@ -62,7 +64,7 @@ namespace Budget.API.Tests.Controllers
         {
             // Arrange
             var contextMock = GetContextMock();
-            var inner2 = FormatterServices.GetUninitializedObject(typeof(SqlException)) as SqlException;
+            var inner2 = new SqlExceptionBuilder().WithErrorNumber(2601).Build();
             var inner1 = new Exception("", inner2);
             contextMock.Setup(x => x.SaveChanges()).Throws(new DbUpdateException("", inner1));
             FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
