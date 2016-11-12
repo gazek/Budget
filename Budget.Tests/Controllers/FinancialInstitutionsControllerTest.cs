@@ -6,19 +6,15 @@ using Budget.API.Models;
 using Budget.API.Services;
 using System.Security.Principal;
 using System.Collections.Generic;
-using System.Security.Claims;
-using System.Data.Entity;
 using Budget.DAL.Models;
 using System.Web.Http.Results;
 using System.Web.Http;
 using System.Data.Entity.Infrastructure;
-using System.Data.SqlClient;
-using System.Runtime.Serialization;
 using System.Web.Http.Routing;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 using Budget.API.Tests.Fakes;
+using Moq;
+using Budget.API.Tests.FakesAndMocks;
 
 namespace Budget.API.Tests.Controllers
 {
@@ -32,8 +28,8 @@ namespace Budget.API.Tests.Controllers
             // Arrange
             var contextMock = GetContextMock();
             FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
-            var urlHelperMock = new Moq.Mock<UrlHelper>();
-            urlHelperMock.Setup(x => x.Link(Moq.It.IsAny<string>(), Moq.It.IsAny<Object>()))
+            var urlHelperMock = new Mock<UrlHelper>();
+            urlHelperMock.Setup(x => x.Link(It.IsAny<string>(), It.IsAny<Object>()))
                 .Returns("anyvalue");
             controller.Url = urlHelperMock.Object;
 
@@ -80,7 +76,7 @@ namespace Budget.API.Tests.Controllers
         public void FIGetExistsAndAuthorized()
         {
             // Arrange
-            var user = CreateUser();
+            var user = UserBuilder.CreateUser();
             var contextMock = GetContextMock(user);
             FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
             controller.User = user;
@@ -98,7 +94,7 @@ namespace Budget.API.Tests.Controllers
             // Arrange
             var contextMock = GetContextMock();
             FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
-            controller.User = CreateUser();
+            controller.User = UserBuilder.CreateUser();
 
             // Act
             IHttpActionResult result = controller.Get(1);
@@ -111,7 +107,7 @@ namespace Budget.API.Tests.Controllers
         public void FIGetDoesNotExist()
         {
             // Arrange
-            var user = CreateUser();
+            var user = UserBuilder.CreateUser();
             var contextMock = GetContextMock(user);
             FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
             controller.User = user;
@@ -127,7 +123,7 @@ namespace Budget.API.Tests.Controllers
         public void FiGetAllNonEmptySet()
         {
             // Arrange
-            var user = CreateUser();
+            var user = UserBuilder.CreateUser();
             var contextFake = GetContextMock(user);
             FinancialInstitutionsController controller = new FinancialInstitutionsController(contextFake.Object);
             controller.User = user;
@@ -145,8 +141,8 @@ namespace Budget.API.Tests.Controllers
         public void FiGetAllEmptySet()
         {
             // Arrange
-            var user = CreateUser();
-            var contextFake = GetContextMock(CreateUser());
+            var user = UserBuilder.CreateUser();
+            var contextFake = GetContextMock(UserBuilder.CreateUser());
             FinancialInstitutionsController controller = new FinancialInstitutionsController(contextFake.Object);
             controller.User = user;
 
@@ -159,16 +155,11 @@ namespace Budget.API.Tests.Controllers
             Assert.IsTrue(castResult.Content.Count == 0);
         }
 
-        //update record
-        //  not authorized
-        //  not found
-        //  dbUpdateException
-        //  OK
         [TestMethod]
         public void FIUpdateOK()
         {
             // Arrange
-            var user = CreateUser();
+            var user = UserBuilder.CreateUser();
             var bindingModel = GetValidUpdateBindingModel();
             bindingModel.Name = "different name";
             var contextMock = GetContextMock(user);
@@ -201,7 +192,7 @@ namespace Budget.API.Tests.Controllers
         public void FIUpdateDbUpdateException()
         {
             // Arrange
-            var user = CreateUser();
+            var user = UserBuilder.CreateUser();
             var bindingModel = GetValidUpdateBindingModel();
             bindingModel.Name = "different name";
             var contextMock = GetContextMock(user);
@@ -220,7 +211,7 @@ namespace Budget.API.Tests.Controllers
         public void FIUpdateNotAuthorized()
         {
             // Arrange
-            var user = CreateUser();
+            var user = UserBuilder.CreateUser();
             var bindingModel = GetValidUpdateBindingModel();
             bindingModel.Name = "different name";
             var contextMock = GetContextMock();
@@ -260,31 +251,12 @@ namespace Budget.API.Tests.Controllers
             };
         }
 
-        private IPrincipal CreateUser()
-        {
-            // create user mock
-            var userMock = new Moq.Mock<IPrincipal>();
-
-            // Create a fake Identity
-            // Cannot use Moq since GetUserId() is an extension method
-            string userId = Guid.NewGuid().ToString();
-            List<Claim> claims = new List<Claim>
-                {
-                    new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", userId)
-                };
-            var identityMock = new ClaimsIdentity(claims);
-            userMock.SetupGet(x => x.Identity).Returns(identityMock);
-
-            // assign to field
-            return userMock.Object;
-        }
-
-        private Moq.Mock<IApplicationDbContext> GetContextMock(IPrincipal user = null)
+        private Mock<IApplicationDbContext> GetContextMock(IPrincipal user = null)
         {
             // create user if needed
             if (user == null)
             {
-                user = CreateUser();
+                user = UserBuilder.CreateUser();
             }
 
             // create data set
@@ -296,16 +268,13 @@ namespace Budget.API.Tests.Controllers
             }.AsQueryable();
 
             // mock data set
-            var fiMock = new Moq.Mock<DbSet<FinancialInstitutionModel>>();
-            fiMock.Setup(x => x.Find(Moq.It.Is<int>(v => v.Equals(1)))).Returns(entityWithId);
-            fiMock.Setup(x => x.Add(Moq.It.IsAny<FinancialInstitutionModel>())).Returns(entityWithId);
-            fiMock.As<IQueryable<FinancialInstitutionModel>>().Setup(m => m.Provider).Returns(data.Provider);
-            fiMock.As<IQueryable<FinancialInstitutionModel>>().Setup(m => m.Expression).Returns(data.Expression);
-            fiMock.As<IQueryable<FinancialInstitutionModel>>().Setup(m => m.ElementType).Returns(data.ElementType);
-            fiMock.As<IQueryable<FinancialInstitutionModel>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
+            var fiMock = new MockDbSet<FinancialInstitutionModel>().UsingDataSet(data).Mock();
+            fiMock.Setup(x => x.Find(It.Is<int>(v => v.Equals(1)))).Returns(entityWithId);
+            fiMock.Setup(x => x.Add(It.IsAny<FinancialInstitutionModel>())).Returns(entityWithId);
+            
 
             // mock context
-            var contextMock = new Moq.Mock<IApplicationDbContext>();
+            var contextMock = new Mock<IApplicationDbContext>();
             contextMock.SetupGet(x => x.FinancialInstitutions).Returns(fiMock.Object);
             contextMock.Setup(x => x.SaveChanges()).Returns(1);
 
