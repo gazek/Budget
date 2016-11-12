@@ -38,7 +38,7 @@ namespace Budget.API.Controllers
             }
         }
 
-        [Route("")]
+        [Route("", Name = "CreateFI")]
         [HttpPost]
         [Authorize]
         public IHttpActionResult Create(FinancialInstitutionCreateBindingModel model)
@@ -146,9 +146,44 @@ namespace Budget.API.Controllers
             return Ok();
         }
 
-        // PUT Update FI login credentials (only if owned by requesting user)
-        // Get OFX request for account list from FI
-        private IHttpActionResult GetErrorResult(System.Data.Entity.Infrastructure.DbUpdateException ex)
+        [Route("{id}/credentials", Name = "UpdateFILogin")]
+        [HttpPut]
+        [Authorize]
+        public IHttpActionResult UpdateLogin(int id, FinancialInstitutionUpdateLoginBindingModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            FinancialInstitutionModel record = _dbContext.FinancialInstitutions.Find(id);
+
+            if (record == null)
+            {
+                return NotFound();
+            }
+
+            if (record.UserId != User.Identity.GetUserId())
+            {
+                return Unauthorized();
+            }
+
+            record.Username = model.Username;
+            record.PasswordHash = AesService.EncryptStringToBytes(model.Password);
+
+            try
+            {
+                int result = _dbContext.SaveChanges();
+                return Ok();
+            }
+            catch (DbUpdateException ex)
+            {
+                return GetErrorResult(ex);
+            }
+        }
+
+        // Get - OFX request for account list from FI
+        private IHttpActionResult GetErrorResult(DbUpdateException ex)
         {
             var errors = new Dictionary<int, string>
             {
@@ -173,33 +208,6 @@ namespace Budget.API.Controllers
             }
 
             return BadRequest(exception.Message);
-        }
-        private IHttpActionResult __GetErrorResult(System.Data.Entity.Infrastructure.DbUpdateException ex)
-        {
-            var errors = new Dictionary<int, string>
-            {
-                { 2601, "Operation failed because record already exists" }
-            };
-
-            if (ex.InnerException == null)
-            {
-                return BadRequest(ex.Message);
-            }
-
-            var exception = ex.InnerException;
-            while (exception != null && exception.InnerException != null)
-            {
-                exception = exception.InnerException;
-            }
-            
-            SqlException sqlEx = (SqlException)exception;
-
-            if (errors.ContainsKey(sqlEx.Number))
-            {
-                return BadRequest(errors[sqlEx.Number]);
-            }
-
-            return BadRequest(sqlEx.Message);
         }
     }
 }

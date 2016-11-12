@@ -225,6 +225,76 @@ namespace Budget.API.Tests.Controllers
             Assert.IsInstanceOfType(result, typeof(UnauthorizedResult));
         }
 
+        [TestMethod]
+        public void FIUpdateLoginOK()
+        {
+            // Arrange
+            var user = UserBuilder.CreateUser();
+            var createBindingModel = GetValidBindingModel();
+            var loginUpdateBindingModel = GetValidUpdateLoginBindingModel();
+            loginUpdateBindingModel.Username = "different name";
+            var contextMock = GetContextMock(user);
+            var controller = new FinancialInstitutionsController(contextMock.Object);
+            controller.User = user;
+
+            // Act
+            var result = controller.UpdateLogin(1, loginUpdateBindingModel);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkResult));
+            Assert.AreNotEqual(contextMock.Object.FinancialInstitutions.Find(1).Username, createBindingModel.Username);
+            Assert.AreNotEqual(AesService.DecryptStringFromBytes(contextMock.Object.FinancialInstitutions.Find(1).PasswordHash), createBindingModel.Password);
+        }
+
+        [TestMethod]
+        public void FIUpdateLoginNotFound()
+        {
+            // Arrange
+            var bindingModel = GetValidUpdateLoginBindingModel();
+            var contextMock = GetContextMock();
+            var controller = new FinancialInstitutionsController(contextMock.Object);
+
+            // Act
+            var result = controller.UpdateLogin(-1, bindingModel);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public void FIUpdateLoginDbUpdateException()
+        {
+            // Arrange
+            var user = UserBuilder.CreateUser();
+            var bindingModel = GetValidUpdateLoginBindingModel();
+            var contextMock = GetContextMock(user);
+            var controller = new FinancialInstitutionsController(contextMock.Object);
+            controller.User = user;
+            contextMock.Setup(x => x.SaveChanges()).Throws(new DbUpdateException("some message"));
+
+            // Act
+            var result = controller.UpdateLogin(1, bindingModel);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestErrorMessageResult));
+        }
+
+        [TestMethod]
+        public void FIUpdateLoginNotAuthorized()
+        {
+            // Arrange
+            var bindingModel = GetValidUpdateLoginBindingModel();
+            var contextMock = GetContextMock();
+            var controller = new FinancialInstitutionsController(contextMock.Object);
+            controller.User = UserBuilder.CreateUser();
+
+            // Act
+            var result = controller.UpdateLogin(1, bindingModel);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedResult));
+        }
+
         private FinancialInstitutionCreateBindingModel GetValidBindingModel()
         {
             return new FinancialInstitutionCreateBindingModel()
@@ -248,6 +318,16 @@ namespace Budget.API.Tests.Controllers
                 OfxFid = 9876,
                 OfxOrg = "FI Org Name",
                 OfxUrl = "https://ofx.bank.com"
+            };
+        }
+
+        private FinancialInstitutionUpdateLoginBindingModel GetValidUpdateLoginBindingModel()
+        {
+            return new FinancialInstitutionUpdateLoginBindingModel()
+            {
+                Username = "userNumberOne",
+                Password = "AGreatAndSecurePassword",
+                ConfirmPassword = "AGreatAndSecurePassword"
             };
         }
 
