@@ -23,6 +23,16 @@ namespace Budget.API.Services
             return _EncryptStringToBytes(plainText, Key,IV);
         }
 
+        public static string DecryptStringFromBytes(byte[] cipherText)
+        {
+            return _decryptStringFromBytes(cipherText, Key, IV);
+        }
+
+        public static string DecryptStringFromBytes(byte[] cipherText, byte[] key, byte[] iv)
+        {
+            return _decryptStringFromBytes(cipherText, key, iv);
+        }
+
         private static byte[] _EncryptStringToBytes(string plainText, byte[] key, byte[] iv)
         {
             // Check arguments.
@@ -65,7 +75,7 @@ namespace Budget.API.Services
 
         }
 
-        public static string DecryptStringFromBytes(byte[] cipherText, byte[] key, byte[] iv)
+        public static string _decryptStringFromBytes(byte[] cipherText, byte[] key, byte[] iv)
         {
             // Check arguments.
             if (cipherText == null || cipherText.Length <= 0)
