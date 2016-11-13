@@ -140,7 +140,7 @@ namespace Budget.Tests.Controllers
             {
                 RequestType = OFXRequestConfigRequestType.Statement,
                 UserId = "testUser",
-                password = "testPassword",
+                Password = "testPassword",
                 InstitutionName = "Some Bank",
                 InstitutionId = 123,
                 InstitutionRoutingNumber = 456,

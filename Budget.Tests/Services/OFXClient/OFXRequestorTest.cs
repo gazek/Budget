@@ -15,7 +15,7 @@ namespace Budget.Tests.Services
             {
                 RequestType = OFXRequestConfigRequestType.Statement,
                 UserId = "fakeuser",
-                password = "fakepass",
+                Password = "fakepass",
                 InstitutionName = "First Tech Federal Credit Union",
                 InstitutionId = 3169,
                 InstitutionRoutingNumber = 321180379,
