@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.AspNet.Identity;
 using System.Data.Entity.Infrastructure;
 using System;
+using Budget.API.Services.OFXClient;
 
 namespace Budget.API.Controllers
 {
@@ -75,14 +76,12 @@ namespace Budget.API.Controllers
                 return NotFound();
             }
 
-            if (entity.UserId == User.Identity.GetUserId())
-            {
-                return Ok(ModelMapper.EntityToView(entity));
-            }
-            else
+            if (entity.UserId != User.Identity.GetUserId())
             {
                 return Unauthorized();
             }
+
+            return Ok(ModelMapper.EntityToView(entity));
         }
 
         [Route("", Name = "GetAllFi")]
@@ -180,6 +179,67 @@ namespace Budget.API.Controllers
             {
                 return GetErrorResult(ex);
             }
+        }
+
+        [Route("{id}/GetAccountList", Name = "GetAccountLists")]
+        [HttpGet]
+        [Authorize]
+        public IHttpActionResult GetAccountList(int id)
+        {
+            // lool for FI record
+            FinancialInstitutionModel entity = _dbContext.FinancialInstitutions.Find(id);
+
+            // return if not found
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            // return if requestor is not asuthorized
+            if (entity.UserId != User.Identity.GetUserId())
+            {
+                return Unauthorized();
+            }
+            
+            // configure the ofx account list request
+            OfxClient ofx = new OfxClient();
+            ofx.RequestConfig.OfxFid = entity.OfxFid;
+            ofx.RequestConfig.OfxOrg = entity.OfxOrg;
+            ofx.RequestConfig.Password = AesService.DecryptStringFromBytes(entity.PasswordHash);
+            ofx.RequestConfig.RequestType = OFXRequestConfigRequestType.AccountList;
+            ofx.RequestConfig.URL = new Uri(entity.OfxUrl);
+            ofx.RequestConfig.Username = entity.Username;
+            Guid clientId;
+            if (Guid.TryParse(entity.CLIENTUID, out clientId))
+            {
+                ofx.RequestConfig.ClientUID = clientId;
+            }  
+
+            // Build request
+            ofx.BuildRequest();
+
+            // Make request
+            ofx.ExecuteRequest();
+
+            // check request status
+            if (ofx.Requestor.Status && ofx.Requestor.OFX != null)
+            {
+                ofx.ParseResponse();
+
+                if (!ofx.Parser.SignOnRequest.Status)
+                {
+                    return BadRequest(ofx.Parser.SignOnRequest.Code + ": " + ofx.Parser.SignOnRequest.Message);
+                }
+
+                return Ok(ofx.Parser.Accounts.Select(x => ModelMapper.EntityToListViewModel(x, id)));
+            }
+
+            if (!ofx.Requestor.Status)
+            {
+                return BadRequest(ofx.Requestor.ErrorMessage);
+            }
+
+            return InternalServerError();
         }
 
         // Get - OFX request for account list from FI
