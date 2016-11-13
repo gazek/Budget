@@ -6,10 +6,10 @@ namespace Budget.API.Services.OFXClient
     public class OFXRequestConfig
     {
         public OFXRequestConfigRequestType RequestType { get; set; }
-        public string UserId { get; set; }
+        public string Username { get; set; }
         public string Password { get; set; }
-        public string InstitutionName { get; set; }
-        public int InstitutionId { get; set; }
+        public string OfxOrg { get; set; }
+        public int OfxFid { get; set; }
         public int InstitutionRoutingNumber { get; set; }
         public string AccountNumber { get; set; }
         public OFXRequestConfigAccountType AccountType { get; set; }

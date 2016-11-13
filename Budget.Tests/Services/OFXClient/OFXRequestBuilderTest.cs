@@ -139,10 +139,10 @@ namespace Budget.Tests.Controllers
             var config = new OFXRequestConfig()
             {
                 RequestType = OFXRequestConfigRequestType.Statement,
-                UserId = "testUser",
+                Username = "testUser",
                 Password = "testPassword",
-                InstitutionName = "Some Bank",
-                InstitutionId = 123,
+                OfxOrg = "Some Bank",
+                OfxFid = 123,
                 InstitutionRoutingNumber = 456,
                 AccountNumber = "789",
                 AccountType = OFXRequestConfigAccountType.CHECKING,

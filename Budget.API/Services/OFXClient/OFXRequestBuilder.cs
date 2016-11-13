@@ -64,8 +64,8 @@ namespace Budget.API.Services.OFXClient
             // set OFX request body FI contents
             List<List<string>> fiList = new List<List<string>>();
             fiList.Add(new List<string> { "<FI>" });
-            fiList.Add(new List<string> { "<ORG>", Config.InstitutionName });
-            fiList.Add(new List<string> { "<FID>", Config.InstitutionId.ToString() });
+            fiList.Add(new List<string> { "<ORG>", Config.OfxOrg });
+            fiList.Add(new List<string> { "<FID>", Config.OfxFid.ToString() });
             fiList.Add(new List<string> { "</FI>" });
 
             // build request body FI string
@@ -82,7 +82,7 @@ namespace Budget.API.Services.OFXClient
             signonList.Add(new List<string> { "<SIGNONMSGSRQV1>" });
             signonList.Add(new List<string> { "<SONRQ>" });
             signonList.Add(new List<string> { "<DTCLIENT>", date });
-            signonList.Add(new List<string> { "<USERID>", Config.UserId });
+            signonList.Add(new List<string> { "<USERID>", Config.Username });
             signonList.Add(new List<string> { "<USERPASS>", Config.Password });
             signonList.Add(new List<string> { "<LANGUAGE>", _LANGUAGE });
             signonList.Add(new List<string> { fi });

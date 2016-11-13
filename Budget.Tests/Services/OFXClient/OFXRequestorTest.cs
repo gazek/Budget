@@ -14,10 +14,10 @@ namespace Budget.Tests.Services
             OFXRequestConfig config = new OFXRequestConfig
             {
                 RequestType = OFXRequestConfigRequestType.Statement,
-                UserId = "fakeuser",
+                Username = "fakeuser",
                 Password = "fakepass",
-                InstitutionName = "First Tech Federal Credit Union",
-                InstitutionId = 3169,
+                OfxOrg = "First Tech Federal Credit Union",
+                OfxFid = 3169,
                 InstitutionRoutingNumber = 321180379,
                 AccountNumber = "1234567890",
                 AccountType = OFXRequestConfigAccountType.SAVINGS,
