@@ -99,6 +99,7 @@
   <ItemGroup>
     <Compile Include="Controllers\FinancialInstitutionsControllerTest.cs" />
     <Compile Include="FakesAndMocks\MockDbSet.cs" />
+    <Compile Include="FakesAndMocks\MockOfxClient.cs" />
     <Compile Include="FakesAndMocks\UserBuilder.cs" />
     <Compile Include="FakesAndMocks\SqlExceptionBuilder.cs" />
     <Compile Include="Services\AesServiceTest.cs" />
