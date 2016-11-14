@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Moq;
 using Budget.API.Services.OFXClient;
 using Budget.DAL.Models;
-using Budget.API.Services;
 
 namespace Budget.API.Tests.FakesAndMocks
 {
@@ -29,7 +24,7 @@ namespace Budget.API.Tests.FakesAndMocks
             ConfigureParser();
         }
 
-        public IOfxClient GetClientMock()
+        public IOfxClient GetMock()
         {
             // assemble client
             Client.SetupGet(x => x.RequestConfig).Returns(RequestConfig);
