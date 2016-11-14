@@ -21,7 +21,7 @@ namespace Budget.API.Tests.Controllers
     [TestClass]
     public class FinancialInstitutionsControllerTest
     {
-
+        #region Create Tests
         [TestMethod]
         public void FICreateWithValidModel()
         {
@@ -71,7 +71,9 @@ namespace Budget.API.Tests.Controllers
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestErrorMessageResult));
         }
+        #endregion
 
+        #region Get Tests
         [TestMethod]
         public void FIGetExistsAndAuthorized()
         {
@@ -118,7 +120,9 @@ namespace Budget.API.Tests.Controllers
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region GetAll Tests
         [TestMethod]
         public void FiGetAllNonEmptySet()
         {
@@ -154,7 +158,9 @@ namespace Budget.API.Tests.Controllers
             Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<FinancialInstitutionViewModel>>));
             Assert.IsTrue(castResult.Content.Count == 0);
         }
+        #endregion
 
+        #region Update Tests
         [TestMethod]
         public void FIUpdateOK()
         {
@@ -224,7 +230,9 @@ namespace Budget.API.Tests.Controllers
             // Assert
             Assert.IsInstanceOfType(result, typeof(UnauthorizedResult));
         }
+        #endregion
 
+        #region Update Login Credentials Tests
         [TestMethod]
         public void FIUpdateLoginOK()
         {
@@ -294,6 +302,117 @@ namespace Budget.API.Tests.Controllers
             // Assert
             Assert.IsInstanceOfType(result, typeof(UnauthorizedResult));
         }
+        #endregion
+
+        #region Get Account List Tests
+        [TestMethod]
+        public void FIGetAccountListDoesNotExist()
+        {
+            // Arrange
+            var user = UserBuilder.CreateUser();
+            var contextMock = GetContextMock(user);
+            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            controller.User = user;
+
+            // Act
+            IHttpActionResult result = controller.GetAccountList(2);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+        
+        [TestMethod]
+        public void FIGetAccountListExistsAndUnauthorized()
+        {
+            // Arrange
+            var contextMock = GetContextMock();
+            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            controller.User = UserBuilder.CreateUser();
+
+            // Act
+            IHttpActionResult result = controller.GetAccountList(1);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedResult));
+        }
+        
+        [TestMethod]
+        public void FIGetAccountListOfxRequestFails()
+        {
+            // Arrange
+            var user = UserBuilder.CreateUser();
+            var contextMock = GetContextMock(user);
+            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            controller.User = user;
+            var ofx = new MockOfxClient().WithFailedRequest();
+            controller.OfxClient = ofx.GetClientMock();
+
+            // Act
+            IHttpActionResult result = controller.GetAccountList(1);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestErrorMessageResult));
+        }
+        
+        [TestMethod]
+        public void FIGetAccountListOfxRequestSucceedsNoOfxString()
+        {
+            // Arrange
+            var user = UserBuilder.CreateUser();
+            var contextMock = GetContextMock(user);
+            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            controller.User = user;
+            var ofx = new MockOfxClient().WithSuccessfulRequest(null);
+            controller.OfxClient = ofx.GetClientMock();
+
+            // Act
+            IHttpActionResult result = controller.GetAccountList(1);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(InternalServerErrorResult));
+        }
+
+        [TestMethod]
+        public void FIGetAccountListOfxSignonRequestFails()
+        {
+            // Arrange
+            var user = UserBuilder.CreateUser();
+            var contextMock = GetContextMock(user);
+            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            controller.User = user;
+            var ofx = new MockOfxClient().WithSuccessfulRequest("fake ofx string").WithSignonFailure("fake error message");
+            controller.OfxClient = ofx.GetClientMock();
+
+            // Act
+            IHttpActionResult result = controller.GetAccountList(1);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestErrorMessageResult));
+        }
+
+        [TestMethod]
+        public void FIGetAccountListSuccess()
+        {
+            // Arrange
+            var user = UserBuilder.CreateUser();
+            var contextMock = GetContextMock(user);
+            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            controller.User = user;
+            var ofx = new MockOfxClient()
+                .WithSuccessfulRequest("fake ofx string")
+                .WithSignonSuccess()
+                .WithAccounts(new List<AccountModel>());
+            controller.OfxClient = ofx.GetClientMock();
+
+            // Act
+            IHttpActionResult result = controller.GetAccountList(1);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<IEnumerable<AccountListViewModel>>));
+        }
+
+
+        #endregion
 
         private FinancialInstitutionCreateBindingModel GetValidBindingModel()
         {
