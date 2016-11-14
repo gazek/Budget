@@ -21,10 +21,12 @@ namespace Budget.API.Controllers
     {
         private IApplicationDbContext _dbContext;
         private ApplicationUserManager _userManager;
+        public IOfxClient OfxClient { get; set; }
 
         public FinancialInstitutionsController(IApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
+            OfxClient = new OfxClient();
         }
        
         public ApplicationUserManager UserManager
@@ -202,41 +204,40 @@ namespace Budget.API.Controllers
             }
             
             // configure the ofx account list request
-            OfxClient ofx = new OfxClient();
-            ofx.RequestConfig.OfxFid = entity.OfxFid;
-            ofx.RequestConfig.OfxOrg = entity.OfxOrg;
-            ofx.RequestConfig.Password = AesService.DecryptStringFromBytes(entity.PasswordHash);
-            ofx.RequestConfig.RequestType = OFXRequestConfigRequestType.AccountList;
-            ofx.RequestConfig.URL = new Uri(entity.OfxUrl);
-            ofx.RequestConfig.Username = entity.Username;
+            OfxClient.RequestConfig.OfxFid = entity.OfxFid;
+            OfxClient.RequestConfig.OfxOrg = entity.OfxOrg;
+            OfxClient.RequestConfig.Password = AesService.DecryptStringFromBytes(entity.PasswordHash);
+            OfxClient.RequestConfig.RequestType = OFXRequestConfigRequestType.AccountList;
+            OfxClient.RequestConfig.URL = new Uri(entity.OfxUrl);
+            OfxClient.RequestConfig.Username = entity.Username;
             Guid clientId;
             if (Guid.TryParse(entity.CLIENTUID, out clientId))
             {
-                ofx.RequestConfig.ClientUID = clientId;
-            }  
-
-            // Build request
-            ofx.BuildRequest();
-
-            // Make request
-            ofx.ExecuteRequest();
-
-            // check request status
-            if (ofx.Requestor.Status && ofx.Requestor.OFX != null)
-            {
-                ofx.ParseResponse();
-
-                if (!ofx.Parser.SignOnRequest.Status)
-                {
-                    return BadRequest(ofx.Parser.SignOnRequest.Code + ": " + ofx.Parser.SignOnRequest.Message);
-                }
-
-                return Ok(ofx.Parser.Accounts.Select(x => ModelMapper.EntityToListViewModel(x, id)));
+                OfxClient.RequestConfig.ClientUID = clientId;
             }
 
-            if (!ofx.Requestor.Status)
+            // Build request
+            OfxClient.BuildRequest();
+
+            // Make request
+            OfxClient.ExecuteRequest();
+
+            // check request status
+            if (OfxClient.Requestor.Status && OfxClient.Requestor.OFX != null)
             {
-                return BadRequest(ofx.Requestor.ErrorMessage);
+                OfxClient.ParseResponse();
+
+                if (!OfxClient.Parser.SignOnRequest.Status)
+                {
+                    return BadRequest(OfxClient.Parser.SignOnRequest.Code + ": " + OfxClient.Parser.SignOnRequest.Message);
+                }
+
+                return Ok(OfxClient.Parser.Accounts.Select(x => ModelMapper.EntityToListViewModel(x, id)));
+            }
+
+            if (!OfxClient.Requestor.Status)
+            {
+                return BadRequest(OfxClient.Requestor.ErrorMessage);
             }
 
             return InternalServerError();
