@@ -2,7 +2,7 @@
 
 namespace Budget.API.Services.OFXClient
 {
-    public class OFXRequestor
+    public class OFXRequestor : IOFXRequestor
     {
         public string Response { get; private set; }
         public string Header { get; private set; }
@@ -13,9 +13,9 @@ namespace Budget.API.Services.OFXClient
         public string StatusDescription { get; private set; }
 
         OFXRequestConfig _config;
-        OFXRequestBuilder _requestBuilder;
+        IOFXRequestBuilder _requestBuilder;
 
-        public OFXRequestor(OFXRequestBuilder requestBuilder)
+        public OFXRequestor(IOFXRequestBuilder requestBuilder)
         {
             _requestBuilder = requestBuilder;
             _config = requestBuilder.Config;

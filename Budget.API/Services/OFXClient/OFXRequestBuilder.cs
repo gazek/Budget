@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Budget.API.Services.OFXClient
 {
-    public class OFXRequestBuilder
+    public class OFXRequestBuilder : IOFXRequestBuilder
     {
         public string Header { get; private set; }
         public string Body { get; private set; }

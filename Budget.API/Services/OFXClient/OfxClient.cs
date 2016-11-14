@@ -1,11 +1,11 @@
 ﻿namespace Budget.API.Services.OFXClient
 {
-    public class OfxClient
+    public class OfxClient : IOfxClient
     {
         public OFXRequestConfig RequestConfig { get; set; }
-        public OFXRequestBuilder RequestBuilder { get; set; }
-        public OFXRequestor Requestor { get; set; }
-        public OFXParser Parser { get; set; }
+        public IOFXRequestBuilder RequestBuilder { get; set; }
+        public IOFXRequestor Requestor { get; set; }
+        public IOFXParser Parser { get; set; }
 
         public OfxClient()
         {

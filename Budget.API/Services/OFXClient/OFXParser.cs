@@ -5,7 +5,7 @@ using Budget.DAL.Models;
 
 namespace Budget.API.Services.OFXClient
 {
-    public class OFXResponseStatus
+    public class OFXResponseStatus : IOFXResponseStatus
     {
         public bool Status { get; set; }
         public int Code { get; set; }
@@ -19,21 +19,21 @@ namespace Budget.API.Services.OFXClient
         }
     }
 
-    public class OFXParser
+    public class OFXParser : IOFXParser
     {
         // SignOn
-        public OFXResponseStatus SignOnRequest { get; private set; }
+        public IOFXResponseStatus SignOnRequest { get; private set; }
 
         // Account List
-        public OFXResponseStatus AccountListRequest { get; private set; }
+        public IOFXResponseStatus AccountListRequest { get; private set; }
         public List<AccountModel> Accounts { get; private set; }
 
         // Balance
-        public OFXResponseStatus BalanceRequest { get; private set; }
+        public IOFXResponseStatus BalanceRequest { get; private set; }
         public BalanceModel Balance { get; private set; }
 
         // Statment
-        public OFXResponseStatus StatmentRequest { get; private set; }
+        public IOFXResponseStatus StatmentRequest { get; private set; }
         public List<TransactionModel> StatementTransactions { get; private set; }
 
         // internal OFX and XML Doc
@@ -606,7 +606,7 @@ namespace Budget.API.Services.OFXClient
         /*
          *    S T A T U S
          */
-        private void ParseStatus(XmlNode doc, OFXResponseStatus status)
+        private void ParseStatus(XmlNode doc, IOFXResponseStatus status)
         {
             #region OFX Response Status Samples
             /*
