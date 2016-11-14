@@ -345,7 +345,7 @@ namespace Budget.API.Tests.Controllers
             FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
             controller.User = user;
             var ofx = new MockOfxClient().WithFailedRequest();
-            controller.OfxClient = ofx.GetClientMock();
+            controller.OfxClient = ofx.GetMock();
 
             // Act
             IHttpActionResult result = controller.GetAccountList(1);
@@ -363,7 +363,7 @@ namespace Budget.API.Tests.Controllers
             FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
             controller.User = user;
             var ofx = new MockOfxClient().WithSuccessfulRequest(null);
-            controller.OfxClient = ofx.GetClientMock();
+            controller.OfxClient = ofx.GetMock();
 
             // Act
             IHttpActionResult result = controller.GetAccountList(1);
@@ -381,7 +381,7 @@ namespace Budget.API.Tests.Controllers
             FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
             controller.User = user;
             var ofx = new MockOfxClient().WithSuccessfulRequest("fake ofx string").WithSignonFailure("fake error message");
-            controller.OfxClient = ofx.GetClientMock();
+            controller.OfxClient = ofx.GetMock();
 
             // Act
             IHttpActionResult result = controller.GetAccountList(1);
@@ -402,7 +402,7 @@ namespace Budget.API.Tests.Controllers
                 .WithSuccessfulRequest("fake ofx string")
                 .WithSignonSuccess()
                 .WithAccounts(new List<AccountModel>());
-            controller.OfxClient = ofx.GetClientMock();
+            controller.OfxClient = ofx.GetMock();
 
             // Act
             IHttpActionResult result = controller.GetAccountList(1);
@@ -464,20 +464,17 @@ namespace Budget.API.Tests.Controllers
             var data = new List<FinancialInstitutionModel>
             {
                 entityWithId
-            }.AsQueryable();
-
-            // mock data set
-            var fiMock = new MockDbSet<FinancialInstitutionModel>().UsingDataSet(data).Mock();
-            fiMock.Setup(x => x.Find(It.Is<int>(v => v.Equals(1)))).Returns(entityWithId);
-            fiMock.Setup(x => x.Add(It.IsAny<FinancialInstitutionModel>())).Returns(entityWithId);
-            
+            };
 
             // mock context
-            var contextMock = new Mock<IApplicationDbContext>();
-            contextMock.SetupGet(x => x.FinancialInstitutions).Returns(fiMock.Object);
-            contextMock.Setup(x => x.SaveChanges()).Returns(1);
+            var contextMockBuilder = new MockDbContext()
+                .WithData(data)
+                .SetupAdd(entityWithId, entityWithId)
+                .SetupFind(1, entityWithId)
+                .SetupSaveChanges(1)
+                .Finalize();
 
-            return contextMock;
+            return contextMockBuilder.Context;
         }
     }
 }
