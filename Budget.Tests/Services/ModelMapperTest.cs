@@ -7,6 +7,8 @@ using System.Security.Principal;
 using Microsoft.AspNet.Identity;
 using System.Collections.Generic;
 using System.Security.Claims;
+using Budget.API.Tests.Fakes;
+using System.Linq;
 
 namespace Budget.Tests.Services
 {
@@ -17,21 +19,7 @@ namespace Budget.Tests.Services
 
         public ModelMapperTest()
         {
-            // create user mock
-            var userMock = new Moq.Mock<IPrincipal>();
-
-            // Create a fake Identity
-            // Cannot use Moq since GetUserId() is an extension method
-            string userId = Guid.NewGuid().ToString();
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", userId)
-            };
-            var identityMock = new ClaimsIdentity(claims);
-            userMock.SetupGet(x => x.Identity).Returns(identityMock);
-
-            // assign to field
-            _user = userMock.Object;
+            _user = UserBuilder.CreateUser();
         }
 
         [TestMethod]
@@ -161,6 +149,66 @@ namespace Budget.Tests.Services
             Assert.AreEqual(model.OfxOrg, result.OfxOrg);
             Assert.AreEqual(model.Username, result.Username);
             Assert.AreEqual(model.CLIENTUID, result.CLIENTUID);
+        }
+
+        [TestMethod]
+        public void AccountEntityToView()
+        {
+            // Arrange
+            var model = new AccountModel
+            {
+                Id = 1223,
+                UserId = Guid.NewGuid().ToString(),
+                FinancialInstitutionId = 12,
+                Number = "s123",
+                Name = "my account",
+                Type = AccountType.Savings,
+                Description = "a savings account",
+                Transactions = new List<TransactionModel>(),
+                BalanceHistory = new List<BalanceModel>()
+            };
+
+            // Act
+            var result = ModelMapper.EntityToView(model);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(AccountViewModel));
+            Assert.AreEqual(model.Id, result.Id);
+            Assert.AreEqual(model.FinancialInstitutionId, result.FinancialInstitutionId);
+            Assert.AreEqual(model.Number, result.Number);
+            Assert.AreEqual(model.Name, result.Name);
+            Assert.AreEqual(model.Type, result.Type);
+            Assert.AreEqual(model.Description, result.Description);
+            Assert.AreEqual(model.Transactions, result.Transactions);
+            Assert.AreEqual(model.BalanceHistory.OrderByDescending(x => x.AsOfDate).FirstOrDefault(), result.Balance);
+        }
+        
+        [TestMethod]
+        public void AccountEntitiesToListView()
+        {
+            // Arrange
+            var model = new AccountModel
+            {
+                Id = 1223,
+                UserId = Guid.NewGuid().ToString(),
+                FinancialInstitutionId = 12,
+                Number = "s123",
+                Name = "my account",
+                Type = AccountType.Savings,
+                Description = "a savings account",
+                Transactions = new List<TransactionModel>(),
+                BalanceHistory = new List<BalanceModel>()
+            };
+
+            // Act
+            var result = ModelMapper.EntityToListView(model, model.FinancialInstitutionId);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(AccountListViewModel));
+            Assert.AreEqual(model.FinancialInstitutionId, result.FinancialInstitutionId);
+            Assert.AreEqual(model.Number, result.Number);
+            Assert.AreEqual(model.Name, result.Name);
+            Assert.AreEqual(model.Type, result.Type);
         }
     }
 }
