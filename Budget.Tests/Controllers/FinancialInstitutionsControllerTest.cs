@@ -27,7 +27,7 @@ namespace Budget.API.Tests.Controllers
         {
             // Arrange
             var contextMock = GetContextMock();
-            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            FinancialInstitutionController controller = new FinancialInstitutionController(contextMock.Object);
             var urlHelperMock = new Mock<UrlHelper>();
             urlHelperMock.Setup(x => x.Link(It.IsAny<string>(), It.IsAny<Object>()))
                 .Returns("anyvalue");
@@ -45,7 +45,7 @@ namespace Budget.API.Tests.Controllers
         {
             // Arrange
             var contextMock = GetContextMock();
-            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            FinancialInstitutionController controller = new FinancialInstitutionController(contextMock.Object);
             controller.ModelState.AddModelError("test", "TEST");
 
             // Act
@@ -63,7 +63,7 @@ namespace Budget.API.Tests.Controllers
             var inner2 = new SqlExceptionBuilder().WithErrorNumber(2601).Build();
             var inner1 = new Exception("", inner2);
             contextMock.Setup(x => x.SaveChanges()).Throws(new DbUpdateException("", inner1));
-            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            FinancialInstitutionController controller = new FinancialInstitutionController(contextMock.Object);
 
             // Act
             IHttpActionResult result = controller.Create(GetValidBindingModel());
@@ -80,7 +80,7 @@ namespace Budget.API.Tests.Controllers
             // Arrange
             var user = UserBuilder.CreateUser();
             var contextMock = GetContextMock(user);
-            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            FinancialInstitutionController controller = new FinancialInstitutionController(contextMock.Object);
             controller.User = user;
 
             // Act
@@ -95,7 +95,7 @@ namespace Budget.API.Tests.Controllers
         {
             // Arrange
             var contextMock = GetContextMock();
-            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            FinancialInstitutionController controller = new FinancialInstitutionController(contextMock.Object);
             controller.User = UserBuilder.CreateUser();
 
             // Act
@@ -111,7 +111,7 @@ namespace Budget.API.Tests.Controllers
             // Arrange
             var user = UserBuilder.CreateUser();
             var contextMock = GetContextMock(user);
-            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            FinancialInstitutionController controller = new FinancialInstitutionController(contextMock.Object);
             controller.User = user;
 
             // Act
@@ -129,7 +129,7 @@ namespace Budget.API.Tests.Controllers
             // Arrange
             var user = UserBuilder.CreateUser();
             var contextFake = GetContextMock(user);
-            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextFake.Object);
+            FinancialInstitutionController controller = new FinancialInstitutionController(contextFake.Object);
             controller.User = user;
 
             // Act
@@ -147,7 +147,7 @@ namespace Budget.API.Tests.Controllers
             // Arrange
             var user = UserBuilder.CreateUser();
             var contextFake = GetContextMock(UserBuilder.CreateUser());
-            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextFake.Object);
+            FinancialInstitutionController controller = new FinancialInstitutionController(contextFake.Object);
             controller.User = user;
 
             // Act
@@ -169,7 +169,7 @@ namespace Budget.API.Tests.Controllers
             var bindingModel = GetValidUpdateBindingModel();
             bindingModel.Name = "different name";
             var contextMock = GetContextMock(user);
-            var controller = new FinancialInstitutionsController(contextMock.Object);
+            var controller = new FinancialInstitutionController(contextMock.Object);
             controller.User = user;
 
             // Act
@@ -185,7 +185,7 @@ namespace Budget.API.Tests.Controllers
             // Arrange
             var bindingModel = GetValidUpdateBindingModel();
             var contextMock = GetContextMock();
-            var controller = new FinancialInstitutionsController(contextMock.Object);
+            var controller = new FinancialInstitutionController(contextMock.Object);
 
             // Act
             var result = controller.Update(-1, bindingModel);
@@ -202,7 +202,7 @@ namespace Budget.API.Tests.Controllers
             var bindingModel = GetValidUpdateBindingModel();
             bindingModel.Name = "different name";
             var contextMock = GetContextMock(user);
-            var controller = new FinancialInstitutionsController(contextMock.Object);
+            var controller = new FinancialInstitutionController(contextMock.Object);
             controller.User = user;
             contextMock.Setup(x => x.SaveChanges()).Throws(new DbUpdateException("some message"));
 
@@ -221,7 +221,7 @@ namespace Budget.API.Tests.Controllers
             var bindingModel = GetValidUpdateBindingModel();
             bindingModel.Name = "different name";
             var contextMock = GetContextMock();
-            var controller = new FinancialInstitutionsController(contextMock.Object);
+            var controller = new FinancialInstitutionController(contextMock.Object);
             controller.User = user;
 
             // Act
@@ -242,7 +242,7 @@ namespace Budget.API.Tests.Controllers
             var loginUpdateBindingModel = GetValidUpdateLoginBindingModel();
             loginUpdateBindingModel.Username = "different name";
             var contextMock = GetContextMock(user);
-            var controller = new FinancialInstitutionsController(contextMock.Object);
+            var controller = new FinancialInstitutionController(contextMock.Object);
             controller.User = user;
 
             // Act
@@ -260,7 +260,7 @@ namespace Budget.API.Tests.Controllers
             // Arrange
             var bindingModel = GetValidUpdateLoginBindingModel();
             var contextMock = GetContextMock();
-            var controller = new FinancialInstitutionsController(contextMock.Object);
+            var controller = new FinancialInstitutionController(contextMock.Object);
 
             // Act
             var result = controller.UpdateLogin(-1, bindingModel);
@@ -276,7 +276,7 @@ namespace Budget.API.Tests.Controllers
             var user = UserBuilder.CreateUser();
             var bindingModel = GetValidUpdateLoginBindingModel();
             var contextMock = GetContextMock(user);
-            var controller = new FinancialInstitutionsController(contextMock.Object);
+            var controller = new FinancialInstitutionController(contextMock.Object);
             controller.User = user;
             contextMock.Setup(x => x.SaveChanges()).Throws(new DbUpdateException("some message"));
 
@@ -293,7 +293,7 @@ namespace Budget.API.Tests.Controllers
             // Arrange
             var bindingModel = GetValidUpdateLoginBindingModel();
             var contextMock = GetContextMock();
-            var controller = new FinancialInstitutionsController(contextMock.Object);
+            var controller = new FinancialInstitutionController(contextMock.Object);
             controller.User = UserBuilder.CreateUser();
 
             // Act
@@ -311,7 +311,7 @@ namespace Budget.API.Tests.Controllers
             // Arrange
             var user = UserBuilder.CreateUser();
             var contextMock = GetContextMock(user);
-            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            FinancialInstitutionController controller = new FinancialInstitutionController(contextMock.Object);
             controller.User = user;
 
             // Act
@@ -326,7 +326,7 @@ namespace Budget.API.Tests.Controllers
         {
             // Arrange
             var contextMock = GetContextMock();
-            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            FinancialInstitutionController controller = new FinancialInstitutionController(contextMock.Object);
             controller.User = UserBuilder.CreateUser();
 
             // Act
@@ -342,7 +342,7 @@ namespace Budget.API.Tests.Controllers
             // Arrange
             var user = UserBuilder.CreateUser();
             var contextMock = GetContextMock(user);
-            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            FinancialInstitutionController controller = new FinancialInstitutionController(contextMock.Object);
             controller.User = user;
             var ofx = new MockOfxClient().WithFailedRequest();
             controller.OfxClient = ofx.GetMock();
@@ -360,7 +360,7 @@ namespace Budget.API.Tests.Controllers
             // Arrange
             var user = UserBuilder.CreateUser();
             var contextMock = GetContextMock(user);
-            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            FinancialInstitutionController controller = new FinancialInstitutionController(contextMock.Object);
             controller.User = user;
             var ofx = new MockOfxClient().WithSuccessfulRequest(null);
             controller.OfxClient = ofx.GetMock();
@@ -378,7 +378,7 @@ namespace Budget.API.Tests.Controllers
             // Arrange
             var user = UserBuilder.CreateUser();
             var contextMock = GetContextMock(user);
-            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            FinancialInstitutionController controller = new FinancialInstitutionController(contextMock.Object);
             controller.User = user;
             var ofx = new MockOfxClient().WithSuccessfulRequest("fake ofx string").WithSignonFailure("fake error message");
             controller.OfxClient = ofx.GetMock();
@@ -396,7 +396,7 @@ namespace Budget.API.Tests.Controllers
             // Arrange
             var user = UserBuilder.CreateUser();
             var contextMock = GetContextMock(user);
-            FinancialInstitutionsController controller = new FinancialInstitutionsController(contextMock.Object);
+            FinancialInstitutionController controller = new FinancialInstitutionController(contextMock.Object);
             controller.User = user;
             var ofx = new MockOfxClient()
                 .WithSuccessfulRequest("fake ofx string")
