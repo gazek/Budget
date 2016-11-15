@@ -98,6 +98,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\FinancialInstitutionsControllerTest.cs" />
+    <Compile Include="Controllers\AccountControllerTest.cs" />
     <Compile Include="FakesAndMocks\MockDbContext.cs" />
     <Compile Include="FakesAndMocks\MockDbSet.cs" />
     <Compile Include="FakesAndMocks\MockOfxClient.cs" />
