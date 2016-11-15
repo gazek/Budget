@@ -17,13 +17,13 @@ namespace Budget.API.Controllers
 {
     [Authorize]
     [RoutePrefix("api/FinancialInstitution")]
-    public class FinancialInstitutionsController : ApiController
+    public class FinancialInstitutionController : ApiController
     {
         private IApplicationDbContext _dbContext;
         private ApplicationUserManager _userManager;
         public IOfxClient OfxClient { get; set; }
 
-        public FinancialInstitutionsController(IApplicationDbContext dbContext)
+        public FinancialInstitutionController(IApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
             OfxClient = new OfxClient();
@@ -232,7 +232,7 @@ namespace Budget.API.Controllers
                     return BadRequest(OfxClient.Parser.SignOnRequest.Code + ": " + OfxClient.Parser.SignOnRequest.Message);
                 }
 
-                return Ok(OfxClient.Parser.Accounts.Select(x => ModelMapper.EntityToListViewModel(x, id)));
+                return Ok(OfxClient.Parser.Accounts.Select(x => ModelMapper.EntityToListView(x, id)));
             }
 
             if (!OfxClient.Requestor.Status)
