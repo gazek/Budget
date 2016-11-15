@@ -38,6 +38,17 @@ namespace Budget.API.Services
             };
         }
 
+        public static BalanceViewModel EntityToView(BalanceModel model)
+        {
+            return new BalanceViewModel
+            {
+                Id = model.Id,
+                AccountId = model.AccountId,
+                Amount = model.Amount,
+                AsOfDate = model.AsOfDate
+            };
+        }
+
         public static AccountListViewModel EntityToListView(AccountModel model, int financialInstitutionId = 0)
         {
             return new AccountListViewModel

@@ -182,7 +182,7 @@ namespace Budget.Tests.Services
             Assert.AreEqual(model.Transactions, result.Transactions);
             Assert.AreEqual(model.BalanceHistory.OrderByDescending(x => x.AsOfDate).FirstOrDefault(), result.Balance);
         }
-        
+
         [TestMethod]
         public void AccountEntitiesToListView()
         {
@@ -209,6 +209,13 @@ namespace Budget.Tests.Services
             Assert.AreEqual(model.Number, result.Number);
             Assert.AreEqual(model.Name, result.Name);
             Assert.AreEqual(model.Type, result.Type);
+        }
+
+        [TestMethod]
+        public void BalanceEntityToView()
+        {
+            // need to write this test
+            Assert.IsTrue(false);
         }
     }
 }
