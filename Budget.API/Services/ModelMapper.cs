@@ -34,7 +34,7 @@ namespace Budget.API.Services
                 Type = model.Type,
                 Description = model.Description,
                 Transactions = model.Transactions,
-                Balance = model.BalanceHistory.OrderByDescending(x => x.AsOfDate).FirstOrDefault()
+                Balance = model.BalanceHistory?.OrderByDescending(x => x.AsOfDate).FirstOrDefault()
             };
         }
 
