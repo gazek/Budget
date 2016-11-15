@@ -2,12 +2,43 @@
 using Budget.API.Models;
 using System.Security.Principal;
 using Microsoft.AspNet.Identity;
+using System.Linq;
 
 namespace Budget.API.Services
 {
     public class ModelMapper
     {
-        public static AccountListViewModel EntityToListViewModel(AccountModel model, int financialInstitutionId = 0)
+        #region Account
+        public static AccountModel BindingToEntity(AccountBindingModel model, IPrincipal user)
+        {
+            return new AccountModel
+            {
+                Id = model.Id,
+                UserId = user.Identity.GetUserId(),
+                FinancialInstitutionId = model.FinancialInstitutionId,
+                Number = model.Number,
+                Name = model.Name,
+                Type = model.Type,
+                Description = model.Description
+            };
+        }
+
+        public static AccountViewModel EntityToView(AccountModel model)
+        {
+            return new AccountViewModel
+            {
+                Id = model.Id,
+                FinancialInstitutionId = model.FinancialInstitutionId,
+                Number = model.Number,
+                Name = model.Name,
+                Type = model.Type,
+                Description = model.Description,
+                Transactions = model.Transactions,
+                Balance = model.BalanceHistory.OrderByDescending(x => x.AsOfDate).FirstOrDefault()
+            };
+        }
+
+        public static AccountListViewModel EntityToListView(AccountModel model, int financialInstitutionId = 0)
         {
             return new AccountListViewModel
             {
@@ -17,7 +48,9 @@ namespace Budget.API.Services
                 Type = model.Type
             };
         }
+        #endregion
 
+        #region FinancialInstitution
         public static FinancialInstitutionModel BindingToEntity(FinancialInstitutionCreateBindingModel model, IPrincipal user)
         {
             byte[] hash = AesService.EncryptStringToBytes(model.Password);
@@ -48,5 +81,6 @@ namespace Budget.API.Services
                 CLIENTUID = model.CLIENTUID
             };
         }
+        #endregion
     }
 }
