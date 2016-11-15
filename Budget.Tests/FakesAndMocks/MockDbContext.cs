@@ -65,9 +65,21 @@ namespace Budget.API.Tests.FakesAndMocks
             return this;
         }
 
+        public MockDbContext SetupAdd(AccountModel add, AccountModel returns)
+        {
+            Accounts.Setup(x => x.Add(It.Is<AccountModel>(fi => fi.Number == add.Number))).Returns(returns);
+            return this;
+        }
+
         public MockDbContext SetupFind(int id, FinancialInstitutionModel returns)
         {
             FinancialInstitutions.Setup(x => x.Find(id)).Returns(returns);
+            return this;
+        }
+
+        public MockDbContext SetupFind(int id, AccountModel returns)
+        {
+            Accounts.Setup(x => x.Find(id)).Returns(returns);
             return this;
         }
 
