@@ -156,7 +156,39 @@ namespace Budget.API.Controllers
         }
 
         // GET - get balance history api/account/{id}/balancehistory
+        [Route("{id}/GetBalanceHistory", Name = "GetAccountBalanceHistory")]
+        [HttpGet]
+        [Authorize]
+        public IHttpActionResult GetBalanceHistory(int id)
+        {
+            AccountModel account = _dbContext.Accounts.Find(id);
+
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            if (account.UserId != User.Identity.GetUserId())
+            {
+                return Unauthorized();
+            }
+
+            List<BalanceModel> balances = account.BalanceHistory?.OrderByDescending(x => x.AsOfDate).ToList();
+
+            List<BalanceViewModel> result = balances?.Select(x => ModelMapper.EntityToView(x)).ToList();
+            
+            return Ok(result);
+        }
+
         // GET - OFX request to pull latest transactions api/account/{id}/updatetransactions
+        [Route("{id}/PullLatestTransactions", Name = "PullLatestTransactions")]
+        [HttpGet]
+        [Authorize]
+        public IHttpActionResult PullLatestTransactions(int id)
+        {
+            var ex =  new NotImplementedException();
+            return InternalServerError(ex);
+        }
 
         private IHttpActionResult GetErrorResult(DbUpdateException ex)
         {
