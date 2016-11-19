@@ -114,7 +114,7 @@ namespace Budget.API.Tests.Controllers
             controller.User = user;
 
             // Act
-            IHttpActionResult result = controller.Get(2);
+            IHttpActionResult result = controller.Get(-1);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
@@ -255,10 +255,10 @@ namespace Budget.API.Tests.Controllers
             var user = UserBuilder.CreateUser();
             var contextMock = GetContextMock(user);
             AccountController controller = new AccountController(contextMock.Object);
-            controller.User = UserBuilder.CreateUser();
+            controller.User = user;
 
             // Act
-            var result = controller.GetBalanceHistory(1);
+            var result = controller.GetBalanceHistory(-1);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
@@ -271,14 +271,14 @@ namespace Budget.API.Tests.Controllers
             var user = UserBuilder.CreateUser();
             var contextMock = GetContextMock(user);
             AccountController controller = new AccountController(contextMock.Object);
-            controller.User = UserBuilder.CreateUser();
+            controller.User = user;
 
             // Act
-            IHttpActionResult result = controller.GetBalanceHistory(-1);
+            IHttpActionResult result = controller.GetBalanceHistory(3);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<IList<BalanceViewModel>>));
-            var typedResult = (OkNegotiatedContentResult<IList<BalanceViewModel>>)result;
+            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<BalanceViewModel>>));
+            var typedResult = (OkNegotiatedContentResult<List<BalanceViewModel>>)result;
             Assert.AreEqual(0, typedResult.Content.Count);
         }
 
@@ -289,14 +289,14 @@ namespace Budget.API.Tests.Controllers
             var user = UserBuilder.CreateUser();
             var contextMock = GetContextMock(user);
             AccountController controller = new AccountController(contextMock.Object);
-            controller.User = UserBuilder.CreateUser();
+            controller.User = user;
 
             // Act
             IHttpActionResult result = controller.GetBalanceHistory(1);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<IList<BalanceViewModel>>));
-            var typedResult = (OkNegotiatedContentResult<IList<BalanceViewModel>>)result;
+            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<BalanceViewModel>>));
+            var typedResult = (OkNegotiatedContentResult<List<BalanceViewModel>>)result;
             Assert.AreEqual(2, typedResult.Content.Count);
         }
         #endregion
@@ -357,8 +357,8 @@ namespace Budget.API.Tests.Controllers
 
             dataset.Add(new BalanceModel()
             {
-                Id = 3,
-                AccountId = 1,
+                Id = 5,
+                AccountId = 2,
                 AsOfDate = DateTime.Parse("01/02/2016"),
                 Amount = 7890.12M
             });
@@ -375,19 +375,25 @@ namespace Budget.API.Tests.Controllers
             }
 
             // create data set
-            var entityWithId = ModelMapper.BindingToEntity(GetValidBindingModel(), user);
-            entityWithId.Id = 1;
+            var entityWithId1 = ModelMapper.BindingToEntity(GetValidBindingModel(), user);
+            entityWithId1.Id = 1;
+            var entityWithId2 = ModelMapper.BindingToEntity(GetValidBindingModel(), user);
+            entityWithId2.Id = 2;
+            var entityWithId3 = ModelMapper.BindingToEntity(GetValidBindingModel(), user);
+            entityWithId2.Id = 3;
             var data = new List<AccountModel>
             {
-                entityWithId
+                entityWithId1, entityWithId2, entityWithId3
             };
 
             // mock context
             var contextMockBuilder = new MockDbContext()
                 .WithData(data)
                 .WithData(GetBalanceList())
-                .SetupAdd(entityWithId, entityWithId)
-                .SetupFind(1, entityWithId)
+                .SetupAdd(entityWithId1, entityWithId1)
+                .SetupFind(1, entityWithId1)
+                .SetupFind(2, entityWithId2)
+                .SetupFind(3, entityWithId3)
                 .SetupSaveChanges(1)
                 .Finalize();
 
