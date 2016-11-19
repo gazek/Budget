@@ -156,6 +156,7 @@ namespace Budget.API.Controllers
         }
 
         // GET - get balance history api/account/{id}/balancehistory
+        // This should probably take accept optional date range arguments, but maybe later...
         [Route("{id}/GetBalanceHistory", Name = "GetAccountBalanceHistory")]
         [HttpGet]
         [Authorize]
