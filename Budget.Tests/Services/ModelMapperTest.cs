@@ -6,7 +6,6 @@ using Budget.API.Services;
 using System.Security.Principal;
 using Microsoft.AspNet.Identity;
 using System.Collections.Generic;
-using System.Security.Claims;
 using Budget.API.Tests.Fakes;
 using System.Linq;
 
@@ -214,8 +213,24 @@ namespace Budget.Tests.Services
         [TestMethod]
         public void BalanceEntityToView()
         {
-            // need to write this test
-            Assert.IsTrue(false);
+            // Arrange
+            var model = new BalanceModel()
+            {
+                Id = 1,
+                AccountId = 2,
+                AsOfDate = DateTime.Today,
+                Amount = 123.45M
+            };
+
+            // Act
+            var result = ModelMapper.EntityToView(model);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BalanceViewModel));
+            Assert.AreEqual(model.Id, result.Id);
+            Assert.AreEqual(model.AccountId, result.AccountId);
+            Assert.AreEqual(model.AsOfDate, result.AsOfDate);
+            Assert.AreEqual(model.Amount, result.Amount);
         }
     }
 }
