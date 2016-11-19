@@ -232,5 +232,19 @@ namespace Budget.Tests.Services
             Assert.AreEqual(model.AsOfDate, result.AsOfDate);
             Assert.AreEqual(model.Amount, result.Amount);
         }
+
+        [TestMethod]
+        public void AccountTypeMapEntityToOFX()
+        {
+            // need to writ e the test
+            Assert.IsTrue(false);
+        }
+
+        [TestMethod]
+        public void AccountTypeMapOFXToEntity()
+        {
+            // need to writ e the test
+            Assert.IsTrue(false);
+        }
     }
 }

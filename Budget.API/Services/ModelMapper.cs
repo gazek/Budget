@@ -3,6 +3,8 @@ using Budget.API.Models;
 using System.Security.Principal;
 using Microsoft.AspNet.Identity;
 using System.Linq;
+using Budget.API.Services.OFXClient;
+using System;
 
 namespace Budget.API.Services
 {
@@ -47,6 +49,36 @@ namespace Budget.API.Services
                 Name = model.Name,
                 Type = model.Type
             };
+        }
+
+        public static OFXRequestConfigAccountType Type(AccountType model)
+        {
+            switch (model)
+            {
+                case AccountType.Checking:
+                    return OFXRequestConfigAccountType.CHECKING;
+                case AccountType.CreditCard:
+                    return OFXRequestConfigAccountType.CREDITCARD;
+                case AccountType.Savings:
+                    return OFXRequestConfigAccountType.SAVINGS;
+                default:
+                    throw new Exception("Failed to convert AccountType Enum");
+            }
+        }
+
+        public static AccountType Type(OFXRequestConfigAccountType model)
+        {
+            switch (model)
+            {
+                case OFXRequestConfigAccountType.CHECKING:
+                    return AccountType.Checking;
+                case OFXRequestConfigAccountType.CREDITCARD:
+                    return AccountType.CreditCard;
+                case OFXRequestConfigAccountType.SAVINGS:
+                    return AccountType.Savings;
+                default:
+                    throw new Exception("Failed to convert AccountType Enum");
+            }
         }
         #endregion
 
