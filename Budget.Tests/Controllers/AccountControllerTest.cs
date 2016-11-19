@@ -231,19 +231,84 @@ namespace Budget.API.Tests.Controllers
         }
         #endregion
 
+        #region Get Balance History
         [TestMethod]
-        public void AccountGetBalanceHistory()
+        public void AccountGetBalanceHistoryUnauthorized()
         {
-            // need to write this test
-            Assert.IsTrue(false);
+            // Arrange
+            var user = UserBuilder.CreateUser();
+            var contextMock = GetContextMock(user);
+            AccountController controller = new AccountController(contextMock.Object);
+            controller.User = UserBuilder.CreateUser();
+
+            // Act
+            var result = controller.GetBalanceHistory(1);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedResult));
         }
 
+        [TestMethod]
+        public void AccountGetBalanceHistoryAccountNotFoumd()
+        {
+            // Arrange
+            var user = UserBuilder.CreateUser();
+            var contextMock = GetContextMock(user);
+            AccountController controller = new AccountController(contextMock.Object);
+            controller.User = UserBuilder.CreateUser();
+
+            // Act
+            var result = controller.GetBalanceHistory(1);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public void AccountGetBalanceHistoryEmptyResult()
+        {
+            // Arrange
+            var user = UserBuilder.CreateUser();
+            var contextMock = GetContextMock(user);
+            AccountController controller = new AccountController(contextMock.Object);
+            controller.User = UserBuilder.CreateUser();
+
+            // Act
+            IHttpActionResult result = controller.GetBalanceHistory(-1);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<IList<BalanceViewModel>>));
+            var typedResult = (OkNegotiatedContentResult<IList<BalanceViewModel>>)result;
+            Assert.AreEqual(0, typedResult.Content.Count);
+        }
+
+        [TestMethod]
+        public void AccountGetBalanceHistoryNonEmptyResult()
+        {
+            // Arrange
+            var user = UserBuilder.CreateUser();
+            var contextMock = GetContextMock(user);
+            AccountController controller = new AccountController(contextMock.Object);
+            controller.User = UserBuilder.CreateUser();
+
+            // Act
+            IHttpActionResult result = controller.GetBalanceHistory(1);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<IList<BalanceViewModel>>));
+            var typedResult = (OkNegotiatedContentResult<IList<BalanceViewModel>>)result;
+            Assert.AreEqual(2, typedResult.Content.Count);
+        }
+        #endregion
+
+        #region Pull Latest Transactions
         [TestMethod]
         public void AccountPullLatestTransactions()
         {
             // need to write this test...and the underlying method
             Assert.IsTrue(false);
         }
+        #endregion
 
         private AccountBindingModel GetValidBindingModel()
         {
@@ -271,6 +336,36 @@ namespace Budget.API.Tests.Controllers
             };
         }
 
+        private List<BalanceModel> GetBalanceList()
+        {
+            List<BalanceModel> dataset = new List<BalanceModel>();
+            dataset.Add(new BalanceModel()
+            {
+                Id = 2,
+                AccountId = 1,
+                AsOfDate = DateTime.Parse("01/01/2016"),
+                Amount = 1234.56M
+            });
+
+            dataset.Add(new BalanceModel()
+            {
+                Id = 3,
+                AccountId = 1,
+                AsOfDate = DateTime.Parse("01/02/2016"),
+                Amount = 7890.12M
+            });
+
+            dataset.Add(new BalanceModel()
+            {
+                Id = 3,
+                AccountId = 1,
+                AsOfDate = DateTime.Parse("01/02/2016"),
+                Amount = 7890.12M
+            });
+
+            return dataset;
+        }
+
         private Mock<IApplicationDbContext> GetContextMock(IPrincipal user = null)
         {
             // create user if needed
@@ -290,6 +385,7 @@ namespace Budget.API.Tests.Controllers
             // mock context
             var contextMockBuilder = new MockDbContext()
                 .WithData(data)
+                .WithData(GetBalanceList())
                 .SetupAdd(entityWithId, entityWithId)
                 .SetupFind(1, entityWithId)
                 .SetupSaveChanges(1)
