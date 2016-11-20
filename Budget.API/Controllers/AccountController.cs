@@ -174,7 +174,7 @@ namespace Budget.API.Controllers
                 return Unauthorized();
             }
 
-            List<BalanceModel> balances = account.BalanceHistory?.OrderByDescending(x => x.AsOfDate).ToList();
+            List<BalanceModel> balances = _dbContext.Balances.Where(b => b.AccountId == account.Id).OrderByDescending(b => b.AsOfDate).ToList();
 
             List<BalanceViewModel> result = balances?.Select(x => ModelMapper.EntityToView(x)).ToList();
             
@@ -187,11 +187,81 @@ namespace Budget.API.Controllers
         [Authorize]
         public IHttpActionResult PullLatestTransactions(int id)
         {
-            var ex =  new NotImplementedException();
-            return InternalServerError(ex);
+            // look for FI record
+            AccountModel entity = _dbContext.Accounts.Find(id);
+
+            // return if not found
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            // return if requestor is not asuthorized
+            if (entity.UserId != User.Identity.GetUserId())
+            {
+                return Unauthorized();
+            }
+
+            // Configure request
+            ConfigureOfxStatementRequest(entity);
+
+            // Build request
+            OfxClient.BuildRequest();
+
+            // Make request
+            OfxClient.ExecuteRequest();
+
+            // check request status
+            if (OfxClient.Requestor.Status && OfxClient.Requestor.OFX != null)
+            {
+                OfxClient.ParseResponse();
+
+                if (!OfxClient.Parser.SignOnRequest.Status)
+                {
+                    return BadRequest(OfxClient.Parser.SignOnRequest.Code + ": " + OfxClient.Parser.SignOnRequest.Message);
+                }
+
+                // Add transactions to context
+                OfxClient.Parser.StatementTransactions.ForEach(t => t.AccountId = entity.Id);
+                foreach (TransactionModel t in OfxClient.Parser.StatementTransactions)
+                {
+                    TransactionModel record = _dbContext.Transactions
+                        .Where(x => x.AccountId == t.AccountId)
+                        .Where(x => x.ReferenceValue == t.ReferenceValue)
+                        .Where(x => x.Date == t.Date)
+                        .FirstOrDefault();
+                    if (record == null)
+                    {
+                        _dbContext.Transactions.Add(t);
+                    }
+                }
+                
+
+                // commit changes
+                try
+                {
+                    int result = _dbContext.SaveChanges();
+                    return Ok(result);
+                }
+                catch (System.Data.Entity.Validation.DbEntityValidationException ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+                catch (DbUpdateException ex)
+                {
+                    return GetErrorResult(ex);
+                }
+            }
+
+            if (!OfxClient.Requestor.Status)
+            {
+                return BadRequest(OfxClient.Requestor.ErrorMessage);
+            }
+
+            return InternalServerError();
         }
 
-        private IHttpActionResult GetErrorResult(DbUpdateException ex)
+        private IHttpActionResult GetErrorResult(DbUpdateException ex, int allowEx = -1, IHttpActionResult returnIfAllowed = null)
         {
             var errors = new Dictionary<int, string>
             {
@@ -212,10 +282,41 @@ namespace Budget.API.Controllers
             SqlException sqlEx = (SqlException)exception;
             if (errors.ContainsKey(sqlEx.Number))
             {
+                if (sqlEx.Number == allowEx)
+                {
+
+                }
                 return BadRequest(errors[sqlEx.Number]);
             }
 
             return BadRequest(exception.Message);
+        }
+
+        private void ConfigureOfxStatementRequest(AccountModel entity)
+        {
+            // configure the ofx statement list request
+            OfxClient.RequestConfig.RequestType = OFXRequestConfigRequestType.Statement;
+            OfxClient.RequestConfig.Username = entity.FinancialInstitution.Username;
+            OfxClient.RequestConfig.Password = AesService.DecryptStringFromBytes(entity.FinancialInstitution.PasswordHash);
+            OfxClient.RequestConfig.OfxOrg = entity.FinancialInstitution.OfxOrg;
+            OfxClient.RequestConfig.OfxFid = entity.FinancialInstitution.OfxFid;
+            OfxClient.RequestConfig.AccountNumber = entity.Number;
+            if (entity.RoutingNumber != 0)
+            {
+                OfxClient.RequestConfig.RoutingNumber = entity.RoutingNumber;
+            }
+            OfxClient.RequestConfig.AccountType = ModelMapper.Type(entity.Type);
+            OfxClient.RequestConfig.URL = new Uri(entity.FinancialInstitution.OfxUrl);
+            // Need to add a last updated column to AccountModel
+            // Need to set a start date for the account for initial transaction pull
+            // for now, just request a month of transactions
+            OfxClient.RequestConfig.StartDate = DateTime.Today.AddMonths(-1);
+            OfxClient.RequestConfig.EndDate = DateTime.Today;
+            Guid clientId;
+            if (Guid.TryParse(entity.FinancialInstitution.CLIENTUID, out clientId))
+            {
+                OfxClient.RequestConfig.ClientUID = clientId;
+            }
         }
     }
 }
