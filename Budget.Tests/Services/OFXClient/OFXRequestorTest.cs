@@ -18,7 +18,7 @@ namespace Budget.Tests.Services
                 Password = "fakepass",
                 OfxOrg = "First Tech Federal Credit Union",
                 OfxFid = 3169,
-                InstitutionRoutingNumber = 321180379,
+                RoutingNumber = 321180379,
                 AccountNumber = "1234567890",
                 AccountType = OFXRequestConfigAccountType.SAVINGS,
                 StartDate = new DateTime(2016, 9, 1),
