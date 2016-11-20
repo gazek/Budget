@@ -597,7 +597,7 @@ namespace Budget.API.Services.OFXClient
                 // get payee
                 transModel.OriginalPayeeName = t.SelectSingleNode("NAME")?.InnerText;
                 // get memo
-                transModel.OriginalMemo = t.SelectSingleNode("MEMO")?.InnerText;
+                transModel.OriginalMemo = t.SelectSingleNode("MEMO")?.InnerText ?? "";
                 // add transaction to list
                 StatementTransactions.Add(transModel);
             }
