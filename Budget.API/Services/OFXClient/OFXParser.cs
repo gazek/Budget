@@ -589,15 +589,15 @@ namespace Budget.API.Services.OFXClient
                 // create new class instance
                 transModel = new TransactionModel();
                 // get amount
-                transModel.Amount = decimal.Parse(t.SelectSingleNode("TRNAMT").InnerText);
+                transModel.Amount = decimal.Parse(t.SelectSingleNode("TRNAMT")?.InnerText);
                 // get ref val
-                transModel.ReferenceValue = t.SelectSingleNode("FITID").InnerText;
+                transModel.ReferenceValue = t.SelectSingleNode("FITID")?.InnerText;
                 // get date
-                transModel.Date = OfxDateToDateTime(t.SelectSingleNode("DTPOSTED").InnerText);
+                transModel.Date = OfxDateToDateTime(t.SelectSingleNode("DTPOSTED")?.InnerText);
                 // get payee
-                transModel.OriginalPayeeName = t.SelectSingleNode("NAME").InnerText;
+                transModel.OriginalPayeeName = t.SelectSingleNode("NAME")?.InnerText;
                 // get memo
-                transModel.OriginalMemo = t.SelectSingleNode("MEMO").InnerText;
+                transModel.OriginalMemo = t.SelectSingleNode("MEMO")?.InnerText;
                 // add transaction to list
                 StatementTransactions.Add(transModel);
             }
