@@ -116,7 +116,7 @@ namespace Budget.API.Services.OFXClient
             // set OFX request body AcctFrom contents
             List<List<string>> AcctFromList = new List<List<string>>();
             AcctFromList.Add(new List<string> { "<BANKACCTFROM>" });
-            AcctFromList.Add(new List<string> { "<BANKID>", Config.InstitutionRoutingNumber.ToString() });
+            AcctFromList.Add(new List<string> { "<BANKID>", Config.RoutingNumber.ToString() });
             AcctFromList.Add(new List<string> { "<ACCTID>", Config.AccountNumber });
             AcctFromList.Add(new List<string> { "<ACCTTYPE>", Config.AccountType.ToString() });
             AcctFromList.Add(new List<string> { "</BANKACCTFROM>" });

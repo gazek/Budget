@@ -10,7 +10,7 @@ namespace Budget.API.Services.OFXClient
         public string Password { get; set; }
         public string OfxOrg { get; set; }
         public int OfxFid { get; set; }
-        public int InstitutionRoutingNumber { get; set; }
+        public int RoutingNumber { get; set; }
         public string AccountNumber { get; set; }
         public OFXRequestConfigAccountType AccountType { get; set; }
         public DateTime StartDate { get; set; }
