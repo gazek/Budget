@@ -5,6 +5,7 @@ using Microsoft.AspNet.Identity;
 using System.Linq;
 using Budget.API.Services.OFXClient;
 using System;
+using System.Collections.Generic;
 
 namespace Budget.API.Services
 {
@@ -18,10 +19,13 @@ namespace Budget.API.Services
                 Id = model.Id,
                 UserId = user.Identity.GetUserId(),
                 FinancialInstitutionId = model.FinancialInstitutionId,
+                RoutingNumber = model.RoutingNumber,
                 Number = model.Number,
                 Name = model.Name,
                 Type = model.Type,
-                Description = model.Description
+                Description = model.Description ?? model.Name,
+                Transactions = new List<TransactionModel>(),
+                BalanceHistory = new List<BalanceModel>()
             };
         }
 
@@ -31,6 +35,7 @@ namespace Budget.API.Services
             {
                 Id = model.Id,
                 FinancialInstitutionId = model.FinancialInstitutionId,
+                RoutingNumber = model.RoutingNumber,
                 Number = model.Number,
                 Name = model.Name,
                 Type = model.Type,
@@ -45,6 +50,7 @@ namespace Budget.API.Services
             return new AccountListViewModel
             {
                 FinancialInstitutionId = financialInstitutionId,
+                RoutingNumber = model.RoutingNumber,
                 Number = model.Number,
                 Name = model.Name,
                 Type = model.Type
