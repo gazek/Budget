@@ -71,6 +71,10 @@
     <Compile Include="Migrations\201611192311593_RoutingNumberAddedToAccount.Designer.cs">
       <DependentUpon>201611192311593_RoutingNumberAddedToAccount.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201611200032090_TransactionOriginalMemoAllowEmptyString.cs" />
+    <Compile Include="Migrations\201611200032090_TransactionOriginalMemoAllowEmptyString.Designer.cs">
+      <DependentUpon>201611200032090_TransactionOriginalMemoAllowEmptyString.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountModel.cs" />
     <Compile Include="Models\BalanceModel.cs" />
@@ -97,6 +101,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201611192311593_RoutingNumberAddedToAccount.resx">
       <DependentUpon>201611192311593_RoutingNumberAddedToAccount.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201611200032090_TransactionOriginalMemoAllowEmptyString.resx">
+      <DependentUpon>201611200032090_TransactionOriginalMemoAllowEmptyString.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

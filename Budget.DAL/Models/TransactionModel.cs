@@ -34,7 +34,7 @@ namespace Budget.DAL.Models
         public string OriginalPayeeName { get; set; }
 
         // Finncial institution provided memo
-        [Required]
+        [Required(AllowEmptyStrings=true)]
         [StringLength(200)]
         public string OriginalMemo { get; set; }
 
@@ -59,6 +59,12 @@ namespace Budget.DAL.Models
         [ForeignKey("AccountId")]
         [JsonIgnore]
         public AccountModel Account { get; set; }
+
+        public TransactionModel()
+        {
+            LastEditDate = DateTime.Today;
+            DateAdded = DateTime.Today;
+        }
     }
 
     public enum TransactionStatus
