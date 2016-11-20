@@ -27,6 +27,9 @@ namespace Budget.DAL.Models
         [Display(Name = "Account Number")]
         public string Number { get; set; }
 
+        [Display(Name = "OFX BANKID field, Bank routing number or other FI ID")]
+        public int RoutingNumber { get; set; }
+
         [StringLength(150)]
         [Display(Name = "Account Name")]
         public string Name { get; set; }

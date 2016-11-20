@@ -12,6 +12,9 @@ namespace Budget.API.Models
         [Display(Name = "Financial Institution ID")]
         public int FinancialInstitutionId { get; set; }
 
+        [Display(Name = "OFX BANKID field, Bank routing number or other FI ID")]
+        public int RoutingNumber { get; set; }
+
         [Required]
         [StringLength(100)]
         [Display(Name = "Account Number")]

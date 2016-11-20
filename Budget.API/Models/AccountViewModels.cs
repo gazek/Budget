@@ -7,6 +7,7 @@ namespace Budget.API.Models
     {
         public int Id { get; set; }
         public int FinancialInstitutionId { get; set; }
+        public int RoutingNumber { get; set; }
         public string Number { get; set; }
         public string Name { get; set; }
         public AccountType Type { get; set; }
@@ -21,5 +22,6 @@ namespace Budget.API.Models
         public string Number { get; set; }
         public string Name { get; set; }
         public AccountType Type { get; set; }
+        public int RoutingNumber { get; set; }
     }
 }
