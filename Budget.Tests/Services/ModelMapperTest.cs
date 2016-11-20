@@ -8,6 +8,7 @@ using Microsoft.AspNet.Identity;
 using System.Collections.Generic;
 using Budget.API.Tests.Fakes;
 using System.Linq;
+using Budget.API.Services.OFXClient;
 
 namespace Budget.Tests.Services
 {
@@ -159,6 +160,7 @@ namespace Budget.Tests.Services
                 Id = 1223,
                 UserId = Guid.NewGuid().ToString(),
                 FinancialInstitutionId = 12,
+                RoutingNumber = 1234567890,
                 Number = "s123",
                 Name = "my account",
                 Type = AccountType.Savings,
@@ -174,6 +176,7 @@ namespace Budget.Tests.Services
             Assert.IsInstanceOfType(result, typeof(AccountViewModel));
             Assert.AreEqual(model.Id, result.Id);
             Assert.AreEqual(model.FinancialInstitutionId, result.FinancialInstitutionId);
+            Assert.AreEqual(model.RoutingNumber, result.RoutingNumber);
             Assert.AreEqual(model.Number, result.Number);
             Assert.AreEqual(model.Name, result.Name);
             Assert.AreEqual(model.Type, result.Type);
@@ -191,6 +194,7 @@ namespace Budget.Tests.Services
                 Id = 1223,
                 UserId = Guid.NewGuid().ToString(),
                 FinancialInstitutionId = 12,
+                RoutingNumber = 1234567890,
                 Number = "s123",
                 Name = "my account",
                 Type = AccountType.Savings,
@@ -205,6 +209,7 @@ namespace Budget.Tests.Services
             // Assert
             Assert.IsInstanceOfType(result, typeof(AccountListViewModel));
             Assert.AreEqual(model.FinancialInstitutionId, result.FinancialInstitutionId);
+            Assert.AreEqual(model.RoutingNumber, result.RoutingNumber);
             Assert.AreEqual(model.Number, result.Number);
             Assert.AreEqual(model.Name, result.Name);
             Assert.AreEqual(model.Type, result.Type);
@@ -234,17 +239,87 @@ namespace Budget.Tests.Services
         }
 
         [TestMethod]
-        public void AccountTypeMapEntityToOFX()
+        public void AccountTypeMapEntityToOFXSavings()
         {
-            // need to writ e the test
-            Assert.IsTrue(false);
+            // Arrange
+            var entity = AccountType.Savings;
+
+            // Act
+            var result = ModelMapper.Type(entity);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OFXRequestConfigAccountType));
+            Assert.AreEqual(result, OFXRequestConfigAccountType.SAVINGS);
         }
 
         [TestMethod]
-        public void AccountTypeMapOFXToEntity()
+        public void AccountTypeMapEntityToOFXChecking()
         {
-            // need to writ e the test
-            Assert.IsTrue(false);
+            // Arrange
+            var entity = AccountType.Checking;
+
+            // Act
+            var result = ModelMapper.Type(entity);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OFXRequestConfigAccountType));
+            Assert.AreEqual(result, OFXRequestConfigAccountType.CHECKING);
+        }
+
+        [TestMethod]
+        public void AccountTypeMapEntityToOFXCreditCard()
+        {
+            // Arrange
+            var entity = AccountType.CreditCard;
+
+            // Act
+            var result = ModelMapper.Type(entity);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OFXRequestConfigAccountType));
+            Assert.AreEqual(result, OFXRequestConfigAccountType.CREDITCARD);
+        }
+
+        [TestMethod]
+        public void AccountTypeMapOFXToEntitySavings()
+        {
+            // Arrange
+            var entity = OFXRequestConfigAccountType.SAVINGS;
+
+            // Act
+            var result = ModelMapper.Type(entity);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(AccountType));
+            Assert.AreEqual(result, AccountType.Savings);
+        }
+
+        [TestMethod]
+        public void AccountTypeMapOFXToEntityChecking()
+        {
+            // Arrange
+            var entity = OFXRequestConfigAccountType.CHECKING;
+
+            // Act
+            var result = ModelMapper.Type(entity);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(AccountType));
+            Assert.AreEqual(result, AccountType.Checking);
+        }
+
+        [TestMethod]
+        public void AccountTypeMapOFXToEntityCreditCard()
+        {
+            // Arrange
+            var entity = OFXRequestConfigAccountType.CREDITCARD;
+
+            // Act
+            var result = ModelMapper.Type(entity);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(AccountType));
+            Assert.AreEqual(result, AccountType.CreditCard);
         }
     }
 }
