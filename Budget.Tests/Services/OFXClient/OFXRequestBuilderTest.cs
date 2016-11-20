@@ -143,7 +143,7 @@ namespace Budget.Tests.Controllers
                 Password = "testPassword",
                 OfxOrg = "Some Bank",
                 OfxFid = 123,
-                InstitutionRoutingNumber = 456,
+                RoutingNumber = 456,
                 AccountNumber = "789",
                 AccountType = OFXRequestConfigAccountType.CHECKING,
                 StartDate = new DateTime(2016, 9, 1),
