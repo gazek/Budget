@@ -43,6 +43,19 @@ namespace Budget.API.Tests.FakesAndMocks
             return this;
         }
 
+        private Mock<DbSet<T>> _withData<T>(List<T> data) where T : class
+        {
+            return new MockDbSet<T>()
+                .UsingDataSet(data.AsQueryable())
+                .Mock();
+        }
+
+        public MockDbContext WithData(List<PayeeModel> data)
+        {
+            Payees = _withData<PayeeModel>(data);
+            return this;
+        }
+
         public MockDbContext WithData(List<FinancialInstitutionModel> data)
         {
             FinancialInstitutions = new MockDbSet<FinancialInstitutionModel>()
@@ -62,6 +75,14 @@ namespace Budget.API.Tests.FakesAndMocks
         public MockDbContext WithData(List<BalanceModel> data)
         {
             Balances = new MockDbSet<BalanceModel>()
+                .UsingDataSet(data.AsQueryable())
+                .Mock();
+            return this;
+        }
+
+        public MockDbContext WithData(List<TransactionModel> data)
+        {
+            Transactions = new MockDbSet<TransactionModel>()
                 .UsingDataSet(data.AsQueryable())
                 .Mock();
             return this;
@@ -94,6 +115,18 @@ namespace Budget.API.Tests.FakesAndMocks
         public MockDbContext SetupSaveChanges(int returns)
         {
             Context.Setup(x => x.SaveChanges()).Returns(returns);
+            return this;
+        }
+
+        public MockDbContext SetupFind(int id, PayeeModel returns)
+        {
+            Payees.Setup(x => x.Find(id)).Returns(returns);
+            return this;
+        }
+
+        public MockDbContext SetupFind(int id, TransactionModel returns)
+        {
+            Transactions.Setup(x => x.Find(id)).Returns(returns);
             return this;
         }
 
