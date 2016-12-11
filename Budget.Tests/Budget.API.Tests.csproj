@@ -111,6 +111,8 @@
     <Compile Include="Services\OFXClient\OFXRequestBuilderTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\OFXClient\OFXTagCloserTest.cs" />
+    <Compile Include="Services\TransactionDefaultsTests.cs" />
+    <Compile Include="Services\TransactionImporterTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App.config">
