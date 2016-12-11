@@ -7,6 +7,7 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
 using System.Linq;
@@ -108,7 +109,7 @@ namespace Budget.API.Controllers
         }
 
 
-        // update account when owned by user
+        // update account properties when owned by user
         [Route("{id}", Name = "UpdateAccount")]
         [HttpPut]
         [Authorize]
@@ -156,7 +157,6 @@ namespace Budget.API.Controllers
         }
 
         // GET - get balance history api/account/{id}/balancehistory
-        // This should probably take accept optional date range arguments, but maybe later...
         [Route("{id}/GetBalanceHistory", Name = "GetAccountBalanceHistory")]
         [HttpGet]
         [Authorize]
@@ -177,15 +177,14 @@ namespace Budget.API.Controllers
             List<BalanceModel> balances = _dbContext.Balances.Where(b => b.AccountId == account.Id).OrderByDescending(b => b.AsOfDate).ToList();
 
             List<BalanceViewModel> result = balances?.Select(x => ModelMapper.EntityToView(x)).ToList();
-            
+
             return Ok(result);
         }
-
-        // GET - OFX request to pull latest transactions api/account/{id}/updatetransactions
-        [Route("{id}/PullLatestTransactions", Name = "PullLatestTransactions")]
+        
+        [Route("{id:int}/Transactions/{begin}/{end?}", Name = "QueryTransactions")]
         [HttpGet]
         [Authorize]
-        public IHttpActionResult PullLatestTransactions(int id)
+        public IHttpActionResult GetTransactionsFromDb(int id, string begin = "", string end = "")
         {
             // look for FI record
             AccountModel entity = _dbContext.Accounts.Find(id);
@@ -202,8 +201,70 @@ namespace Budget.API.Controllers
                 return Unauthorized();
             }
 
+            // Parse date range
+            DateTime beginDate, endDate;
+            IHttpActionResult parseResult = ParseDateRange(begin, end, out beginDate, out endDate);
+            if (parseResult != null)
+            {
+                return parseResult;
+            }
+
+            // make sure the begin is earlier than end
+            if (beginDate > endDate)
+            {
+                return BadRequest("End date must be later than begin date");
+            }
+
+            // query transactions
+            List<TransactionModel> result = _dbContext.Transactions
+                .Where(t => t.AccountId == id)
+                .Where(t => t.Date >= beginDate)
+                .Where(t => t.Date <= endDate)
+                .Include(t => t.Details)
+                .OrderBy(t => t.Date)
+                .ToList();
+
+            // return result
+            return Ok(result);
+        }
+        
+        // Post - OFX request to pull latest transactions api/account/{id}/Transactions
+        [Route("{id:int}/Transactions/{begin}/{end?}", Name = "PullLatestTransactions")]
+        [HttpPost]
+        [Authorize]
+        public IHttpActionResult GetTransactionsFromBank(int id, string begin = "", string end = "")
+        {
+            // look for FI record
+            AccountModel entity = _dbContext.Accounts.Find(id);
+
+            // return if not found
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            // return if requestor is not asuthorized
+            if (entity.UserId != User.Identity.GetUserId())
+            {
+                return Unauthorized();
+            }
+
+            // Parse date range
+            DateTime beginDate, endDate;
+            IHttpActionResult parseResult = ParseDateRange(begin, end, out beginDate, out endDate);
+            if (parseResult != null)
+            {
+                return parseResult;
+            }
+
+            // make sure the begin is earlier than end
+            if (beginDate > endDate)
+            {
+                return BadRequest("End date must be later than begin date");
+            }
+
             // Configure request
-            ConfigureOfxStatementRequest(entity);
+            ConfigureOfxStatementRequest(entity, beginDate, endDate);
 
             // Build request
             OfxClient.BuildRequest();
@@ -221,36 +282,26 @@ namespace Budget.API.Controllers
                     return BadRequest(OfxClient.Parser.SignOnRequest.Code + ": " + OfxClient.Parser.SignOnRequest.Message);
                 }
 
-                // Add transactions to context
-                OfxClient.Parser.StatementTransactions.ForEach(t => t.AccountId = entity.Id);
-                foreach (TransactionModel t in OfxClient.Parser.StatementTransactions)
-                {
-                    TransactionModel record = _dbContext.Transactions
-                        .Where(x => x.AccountId == t.AccountId)
-                        .Where(x => x.ReferenceValue == t.ReferenceValue)
-                        .Where(x => x.Date == t.Date)
-                        .FirstOrDefault();
-                    if (record == null)
-                    {
-                        _dbContext.Transactions.Add(t);
-                    }
-                }
-                
+                // Set transaction default field values
+                TransactionImporter importer = new TransactionImporter(OfxClient.Parser.StatementTransactions, entity, _dbContext);
+                importer.FilterExisting()
+                    .SetDefaultDateAdded()
+                    .SetDefaultLastEditDate()
+                    .SetDefaultStatus()
+                    .SetDefaultDetails()
+                    .ApplyDefaults();
 
                 // commit changes
                 try
                 {
-                    int result = _dbContext.SaveChanges();
-                    return Ok(result);
-                }
-                catch (System.Data.Entity.Validation.DbEntityValidationException ex)
-                {
-                    return BadRequest(ex.Message);
+                    int count = importer.Commit();
+                    return Ok(importer.Transactions.OrderBy(t => t.Date).ToList());
                 }
                 catch (DbUpdateException ex)
                 {
                     return GetErrorResult(ex);
                 }
+
             }
 
             if (!OfxClient.Requestor.Status)
@@ -292,7 +343,7 @@ namespace Budget.API.Controllers
             return BadRequest(exception.Message);
         }
 
-        private void ConfigureOfxStatementRequest(AccountModel entity)
+        private void ConfigureOfxStatementRequest(AccountModel entity, DateTime begin, DateTime end)
         {
             // configure the ofx statement list request
             OfxClient.RequestConfig.RequestType = OFXRequestConfigRequestType.Statement;
@@ -310,13 +361,46 @@ namespace Budget.API.Controllers
             // Need to add a last updated column to AccountModel
             // Need to set a start date for the account for initial transaction pull
             // for now, just request a month of transactions
-            OfxClient.RequestConfig.StartDate = DateTime.Today.AddMonths(-1);
-            OfxClient.RequestConfig.EndDate = DateTime.Today;
+            OfxClient.RequestConfig.StartDate = begin;
+            OfxClient.RequestConfig.EndDate = end;
             Guid clientId;
             if (Guid.TryParse(entity.FinancialInstitution.CLIENTUID, out clientId))
             {
                 OfxClient.RequestConfig.ClientUID = clientId;
             }
+        }
+
+        private IHttpActionResult ParseDateRange(string begin, string end, out DateTime beginDate, out DateTime endDate)
+        {
+            // parse begin date
+            DateTime.TryParse(begin, out beginDate);
+
+            // parse end date
+            if (end == "")
+            {
+                endDate = DateTime.Today;
+            }
+            else
+            {
+                DateTime.TryParse(end, out endDate);
+            }
+
+            if (beginDate == DateTime.MinValue && endDate != DateTime.MinValue)
+            {
+                return BadRequest("Invalid begin date");
+            }
+
+            if (endDate == DateTime.MinValue && beginDate != DateTime.MinValue)
+            {
+                return BadRequest("Invalid end date");
+            }
+
+            if (endDate == DateTime.MinValue && beginDate == DateTime.MinValue)
+            {
+                return BadRequest("Invalid begin and end dates");
+            }
+
+            return null;
         }
     }
 }
