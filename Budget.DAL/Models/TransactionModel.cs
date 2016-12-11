@@ -44,11 +44,6 @@ namespace Budget.DAL.Models
         [Required]
         public TransactionStatus Status { get; set; }
 
-        public int TopPayeeId { get; set; }
-
-        [StringLength(400)]
-        public string TopMemo { get; set; }
-
         public int CheckNum { get; set; }
 
         [Required]

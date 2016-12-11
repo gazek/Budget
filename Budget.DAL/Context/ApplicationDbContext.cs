@@ -44,24 +44,24 @@ namespace Budget.DAL
 
             modelBuilder.Entity<ImportNameToPayeeModel>();
 
-            modelBuilder.Entity<PayeeDefaultDetails>();
+            modelBuilder.Entity<PayeeDefaultDetailsModel>();
 
             modelBuilder.Entity<PayeeModel>()
                 .HasRequired<IdentityUser>(p => p.User)
                 .WithMany()
                 .HasForeignKey(p => p.UserId)
                 .WillCascadeOnDelete(false);
-
+            
             modelBuilder.Entity<SubCategoryModel>()
                 .HasRequired(s => s.Category)
                 .WithMany()
-                .HasForeignKey(c => c.CategoryId)
+                .HasForeignKey(s => s.CategoryId)
                 .WillCascadeOnDelete(false);
-
+                
             modelBuilder.Entity<TransactionDetailModel>()
-                .HasRequired(d => d.TransferMatch)
+                .HasOptional(d => d.TransferMatch)
                 .WithMany()
-                .HasForeignKey(m => m.TransferTransactionId)
+                .HasForeignKey(d => d.TransferTransactionId)
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<TransactionModel>();

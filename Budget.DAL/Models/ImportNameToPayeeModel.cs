@@ -8,11 +8,13 @@ namespace Budget.DAL.Models
     {
         [Key]
         [Column(Order = 1)]
+        public int Id { get; set; }
+
+        [Index("IX_PayeeImportName", 1, IsUnique = true)]
         [Required]
         public int PayeeId { get; set; }
 
-        [Key]
-        [Column(Order = 2)]
+        [Index("IX_PayeeImportName", 2, IsUnique = true)]
         [Required]
         [StringLength(100)]
         public string ImportName { get; set; }

@@ -63,22 +63,14 @@
   <ItemGroup>
     <Compile Include="Context\ApplicationDbContext.cs" />
     <Compile Include="Context\IApplicationDbContext.cs" />
-    <Compile Include="Migrations\201611062359357_initial.cs" />
-    <Compile Include="Migrations\201611062359357_initial.Designer.cs">
-      <DependentUpon>201611062359357_initial.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201611192311593_RoutingNumberAddedToAccount.cs" />
-    <Compile Include="Migrations\201611192311593_RoutingNumberAddedToAccount.Designer.cs">
-      <DependentUpon>201611192311593_RoutingNumberAddedToAccount.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201611200032090_TransactionOriginalMemoAllowEmptyString.cs" />
-    <Compile Include="Migrations\201611200032090_TransactionOriginalMemoAllowEmptyString.Designer.cs">
-      <DependentUpon>201611200032090_TransactionOriginalMemoAllowEmptyString.cs</DependentUpon>
+    <Compile Include="Migrations\201612110305389_initial.cs" />
+    <Compile Include="Migrations\201612110305389_initial.Designer.cs">
+      <DependentUpon>201612110305389_initial.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountModel.cs" />
     <Compile Include="Models\BalanceModel.cs" />
-    <Compile Include="Models\PayeeDefaultDetails.cs" />
+    <Compile Include="Models\PayeeDefaultDetailsModel.cs" />
     <Compile Include="Models\ImportNameToPayeeModel.cs" />
     <Compile Include="Models\CategoryModel.cs" />
     <Compile Include="Models\FinancialInstitutionModel.cs" />
@@ -96,18 +88,12 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201611062359357_initial.resx">
-      <DependentUpon>201611062359357_initial.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201611192311593_RoutingNumberAddedToAccount.resx">
-      <DependentUpon>201611192311593_RoutingNumberAddedToAccount.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201611200032090_TransactionOriginalMemoAllowEmptyString.resx">
-      <DependentUpon>201611200032090_TransactionOriginalMemoAllowEmptyString.cs</DependentUpon>
-    </EmbeddedResource>
+    <Folder Include="Attributes\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Attributes\" />
+    <EmbeddedResource Include="Migrations\201612110305389_initial.resx">
+      <DependentUpon>201612110305389_initial.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

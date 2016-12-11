@@ -12,6 +12,10 @@ namespace Budget.DAL.Models
         public int TransactionId { get; set; }
 
         [Key]
+        [Column(Order = 2)]
+        public int PayeeId { get; set; }
+
+        [Key]
         [Column(Order = 3)]
         public int CategoryId { get; set; }
 
@@ -22,7 +26,7 @@ namespace Budget.DAL.Models
         [Required]
         public decimal Amount { get; set; }
 
-        public int TransferTransactionId { get; set; }
+        public int? TransferTransactionId { get; set; }
 
         [StringLength(400)]
         public string Memo { get; set; }
@@ -32,18 +36,22 @@ namespace Budget.DAL.Models
 
         [ForeignKey("TransactionId")]
         [JsonIgnore]
-        public TransactionModel Transaction { get; set; }
-        
+        public virtual TransactionModel Transaction { get; set; }
+
+        [ForeignKey("PayeeId")]
+        [JsonIgnore]
+        public virtual PayeeModel Payee { get; set; }
+
         [ForeignKey("CategoryId")]
         [JsonIgnore]
-        public CategoryModel Category { get; set; }
+        public virtual CategoryModel Category { get; set; }
         
         [ForeignKey("SubCategoryId")]
         [JsonIgnore]
-        public SubCategoryModel SubCategory { get; set; }
+        public virtual SubCategoryModel SubCategory { get; set; }
         
         [ForeignKey("TransferTransactionId")]
         [JsonIgnore]
-        public TransactionModel TransferMatch { get; set; }
+        public virtual TransactionModel TransferMatch { get; set; }
     }
 }

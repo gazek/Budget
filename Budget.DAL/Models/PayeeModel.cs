@@ -22,7 +22,7 @@ namespace Budget.DAL.Models
         [Display(Name = "User ID")]
         public string UserId { get; set; }
 
-        public ICollection<PayeeDefaultDetails> DefaultDetails { get; set; }
+        public ICollection<PayeeDefaultDetailsModel> DefaultDetails { get; set; }
 
         public ICollection<ImportNameToPayeeModel> ImportNames { get; set; }
 
