@@ -177,6 +177,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
     <Compile Include="Services\AesService.cs" />
+    <Compile Include="Services\ITransactionImporter.cs" />
     <Compile Include="Services\ModelMapper.cs" />
     <Compile Include="Services\OFXClient\IOfxClient.cs" />
     <Compile Include="Services\OFXClient\IOFXParser.cs" />
@@ -188,6 +189,8 @@
     <Compile Include="Services\OFXClient\OFXRequestConfig.cs" />
     <Compile Include="Services\OFXClient\OFXRequestor.cs" />
     <Compile Include="Services\OFXClient\OFXTagCloser.cs" />
+    <Compile Include="Services\TransactionDefaults.cs" />
+    <Compile Include="Services\TransactionImporter.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
