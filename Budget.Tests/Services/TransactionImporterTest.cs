@@ -136,47 +136,61 @@ namespace Budget.API.Tests.Services
         }
 
         [TestMethod]
-        public void NEED_TransactionImporterApplyDefaultsDetailsSingleDetailTest()
+        public void TransactionImporterApplyDefaultsDetailsSingleDetailTest()
         {
             // Arrange
+            var defaults = MakeTransDefaults();
+            var context = MakeContext().Object;
+            var trans = GetFakeTransactions();
+            var account = GetFakeAccount(new List<TransactionModel>() { trans[0] });
+            var importer = new TransactionImporter(trans, account, context, defaults.Object);
+            importer.SetDefaultDetails();
 
             // Act
+            importer.UnsetDefaultStatus().ApplyDefaults();
 
             // Assert
-            Assert.IsTrue(false);
+            Assert.AreEqual(1, importer.Transactions[0].Details.Count);
         }
 
         [TestMethod]
-        public void NEED_TransactionImporterApplyDefaultsDetailsMultipleDetailTest()
+        public void TransactionImporterApplyDefaultsDetailsMultipleDetailTest()
         {
             // Arrange
+            var defaults = MakeTransDefaults();
+            var context = MakeContext().Object;
+            var trans = GetFakeTransactions();
+            foreach (TransactionModel t in trans)
+            {
+                t.Details = null;
+            }
+            var account = GetFakeAccount(new List<TransactionModel>() { trans[1] });
+            var importer = new TransactionImporter(trans, account, context, defaults.Object);
+            importer.SetDefaultDetails();
 
             // Act
+            importer.UnsetDefaultStatus().ApplyDefaults();
 
             // Assert
-            Assert.IsTrue(false);
+            Assert.AreEqual(2, importer.Transactions[1].Details.Count);
         }
 
         [TestMethod]
-        public void NEED_TransactionImporterCommitTest()
+        public void TransactionImporterCommit()
         {
             // Arrange
+            var context = MakeContext();
+            context.Setup(x => x.SaveChanges()).Returns(3);
+            var defaults = new TransactionDefaults(context.Object);
+            var trans = GetFakeTransactions();
+            var account = GetFakeAccount(new List<TransactionModel>(trans));
+            var importer = new TransactionImporter(trans, account, context.Object);
 
             // Act
+            var result = importer.Commit();
 
             // Assert
-            Assert.IsTrue(false);
-        }
-
-        [TestMethod]
-        public void NEED_TransactionImporterCommitTestAddBalance()
-        {
-            // Arrange
-
-            // Act
-
-            // Assert
-            Assert.IsTrue(false);
+            Assert.AreEqual(3, result);
         }
 
         private List<TransactionModel> GetFakeTransactions()
@@ -185,20 +199,20 @@ namespace Budget.API.Tests.Services
             {
                 ReferenceValue = "1",
                 Date = DateTime.Today.AddDays(-5),
-                OriginalPayeeName = "",
+                OriginalPayeeName = "this",
             };
 
             var trans2 = new TransactionModel()
             {
                 ReferenceValue = "2",
-                OriginalPayeeName = "",
+                OriginalPayeeName = "that",
                 Date = DateTime.Today.AddDays(-5)
             };
 
             var trans3 = new TransactionModel()
             {
                 ReferenceValue = "3",
-                OriginalPayeeName = "",
+                OriginalPayeeName = "other",
                 Date = DateTime.Today.AddDays(-4)
             };
 
@@ -240,6 +254,79 @@ namespace Budget.API.Tests.Services
                 .Finalize();
 
             return contextMockBuilder.Context;
+        }
+
+        private Mock<ITransactionDefaults> MakeTransDefaults()
+        {
+            var thisPayee = new PayeeModel()
+            {
+                Id = 1,
+                Name = "This Thing",
+                ImportNames = new List<ImportNameToPayeeModel>()
+                {
+                    new ImportNameToPayeeModel()
+                    {
+                    Id = 1,
+                    PayeeId = 1,
+                    ImportName = "this"
+                    }
+                },
+                DefaultDetails = new List<PayeeDefaultDetailsModel>()
+                {
+                    new PayeeDefaultDetailsModel()
+                    {
+                        Id = 1,
+                        PayeeId = 1
+                    }
+                }
+            };
+
+            var thatPayee = new PayeeModel()
+            {
+                Id = 2,
+                Name = "That Thing",
+                ImportNames = new List<ImportNameToPayeeModel>()
+                {
+                    new ImportNameToPayeeModel()
+                    {
+                    Id = 2,
+                    PayeeId = 2,
+                    ImportName = "that"
+                    }
+                },
+                DefaultDetails = new List<PayeeDefaultDetailsModel>()
+                {
+                    new PayeeDefaultDetailsModel()
+                    {
+                        Id = 2,
+                        PayeeId = 2
+                    },
+                    new PayeeDefaultDetailsModel()
+                    {
+                        Id = 3,
+                        PayeeId = 2
+                    }
+                }
+            };
+
+            var thisDetails = new List<TransactionDetailModel>()
+            {
+                new TransactionDetailModel()
+            };
+
+            var thatDetails = new List<TransactionDetailModel>()
+            {
+                new TransactionDetailModel(),
+                new TransactionDetailModel()
+            };
+
+            var defaults = new Mock<ITransactionDefaults>();
+            defaults.Setup(x => x.GetDefaultPayees(It.IsAny<string>(), "this")).Returns(new List<PayeeModel>() { thisPayee });
+            defaults.Setup(x => x.GetDefaultPayees(It.IsAny<string>(), "that")).Returns(new List<PayeeModel>() { thatPayee });
+            defaults.Setup(x => x.GetDefaultPayees(It.IsAny<string>(), "other")).Returns(new List<PayeeModel>() {  });
+            defaults.Setup(x => x.GetDefaultPayeeDetails(thisPayee, It.IsAny<TransactionModel>())).Returns(thisDetails);
+            defaults.Setup(x => x.GetDefaultPayeeDetails(thatPayee, It.IsAny<TransactionModel>())).Returns(thatDetails);
+            return defaults;
         }
     }
 }
