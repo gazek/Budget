@@ -15,7 +15,7 @@ namespace Budget.API.Services
         private IList<int> TransactionsInContext;
         private AccountModel _account;
         private IApplicationDbContext _dbContext;
-        private TransactionDefaults transDefaults;
+        private ITransactionDefaults transDefaults;
 
         // General transaction default fields
         private List<string> updateFieldNames = new List<string>() {"_LastEditDate", "_DateAdded", "_Status"};
@@ -37,7 +37,7 @@ namespace Budget.API.Services
 
         // just needed for testing
         public TransactionImporter(IList<TransactionModel> transactions, AccountModel account, IApplicationDbContext dbContext,
-            TransactionDefaults defaults)
+            ITransactionDefaults defaults)
         {
             // initialize everything except TransactionDefaults class
             _TransactionImporter(transactions, account, dbContext);
@@ -204,7 +204,10 @@ namespace Budget.API.Services
             // apply general defaults
             ApplyDefaultsGeneral();
             // apply default transaction details
-            ApplyDefaultsDetails();
+            if (_addDetails == true)
+            {
+                ApplyDefaultsDetails();
+            }
             return this;
         }
 
@@ -250,7 +253,6 @@ namespace Budget.API.Services
 
         public int Commit()
         {
-            // TODO: Add or update account balance
             // Add or update DB Context
             foreach (TransactionModel t in Transactions)
             {

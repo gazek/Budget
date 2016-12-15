@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 
 namespace Budget.API.Services
 {
-    public class TransactionDefaults
+    public class TransactionDefaults : ITransactionDefaults
     {
         private IApplicationDbContext _dbContext;
         private string _topPayeeNameForSplitTransactions = "Multiple";
