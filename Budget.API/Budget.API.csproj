@@ -177,6 +177,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
     <Compile Include="Services\AesService.cs" />
+    <Compile Include="Services\ITransactionDefaults.cs" />
     <Compile Include="Services\ITransactionImporter.cs" />
     <Compile Include="Services\ModelMapper.cs" />
     <Compile Include="Services\OFXClient\IOfxClient.cs" />
