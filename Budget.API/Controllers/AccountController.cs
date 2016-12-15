@@ -156,11 +156,11 @@ namespace Budget.API.Controllers
             return Ok();
         }
 
-        // GET - get balance history api/account/{id}/balancehistory
-        [Route("{id}/GetBalanceHistory", Name = "GetAccountBalanceHistory")]
+        // GET - get balance history api/account/{id}/balance
+        [Route("{id}/Balance/{begin?}/{end?}", Name = "GetAccountBalanceHistory")]
         [HttpGet]
         [Authorize]
-        public IHttpActionResult GetBalanceHistory(int id)
+        public IHttpActionResult GetBalanceHistory(int id, string begin = "", string end = "")
         {
             AccountModel account = _dbContext.Accounts.Find(id);
 
@@ -180,8 +180,9 @@ namespace Budget.API.Controllers
 
             return Ok(result);
         }
-        
-        [Route("{id:int}/Transactions/{begin}/{end?}", Name = "QueryTransactions")]
+
+        // Get - query transactions in DB by date range api/account/{id}/Transactions/Date/{end}/{begin}
+        [Route("{id:int}/Transactions/Date/{begin}/{end?}", Name = "QueryTransactions")]
         [HttpGet]
         [Authorize]
         public IHttpActionResult GetTransactionsFromDb(int id, string begin = "", string end = "")
@@ -227,9 +228,9 @@ namespace Budget.API.Controllers
             // return result
             return Ok(result);
         }
-        
-        // Post - OFX request to pull latest transactions api/account/{id}/Transactions
-        [Route("{id:int}/Transactions/{begin}/{end?}", Name = "PullLatestTransactions")]
+
+        // Post - OFX request to pull latest transactions api/account/{id}/Transactions/Date/{end}/{begin}
+        [Route("{id:int}/Transactions/Date/{begin}/{end?}", Name = "PullLatestTransactions")]
         [HttpPost]
         [Authorize]
         public IHttpActionResult GetTransactionsFromBank(int id, string begin = "", string end = "")
@@ -291,6 +292,25 @@ namespace Budget.API.Controllers
                     .SetDefaultDetails()
                     .ApplyDefaults();
 
+                // update balance since we have the data
+                if (OfxClient.Parser.BalanceRequest.Status)
+                {
+                    var bals = _dbContext.Balances.ToList();
+                    OfxClient.Parser.Balance.AccountId = id;
+                    BalanceModel bal = _dbContext.Balances
+                        .Where(b => b.AccountId == id)
+                        .Where(b => b.AsOfDate == OfxClient.Parser.Balance.AsOfDate)
+                        .FirstOrDefault();
+                    if (bal == null)
+                    {
+                        _dbContext.Balances.Add(OfxClient.Parser.Balance);
+                    }
+                    else
+                    {
+                        bal.Amount = OfxClient.Parser.Balance.Amount;
+                    }
+                }
+
                 // commit changes
                 try
                 {
@@ -311,6 +331,13 @@ namespace Budget.API.Controllers
 
             return InternalServerError();
         }
+
+        // TODO:
+        //   Add routes to query by: amount
+        //                           payee
+        //                           category
+        //                           subcategory
+        //  Should this API be under account or transactions or both?
 
         private IHttpActionResult GetErrorResult(DbUpdateException ex, int allowEx = -1, IHttpActionResult returnIfAllowed = null)
         {
