@@ -299,14 +299,36 @@ namespace Budget.API.Tests.Controllers
             var typedResult = (OkNegotiatedContentResult<List<BalanceViewModel>>)result;
             Assert.AreEqual(2, typedResult.Content.Count);
         }
+
+        [TestMethod]
+        public void NEED_AccountGetBalanceHistoryDateRange()
+        {
+            // need to write this test...and the underlying method
+            Assert.IsTrue(false);
+        }
         #endregion
 
         #region Pull Latest Transactions
         [TestMethod]
-        public void NEED_AccountPullLatestTransactions()
+        public void NEED_AccountPullTransactionsFromBank()
         {
-            // need to write this test...and the underlying method
-            // this is dependent on the TransactionImporter
+            Assert.IsTrue(false);
+        }
+
+        [TestMethod]
+        public void NEED_AccountPullTransactionsFromBankBalance()
+        {
+            // Arrange
+
+            // Act
+
+            // Assert
+            Assert.IsTrue(false);
+        }
+
+        [TestMethod]
+        public void NEED_AccountLatestTransactionsFromDB()
+        {
             Assert.IsTrue(false);
         }
         #endregion
