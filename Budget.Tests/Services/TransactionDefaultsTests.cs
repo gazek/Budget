@@ -20,7 +20,8 @@ namespace Budget.API.Tests.Services
         public void GetDefaultStatus()
         {
             // Arrange
-            var defaults = new TransactionDefaults(new MockDbContext().GetMock());
+            var user = UserBuilder.CreateUser();
+            var defaults = new TransactionDefaults(new MockDbContext().GetMock(), user.Identity.GetUserId());
 
             // Act
             var result = defaults.GetDefaultStatus();
@@ -34,7 +35,8 @@ namespace Budget.API.Tests.Services
         public void GetDefaultDateAdded()
         {
             // Arrange
-            var defaults = new TransactionDefaults(new MockDbContext().GetMock());
+            var user = UserBuilder.CreateUser();
+            var defaults = new TransactionDefaults(new MockDbContext().GetMock(), user.Identity.GetUserId());
 
             // Act
             var result = defaults.GetDefaultDateAdded();
@@ -48,7 +50,8 @@ namespace Budget.API.Tests.Services
         public void GetDefaultLastEditDate()
         {
             // Arrange
-            var defaults = new TransactionDefaults(new MockDbContext().GetMock());
+            var user = UserBuilder.CreateUser();
+            var defaults = new TransactionDefaults(new MockDbContext().GetMock(), user.Identity.GetUserId());
 
             // Act
             var result = defaults.GetDefaultLastEditDate();
@@ -59,16 +62,50 @@ namespace Budget.API.Tests.Services
         }
 
         [TestMethod]
+        public void GetUnassignedPayee()
+        {
+            // Arrange
+            var user = UserBuilder.CreateUser();
+            var defaults = new TransactionDefaults(MakeContext(user).Object, user.Identity.GetUserId());
+
+            // Act
+            var result = defaults.GetUnassignedPayee();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(PayeeModel));
+            Assert.AreEqual("Unassigned", result.Name);
+        }
+
+        [TestMethod]
+        public void GetUncategorizedCat()
+        {
+            // Arrange
+            var user = UserBuilder.CreateUser();
+            var defaults = new TransactionDefaults(MakeContext(user).Object, user.Identity.GetUserId());
+
+            // Act
+            var result = defaults.GetUncategorizedCat();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(CategoryModel));
+            Assert.AreEqual("Uncategorized", result.Name);
+            Assert.AreEqual(1, result.SubCategories.Count);
+            Assert.AreEqual("Uncategorized", result.SubCategories.FirstOrDefault()?.Name);
+        }
+
+        [TestMethod]
         public void GetDefaultPayeesSingleMatch()
         {
             // Arrange
             var user = UserBuilder.CreateUser();
             var contextMock = MakeContext(user);
             var inputPayeeName = "FooBar";
-            var defaults = new TransactionDefaults(contextMock.Object);
+            var defaults = new TransactionDefaults(contextMock.Object, user.Identity.GetUserId());
 
             // Act
-            var result = defaults.GetDefaultPayees(user.Identity.GetUserId(), inputPayeeName);
+            var result = defaults.GetDefaultPayees(inputPayeeName);
 
             // Assert
             Assert.AreEqual(1, result.Count);
@@ -81,10 +118,10 @@ namespace Budget.API.Tests.Services
             var user = UserBuilder.CreateUser();
             var contextMock = MakeContext(user);
             var inputPayeeName = "OTHER PAYEE";
-            var defaults = new TransactionDefaults(contextMock.Object);
+            var defaults = new TransactionDefaults(contextMock.Object, user.Identity.GetUserId());
 
             // Act
-            var result = defaults.GetDefaultPayees(user.Identity.GetUserId(), inputPayeeName);
+            var result = defaults.GetDefaultPayees(inputPayeeName);
 
             // Assert
             Assert.AreEqual(1, result.Count);
@@ -97,10 +134,10 @@ namespace Budget.API.Tests.Services
             var user = UserBuilder.CreateUser();
             var contextMock = MakeContext(user);
             var inputPayeeName = "FooBar2";
-            var defaults = new TransactionDefaults(contextMock.Object);
+            var defaults = new TransactionDefaults(contextMock.Object, user.Identity.GetUserId());
 
             // Act
-            var result = defaults.GetDefaultPayees(user.Identity.GetUserId(), inputPayeeName);
+            var result = defaults.GetDefaultPayees(inputPayeeName);
 
             // Assert
             Assert.AreEqual(2, result.Count);
@@ -113,10 +150,10 @@ namespace Budget.API.Tests.Services
             var user = UserBuilder.CreateUser();
             var contextMock = MakeContext(user);
             var inputPayeeName = "nothing should match this";
-            var defaults = new TransactionDefaults(contextMock.Object);
+            var defaults = new TransactionDefaults(contextMock.Object, user.Identity.GetUserId());
 
             // Act
-            var result = defaults.GetDefaultPayees(user.Identity.GetUserId(), inputPayeeName);
+            var result = defaults.GetDefaultPayees(inputPayeeName);
 
             // Assert
             Assert.AreEqual(0, result.Count);
@@ -128,7 +165,7 @@ namespace Budget.API.Tests.Services
             // Arrange
             var user = UserBuilder.CreateUser();
             var contextMock = MakeContext(user);
-            var defaults = new TransactionDefaults(contextMock.Object);
+            var defaults = new TransactionDefaults(contextMock.Object, user.Identity.GetUserId());
             var payee = contextMock.Object.Payees.Where(x => x.Name.Equals("otherone")).First();
 
             // Act
@@ -146,7 +183,7 @@ namespace Budget.API.Tests.Services
             // Arrange
             var user = UserBuilder.CreateUser();
             var contextMock = MakeContext(user);
-            var defaults = new TransactionDefaults(contextMock.Object);
+            var defaults = new TransactionDefaults(contextMock.Object, user.Identity.GetUserId());
             var payee = contextMock.Object.Payees.Where(x => x.Name.Equals("FooBar2")).First();
 
             // Act
@@ -163,7 +200,7 @@ namespace Budget.API.Tests.Services
             var payeeName = "no details";
             var user = UserBuilder.CreateUser();
             var contextMock = MakeContext(user);
-            var defaults = new TransactionDefaults(contextMock.Object);
+            var defaults = new TransactionDefaults(contextMock.Object, user.Identity.GetUserId());
             var payee = contextMock.Object.Payees.Where(x => x.Name.Equals(payeeName)).First();
             var details = defaults.GetDefaultPayeeDetails(payee);
             var transaction = new TransactionModel()
@@ -184,7 +221,7 @@ namespace Budget.API.Tests.Services
             var payeeName = "otherone";
             var user = UserBuilder.CreateUser();
             var contextMock = MakeContext(user);
-            var defaults = new TransactionDefaults(contextMock.Object);
+            var defaults = new TransactionDefaults(contextMock.Object, user.Identity.GetUserId());
             var payee = contextMock.Object.Payees.Where(x => x.Name.Equals(payeeName)).First();
             var details = defaults.GetDefaultPayeeDetails(payee);
             var transaction = new TransactionModel()
@@ -204,7 +241,7 @@ namespace Budget.API.Tests.Services
             // Arrange
             var user = UserBuilder.CreateUser();
             var contextMock = MakeContext(user);
-            var defaults = new TransactionDefaults(contextMock.Object);
+            var defaults = new TransactionDefaults(contextMock.Object, user.Identity.GetUserId());
             var payees = contextMock.Object.Payees
                 .Where(x => x.Name.Contains("Foo"))
                 .Where(x => x.UserId.Equals(user.Identity.GetUserId()))
@@ -341,7 +378,27 @@ namespace Budget.API.Tests.Services
                 },
                 DefaultDetails = new List<PayeeDefaultDetailsModel>()
             };
-            var payees = new List<PayeeModel>() { payee1, payee2, payee3, payee4, payee5};
+            var unPayee = new PayeeModel()
+            {
+                Id = 99,
+                UserId = user.Identity.GetUserId(),
+                Name = "Unassigned",
+                ImportNames = new List<ImportNameToPayeeModel>(),
+                DefaultDetails = new List<PayeeDefaultDetailsModel>()
+            };
+            var unCat = new CategoryModel()
+            {
+                Name = "Uncategorized",
+                UserId = user.Identity.GetUserId(),
+                SubCategories = new List<SubCategoryModel>()
+                {
+                    new SubCategoryModel()
+                    {
+                        Name = "Uncategorized"
+                    }
+                }
+            };
+            var payees = new List<PayeeModel>() { payee1, payee2, payee3, payee4, payee5, unPayee };
             // mock context
             var contextMockBuilder = new MockDbContext()
                 .WithData(payees)
@@ -350,6 +407,7 @@ namespace Budget.API.Tests.Services
                 .SetupFind(3, payee3)
                 .SetupFind(4, payee4)
                 .SetupFind(5, payee5)
+                .WithData(new List<CategoryModel>() { unCat })
                 .Finalize();
 
             return contextMockBuilder.Context;
