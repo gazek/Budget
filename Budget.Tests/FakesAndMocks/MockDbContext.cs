@@ -88,6 +88,14 @@ namespace Budget.API.Tests.FakesAndMocks
             return this;
         }
 
+        public MockDbContext WithData(List<CategoryModel> data)
+        {
+            Categories = new MockDbSet<CategoryModel>()
+                .UsingDataSet(data.AsQueryable())
+                .Mock();
+            return this;
+        }
+
         public MockDbContext SetupAdd(FinancialInstitutionModel add, FinancialInstitutionModel returns)
         {
             FinancialInstitutions.Setup(x => x.Add(It.Is<FinancialInstitutionModel>(fi => fi.OfxFid == add.OfxFid))).Returns(returns);
