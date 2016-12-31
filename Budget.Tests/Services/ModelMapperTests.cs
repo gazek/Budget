@@ -13,7 +13,7 @@ using Budget.API.Services.OFXClient;
 namespace Budget.Tests.Services
 {
     [TestClass]
-    public class ModelMapperTest
+    public class ModelMapperTests
     {
         private IPrincipal _user;
 

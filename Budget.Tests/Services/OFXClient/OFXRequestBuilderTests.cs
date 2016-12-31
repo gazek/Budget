@@ -5,7 +5,7 @@ using System;
 namespace Budget.Tests.Controllers
 {
     [TestClass]
-    public class OFXRequestBuilderTest
+    public class OFXRequestBuilderTests
     {
 
         [TestMethod]

@@ -6,7 +6,7 @@ using System;
 namespace Budget.Tests.Services.OFXClient
 {
     [TestClass]
-    public class OFXParserTest
+    public class OFXParserTests
     {
         [TestMethod]
         public void OFXParserSignOnSuccess()

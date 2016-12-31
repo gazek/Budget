@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Budget.Tests.Services
 {
     [TestClass]
-    public class AesServiceTest
+    public class AesServiceTests
     {
 
         [TestMethod]

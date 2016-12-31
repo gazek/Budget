@@ -5,7 +5,7 @@ using System;
 namespace Budget.Tests.Services
 {
     [TestClass]
-    public class OFXRequestorTest
+    public class OFXRequestorTests
     {
         [TestMethod]
         public void OFXRequestorPostTest()
