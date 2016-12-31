@@ -17,7 +17,7 @@ namespace Budget.Tests.Services
     {
         private IPrincipal _user;
 
-        public ModelMapperTest()
+        public ModelMapperTests()
         {
             _user = UserBuilder.CreateUser();
         }
