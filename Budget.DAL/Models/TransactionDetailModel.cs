@@ -53,5 +53,11 @@ namespace Budget.DAL.Models
         [ForeignKey("TransferTransactionId")]
         [JsonIgnore]
         public virtual TransactionModel TransferMatch { get; set; }
+
+        public TransactionDetailModel()
+        {
+            Memo = "";
+            LastEditDate = DateTime.Now;
+        }
     }
 }
