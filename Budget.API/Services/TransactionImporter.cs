@@ -32,7 +32,7 @@ namespace Budget.API.Services
             // initialize everything except TransactionDefaults class
             _TransactionImporter(transactions, account, dbContext);
             // initialize TransactionDefaults class
-            transDefaults = new TransactionDefaults(_dbContext);
+            transDefaults = new TransactionDefaults(_dbContext, account.UserId);
         }
 
         // just needed for testing
@@ -234,7 +234,7 @@ namespace Budget.API.Services
             //   then apply to the Transactions field
             foreach (TransactionModel t in Transactions)
             {
-                List<PayeeModel> payees = transDefaults.GetDefaultPayees(_account.User.Id, t.OriginalPayeeName);
+                List<PayeeModel> payees = transDefaults.GetDefaultPayees(t.OriginalPayeeName);
                 List<TransactionDetailModel> result = new List<TransactionDetailModel>();
                 foreach (PayeeModel p in payees)
                 {
