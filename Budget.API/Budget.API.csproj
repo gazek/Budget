@@ -162,7 +162,10 @@
     <Compile Include="App_Start\UnityConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\BalanceController.cs" />
+    <Compile Include="Controllers\ControllerBase.cs" />
     <Compile Include="Controllers\FinancialInstitutionController.cs" />
+    <Compile Include="Controllers\TransactionController.cs" />
     <Compile Include="Controllers\UserAccountController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -172,6 +175,9 @@
     <Compile Include="Models\BalanceViewModels.cs" />
     <Compile Include="Models\FinancialInstitutionViewModels.cs" />
     <Compile Include="Models\FinancialInstitutionBindingModels.cs" />
+    <Compile Include="Models\TransactionDetailBindingModels.cs" />
+    <Compile Include="Models\TransactionDetailViewModels.cs" />
+    <Compile Include="Models\TransactionViewModels.cs" />
     <Compile Include="Models\UserAccountBindingModels.cs" />
     <Compile Include="Models\UserAccountViewModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -190,7 +196,9 @@
     <Compile Include="Services\OFXClient\OFXRequestConfig.cs" />
     <Compile Include="Services\OFXClient\OFXRequestor.cs" />
     <Compile Include="Services\OFXClient\OFXTagCloser.cs" />
+    <Compile Include="Models\TransactionBindingModels.cs" />
     <Compile Include="Services\TransactionDefaults.cs" />
+    <Compile Include="Services\TransactionDetailsChecker.cs" />
     <Compile Include="Services\TransactionImporter.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
