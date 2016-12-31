@@ -6,6 +6,7 @@ using System.Linq;
 using Budget.API.Services.OFXClient;
 using System;
 using System.Collections.Generic;
+using Budget.DAL;
 
 namespace Budget.API.Services
 {
@@ -130,6 +131,180 @@ namespace Budget.API.Services
                 OfxOrg = model.OfxOrg,
                 Username = model.Username,
                 CLIENTUID = model.CLIENTUID
+            };
+        }
+        #endregion
+
+        #region Transaction
+        public static TransactionModel BindingToEntity(TransactionBindingModel model)
+        {
+            return new TransactionModel
+            {
+                Status = model.Status,
+                CheckNum = model.CheckNum,
+                Details = new List<TransactionDetailModel>(model.Details.Select(d => BindingToEntity(d)))
+            };
+        }
+
+        public static TransactionViewModel EntityToView(TransactionModel model)
+        {
+            // get top fields
+            TopFields topFields = new TopFields(model);
+
+            // map details
+            List<TransactionDetailViewModel> details = model.Details.Select(d => ModelMapper.EntityToView(d)).ToList();
+
+            return new TransactionViewModel
+            {
+                Id = model.Id,
+                AccountId = model.AccountId,
+                ReferenceValue = model.ReferenceValue,
+                Date = model.Date,
+                Amount = model.Amount,
+                PayeeId = topFields.PayeeId,
+                PayeeName = topFields.PayeeName,
+                CategoryId = topFields.CategoryId,
+                CategoryName = topFields.CategoryName,
+                SubCategoryId = topFields.SubCategoryId,
+                SubCategoryName = topFields.SubCategoryName,
+                Memo = topFields.Memo,
+                OriginalPayeeName = model.OriginalPayeeName,
+                OriginalMemo = model.OriginalMemo,
+                DateAdded = model.DateAdded,
+                Status = model.Status,
+                CheckNum = model.CheckNum,
+                LastEditDate = model.LastEditDate,
+                Details = details
+            };
+        }
+
+        #region Top Field Helpers
+        private class TopFields
+        {
+            public int PayeeId { get; set; }
+            public string PayeeName { get; set; }
+            public int CategoryId { get; set; }
+            public string CategoryName { get; set; }
+            public int SubCategoryId { get; set; }
+            public string SubCategoryName { get; set; }
+            public string Memo { get; set; }
+
+            private ICollection<TransactionDetailModel> details;
+
+            public TopFields(TransactionModel trans)
+            {
+                details = trans.Details;
+                // payee
+                GetTopPayee();
+                // category
+                GetTopCategory();
+                // subcategory
+                GetTopSubCategory();
+                // memo
+                GetTopMemo();
+            }
+
+            private void GetTopPayee()
+            {
+                HashSet<int> idSet = new HashSet<int>(details.Select(d => d.PayeeId));
+                // one payee
+                if (idSet.Count == 1)
+                {
+                    PayeeId = idSet.First();
+                    PayeeName = details.First().Payee?.Name;
+                }
+                // more than 1 payee
+                if (idSet.Count > 1)
+                {
+                    PayeeName = "Split";
+                }
+            }
+
+            private void GetTopCategory()
+            {
+                HashSet<int> idSet = new HashSet<int>(details.Select(d => d.CategoryId));
+                // one category
+                if (idSet.Count == 1)
+                {
+                    CategoryId = idSet.First();
+                    CategoryName = details.First().Category?.Name;
+                }
+                // more than 1 category
+                if (idSet.Count > 1)
+                {
+                    CategoryName = "Split";
+                }
+            }
+
+            private void GetTopSubCategory()
+            {
+                HashSet<int> idSet = new HashSet<int>(details.Select(d => d.SubCategoryId));
+                // one Subcategory
+                if (idSet.Count == 1)
+                {
+                    SubCategoryId = idSet.First();
+                    SubCategoryName = details.First().SubCategory?.Name;
+                }
+                // more than 1 Subcategory
+                if (idSet.Count > 1)
+                {
+                    SubCategoryName = "Split";
+                }
+            }
+
+            private void GetTopMemo()
+            {
+                // set default value
+                Memo = "";
+                // put memos in a set
+                HashSet<string> memoSet = new HashSet<string>(details.Select(d => d.Memo));
+                // one memo
+                if (memoSet.Count == 1)
+                {
+                    Memo = memoSet.First();
+                    Memo = details.First().Memo;
+                }
+                // more than 1 Subcategory
+                if (memoSet.Count > 1)
+                {
+                    Memo = "Split";
+                }
+            }
+        }
+        #endregion
+
+        #endregion
+
+        #region Transaction Details
+        public static TransactionDetailModel BindingToEntity(TransactionDetailBindingModel model)
+        {
+            return new TransactionDetailModel
+            {
+                PayeeId = model.PayeeId,
+                CategoryId = model.CategoryId,
+                SubCategoryId = model.SubCategoryId,
+                Amount = model.Amount,
+                TransferTransactionId = model.TransferTransactionId,
+                Memo = model.Memo
+            };
+        }
+
+        public static TransactionDetailViewModel EntityToView(TransactionDetailModel model)
+        {
+            return new TransactionDetailViewModel
+            {
+                //Id = model.Id,
+                //TransactionId = model.TransactionId,
+                PayeeId = model.PayeeId,
+                PayeeName = model.Payee?.Name,
+                CategoryId = model.CategoryId,
+                CategoryName = model.Category?.Name,
+                SubCategoryId = model.SubCategoryId,
+                SubCategoryName = model.SubCategory?.Name,
+                Amount = model.Amount,
+                TransferTransactionId = model.TransactionId,
+                Memo = model.Memo,
+                LastEditDate = model.LastEditDate,
             };
         }
         #endregion
