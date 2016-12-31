@@ -14,10 +14,12 @@ namespace Budget.API.Services
     {
         private IApplicationDbContext _dbContext;
         private string _topPayeeNameForSplitTransactions = "Multiple";
+        private string _userId;
 
-        public TransactionDefaults(IApplicationDbContext dbContext)
+        public TransactionDefaults(IApplicationDbContext dbContext, string userId)
         {
             _dbContext = dbContext;
+            _userId = userId;
         }
 
         public TransactionStatus GetDefaultStatus()
@@ -35,24 +37,39 @@ namespace Budget.API.Services
             return DateTime.Now;
         }
 
-        public virtual List<PayeeModel> GetDefaultPayees (string userId, string originalPayeeName)
+        public PayeeModel GetUnassignedPayee()
+        {
+            // The UnCategorized category and Unassigned payee should be created when the user registers
+            // and should not be editable by the user through the category or payee API
+            return _dbContext.Payees
+                    .Where(c => c.UserId == _userId)
+                    .Where(c => c.Name == "Unassigned")
+                    .FirstOrDefault();
+        }
+
+        public CategoryModel GetUncategorizedCat()
+        {
+            // The UnCategorized category and Unassigned payee should be created when the user registers
+            // and should not be editable by the user through the category or payee API
+            return _dbContext.Categories
+                    .Where(c => c.UserId == _userId)
+                    .Where(c => c.Name == "Uncategorized")
+                    .Include(c => c.SubCategories)
+                    .FirstOrDefault();
+        }
+
+        public virtual List<PayeeModel> GetDefaultPayees (string originalPayeeName)
         {
             // initialize return list
             List<PayeeModel> result = new List<PayeeModel>();
 
             // get all the user's payees
-            /*
-             * List<PayeeModel> allPayees = _dbContext.Payees
-                .Where(x => x.UserId == userId)
-                .Include(x => x.ImportNames)
-                .Include(x => x.DefaultDetails)
-                .ToList();
-                */
-            var tmp = _dbContext.Payees;
-            var tmp1 = tmp.Where(x => x.UserId == userId);
-            var tmp2 = tmp1.Include(x => x.ImportNames);
-            var tmp3 = tmp2.Include(x => x.DefaultDetails);
-            var allPayees = tmp3.ToList();
+            List<PayeeModel> allPayees = _dbContext.Payees
+             .Where(x => x.UserId == _userId)
+             .Include(x => x.ImportNames)
+             .Include(x => x.DefaultDetails)
+             .ToList();
+
             // walk across all user's payees and walk across
             // all the payee's rename defintions looking for a match
             foreach (PayeeModel p in allPayees)
