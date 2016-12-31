@@ -9,8 +9,10 @@ namespace Budget.API.Services
         DateTime GetDefaultDateAdded();
         DateTime GetDefaultLastEditDate();
         List<TransactionDetailModel> GetDefaultPayeeDetails(PayeeModel payee, TransactionModel transaction = null);
-        List<PayeeModel> GetDefaultPayees(string userId, string originalPayeeName);
+        List<PayeeModel> GetDefaultPayees(string originalPayeeName);
         TransactionStatus GetDefaultStatus();
         string GetTopPayeeName(TransactionModel transaction);
+        PayeeModel GetUnassignedPayee();
+        CategoryModel GetUncategorizedCat();
     }
 }
