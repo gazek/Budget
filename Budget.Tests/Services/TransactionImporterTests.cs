@@ -14,14 +14,13 @@ using System.Security.Principal;
 namespace Budget.API.Tests.Services
 {
     [TestClass]
-    public class TransactionImporterTest
+    public class TransactionImporterTests
     {
         [TestMethod]
         public void TransactionImporterConstructorNoneExistingTest()
         {
             // Arrange
             var context = MakeContext().Object;
-            var defaults = new TransactionDefaults(context);
             var trans = GetFakeTransactions();
             var account = GetFakeAccount(new List<TransactionModel>() { trans[0] });
             trans.RemoveAt(0);
@@ -38,7 +37,6 @@ namespace Budget.API.Tests.Services
         {
             // Arrange
             var context = MakeContext().Object;
-            var defaults = new TransactionDefaults(context);
             var trans = GetFakeTransactions();
             var account = GetFakeAccount(new List<TransactionModel>() { trans[0] });
             var sum = context.Transactions.First().Id;
@@ -55,7 +53,6 @@ namespace Budget.API.Tests.Services
         {
             // Arrange
             var context = MakeContext().Object;
-            var defaults = new TransactionDefaults(context);
             var trans = GetFakeTransactions();
             var account = GetFakeAccount(new List<TransactionModel>() { trans[0] });
             var sum = context.Transactions.First().Id;
@@ -75,7 +72,7 @@ namespace Budget.API.Tests.Services
             // Arrange
             var context = MakeContext().Object;
             var defaults = new Mock<TransactionDefaults>();
-            defaults.Setup(x => x.GetDefaultPayees(It.IsAny<string>(), It.IsAny<string>())).Returns(new List<PayeeModel>());
+            defaults.Setup(x => x.GetDefaultPayees(It.IsAny<string>())).Returns(new List<PayeeModel>());
             var trans = GetFakeTransactions();
             var account = GetFakeAccount(new List<TransactionModel>() { trans[0] });
             var importer = new TransactionImporter(trans, account, context);
@@ -97,7 +94,7 @@ namespace Budget.API.Tests.Services
             // Arrange
             var context = MakeContext().Object;
             var defaults = new Mock<TransactionDefaults>();
-            defaults.Setup(x => x.GetDefaultPayees(It.IsAny<string>(), It.IsAny<string>())).Returns(new List<PayeeModel>());
+            defaults.Setup(x => x.GetDefaultPayees(It.IsAny<string>())).Returns(new List<PayeeModel>());
             var trans = GetFakeTransactions();
             var account = GetFakeAccount(new List<TransactionModel>() { trans[0] });
             var importer = new TransactionImporter(trans, account, context);
@@ -119,7 +116,7 @@ namespace Budget.API.Tests.Services
             // Arrange
             var context = MakeContext().Object;
             var defaults = new Mock<TransactionDefaults>();
-            defaults.Setup(x => x.GetDefaultPayees(It.IsAny<string>(), It.IsAny<string>())).Returns(new List<PayeeModel>());
+            defaults.Setup(x => x.GetDefaultPayees(It.IsAny<string>())).Returns(new List<PayeeModel>());
             var trans = GetFakeTransactions();
             trans[0].Status = TransactionStatus.Rejected;
             var account = GetFakeAccount(new List<TransactionModel>() { trans[0] });
@@ -181,7 +178,6 @@ namespace Budget.API.Tests.Services
             // Arrange
             var context = MakeContext();
             context.Setup(x => x.SaveChanges()).Returns(3);
-            var defaults = new TransactionDefaults(context.Object);
             var trans = GetFakeTransactions();
             var account = GetFakeAccount(new List<TransactionModel>(trans));
             var importer = new TransactionImporter(trans, account, context.Object);
@@ -321,9 +317,9 @@ namespace Budget.API.Tests.Services
             };
 
             var defaults = new Mock<ITransactionDefaults>();
-            defaults.Setup(x => x.GetDefaultPayees(It.IsAny<string>(), "this")).Returns(new List<PayeeModel>() { thisPayee });
-            defaults.Setup(x => x.GetDefaultPayees(It.IsAny<string>(), "that")).Returns(new List<PayeeModel>() { thatPayee });
-            defaults.Setup(x => x.GetDefaultPayees(It.IsAny<string>(), "other")).Returns(new List<PayeeModel>() {  });
+            defaults.Setup(x => x.GetDefaultPayees("this")).Returns(new List<PayeeModel>() { thisPayee });
+            defaults.Setup(x => x.GetDefaultPayees("that")).Returns(new List<PayeeModel>() { thatPayee });
+            defaults.Setup(x => x.GetDefaultPayees("other")).Returns(new List<PayeeModel>() {  });
             defaults.Setup(x => x.GetDefaultPayeeDetails(thisPayee, It.IsAny<TransactionModel>())).Returns(thisDetails);
             defaults.Setup(x => x.GetDefaultPayeeDetails(thatPayee, It.IsAny<TransactionModel>())).Returns(thatDetails);
             return defaults;
