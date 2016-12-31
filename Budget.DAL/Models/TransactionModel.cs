@@ -57,8 +57,8 @@ namespace Budget.DAL.Models
 
         public TransactionModel()
         {
-            LastEditDate = DateTime.Today;
-            DateAdded = DateTime.Today;
+            LastEditDate = DateTime.Now;
+            DateAdded = DateTime.Now;
         }
     }
 
