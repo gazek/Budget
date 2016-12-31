@@ -19,7 +19,7 @@ using Budget.API.Tests.FakesAndMocks;
 namespace Budget.API.Tests.Controllers
 {
     [TestClass]
-    public class FinancialInstitutionsControllerTest
+    public class FinancialInstitutionsControllerTests
     {
         #region Create Tests
         [TestMethod]
