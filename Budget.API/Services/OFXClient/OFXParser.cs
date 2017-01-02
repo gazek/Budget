@@ -334,10 +334,10 @@ namespace Budget.API.Services.OFXClient
 
                 // Collect account info fm XML
                 currentAccount = new AccountModel();
-                currentAccount.Description = a.SelectSingleNode("DESC").InnerText;
-                currentAccount.Name = a.SelectSingleNode("DESC").InnerText;
+                currentAccount.Description = a.SelectSingleNode("DESC")?.InnerText;
+                currentAccount.Name = a.SelectSingleNode("DESC")?.InnerText;
                 string path = prefix + "ACCTINFO/" + prefix + "ACCTFROM/";
-                currentAccount.Number = a.SelectSingleNode(path + "ACCTID").InnerText;
+                currentAccount.Number = a.SelectSingleNode(path + "ACCTID")?.InnerText;
                 if (prefix == "CC")
                 {
                     currentAccount.Type = AccountType.CreditCard;
