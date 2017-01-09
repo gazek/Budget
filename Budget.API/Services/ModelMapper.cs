@@ -10,8 +10,38 @@ using Budget.DAL;
 
 namespace Budget.API.Services
 {
-    public class ModelMapper
+    /*
+     * Maps model to model:
+     *      Example:
+     *          Binding=>Entity
+     *          Entity=>View 
+     *          etc.
+     * 
+     * Maps fields across FK associations: 
+     *      Example:
+     *          Find UserId associated with transaction
+     *              Transaction.AccountId => Account.UserId
+     *              TransactionDetail.TransactionId => Transaction.AccountId => Account.UserId
+     * 
+     */
+    public static class ModelMapper
     {
+        #region Types List
+        private static List<Type> _types = new List<Type>()
+            {
+                typeof(AccountModel),
+                typeof(BalanceModel),
+                typeof(CategoryModel),
+                typeof(FinancialInstitutionModel),
+                typeof(ImportNameToPayeeModel),
+                typeof(PayeeDefaultDetailsModel),
+                typeof(PayeeModel),
+                typeof(SubCategoryModel),
+                typeof(TransactionDetailModel),
+                typeof(TransactionModel)
+            };
+        #endregion
+
         #region Account
         public static AccountModel BindingToEntity(AccountBindingModel model, IPrincipal user)
         {
@@ -87,6 +117,11 @@ namespace Budget.API.Services
                     throw new Exception("Failed to convert AccountType Enum");
             }
         }
+
+        public static string GetUserId(AccountModel model, IApplicationDbContext dbContext=null)
+        {
+            return model.UserId;
+        }
         #endregion
 
         #region Balance
@@ -99,6 +134,12 @@ namespace Budget.API.Services
                 Amount = model.Amount,
                 AsOfDate = model.AsOfDate
             };
+        }
+
+        public static string GetUserId(BalanceModel model, IApplicationDbContext dbContext = null)
+        {
+            AccountModel account = dbContext.Accounts.Find(model.AccountId);
+            return account.UserId;
         }
         #endregion
 
@@ -132,6 +173,11 @@ namespace Budget.API.Services
                 Username = model.Username,
                 CLIENTUID = model.CLIENTUID
             };
+        }
+
+        public static string GetUserId(FinancialInstitutionModel model, IApplicationDbContext dbContext = null)
+        {
+            return model.UserId;
         }
         #endregion
 
@@ -176,6 +222,12 @@ namespace Budget.API.Services
                 LastEditDate = model.LastEditDate,
                 Details = details
             };
+        }
+
+        public static string GetUserId(TransactionModel model, IApplicationDbContext dbContext = null)
+        {
+            AccountModel account = dbContext.Accounts.Find(model.AccountId);
+            return account.UserId;
         }
 
         #region Top Field Helpers
@@ -306,6 +358,144 @@ namespace Budget.API.Services
                 Memo = model.Memo,
                 LastEditDate = model.LastEditDate,
             };
+        }
+
+        public static string GetUserId(TransactionDetailModel model, IApplicationDbContext dbContext = null)
+        {
+            TransactionModel trans = dbContext.Transactions.Find(model.TransactionId);
+            return GetUserId(trans);
+        }
+        #endregion
+
+        #region Category
+        public static CategoryModel BindingToEntity(CategoryBindingModel model, IPrincipal user)
+        {
+            List<SubCategoryModel> subcats;
+            if (model.SubCategories == null)
+            {
+                subcats = new List<SubCategoryModel>();
+            }
+            else
+            {
+                subcats = new List<SubCategoryModel>(model.SubCategories.Select(s => BindingToEntity(s)));
+            }
+
+            return new CategoryModel()
+            {
+                Id = model.Id,
+                UserId = user.Identity.GetUserId(),
+                Name = model.Name,
+                SubCategories = subcats
+            };
+        }
+
+        public static CategoryViewModel EntityToView(CategoryModel model)
+        {
+            List<SubCategoryViewModel> subcats;
+            if (model.SubCategories == null)
+            {
+                subcats = new List<SubCategoryViewModel>();
+            }
+            else
+            {
+                subcats = new List<SubCategoryViewModel>(model.SubCategories.Select(s => EntityToView(s)));
+            }
+
+            return new CategoryViewModel
+            {
+                Id = model.Id,
+                Name = model.Name,
+                SubCategories = subcats
+            };
+        }
+
+        public static string GetUserId(CategoryModel model, IApplicationDbContext dbContext = null)
+        {
+            return model.UserId;
+        }
+        #endregion
+
+        #region SubCategory
+        public static SubCategoryModel BindingToEntity(SubCategoryBindingModel model)
+        {
+            return new SubCategoryModel()
+            {
+                Id = model.Id,
+                CategoryId = model.CategoryId,
+                Name = model.Name
+            };
+        }
+
+        public static SubCategoryViewModel EntityToView(SubCategoryModel model)
+        {
+            return new SubCategoryViewModel
+            {
+                Id = model.Id,
+                CategoryId = model.CategoryId,
+                Name = model.Name
+            };
+        }
+
+        public static string GetUserId(SubCategoryModel model, IApplicationDbContext dbContext = null)
+        {
+            CategoryModel cat = dbContext.Categories.Find(model.CategoryId);
+            return GetUserId(cat);
+        }
+        #endregion
+
+        #region Payee
+
+        public static string GetUserId(PayeeModel model, IApplicationDbContext dbContext = null)
+        {
+            return model.UserId;
+        }
+        #endregion
+
+        #region Payee Default Detail
+
+        public static string GetUserId(PayeeDefaultDetailsModel model, IApplicationDbContext dbContext = null)
+        {
+            PayeeModel payee = dbContext.Payees.Find(model.PayeeId);
+            return GetUserId(payee);
+        }
+        #endregion
+
+        #region Payee Import Name
+
+        public static string GetUserId(ImportNameToPayeeModel model, IApplicationDbContext dbContext = null)
+        {
+            PayeeModel payee = dbContext.Payees.Find(model.PayeeId);
+            return GetUserId(payee);
+        }
+        #endregion
+
+        #region Generic
+        public static string GetUserId<T>(dynamic model, IApplicationDbContext dbContext)
+        {
+            foreach (Type t in _types)
+            {
+                if (model.GetType() == t)
+                {
+                    return GetUserId(Convert.ChangeType(model, t), dbContext);
+                }
+            }
+
+            // if unknown type
+            return "";
+        }
+
+        public static dynamic EntityToView<T>(dynamic model)
+        {
+            foreach (Type t in _types)
+            {
+                if (model.GetType() == typeof(T))
+                {
+                    return EntityToView(Convert.ChangeType(model, typeof(T)));
+                }
+            }
+
+            // if unknown type
+            return null;
         }
         #endregion
     }
