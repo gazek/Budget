@@ -17,28 +17,10 @@ namespace Budget.API.Controllers
 {
     [Authorize]
     [RoutePrefix("api/FinancialInstitution")]
-    public class FinancialInstitutionController : ApiController
+    public class FinancialInstitutionController : ControllerBase<FinancialInstitutionModel>
     {
-        private IApplicationDbContext _dbContext;
-        private ApplicationUserManager _userManager;
-        public IOfxClient OfxClient { get; set; }
-
-        public FinancialInstitutionController(IApplicationDbContext dbContext)
+        public FinancialInstitutionController(IApplicationDbContext dbContext) : base(dbContext)
         {
-            _dbContext = dbContext;
-            OfxClient = new OfxClient();
-        }
-       
-        public ApplicationUserManager UserManager
-        {
-            get
-            {
-                return _userManager ?? Request.GetOwinContext().GetUserManager<ApplicationUserManager>();
-            }
-            private set
-            {
-                _userManager = value;
-            }
         }
 
         [Route("", Name = "CreateFI")]
@@ -66,85 +48,28 @@ namespace Budget.API.Controllers
             return Created<FinancialInstitutionViewModel>(Url.Link("GetFiById", new { id = record.Id }), ModelMapper.EntityToView(record));
         }
 
-        [Route("{id}", Name="GetFiById")]
+        [Route("{id}", Name = "GetFiById")]
         [HttpGet]
         [Authorize]
-        public IHttpActionResult Get(int id)
+        public override IHttpActionResult Get(int id)
         {
-            FinancialInstitutionModel entity = _dbContext.FinancialInstitutions.Find(id);
-
-            if (entity == null)
-            {
-                return NotFound();
-            }
-
-            if (entity.UserId != User.Identity.GetUserId())
-            {
-                return Unauthorized();
-            }
-
-            return Ok(ModelMapper.EntityToView(entity));
+            return base.Get(id);
         }
 
         [Route("", Name = "GetAllFi")]
         [HttpGet]
         [Authorize]
-        public IHttpActionResult Get()
+        public override IHttpActionResult GetAll()
         {
-            string userId = User.Identity.GetUserId();
-            List<FinancialInstitutionModel> entities = _dbContext.FinancialInstitutions
-                .Where(x => x.UserId == userId)
-                .ToList();
-
-            List<FinancialInstitutionViewModel> result = entities.Select(x => ModelMapper.EntityToView(x)).ToList();
-
-            return Ok(result);
+            return base.GetAll<FinancialInstitutionModel>();
         }
         
         [Route("{id}", Name = "UpdateFI")]
         [HttpPut]
         [Authorize]
-        public IHttpActionResult Update(int id, FinancialInstitutionUpdateBindingModel model)
+        public override IHttpActionResult Update<FinancialInstitutionUpdateBindingModel>(int id, FinancialInstitutionUpdateBindingModel model)
         {
-            // look for record
-            FinancialInstitutionModel record = _dbContext.FinancialInstitutions.Find(id);
-
-            // check if record exists
-            if (record == null)
-            {
-                return NotFound();
-            }
-
-            // check if user owns record
-            if (record.UserId != User.Identity.GetUserId())
-            {
-                return Unauthorized();
-            }
-
-            // verify model is valid
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            // make updates
-            foreach (string key in model.GetType().GetProperties().Select(x => x.Name))
-            {
-                record.GetType().GetProperty(key).SetValue(record, model.GetType().GetProperty(key).GetValue(model));
-            }
-
-            try
-            {
-                // commit changes
-                int result = _dbContext.SaveChanges();
-            }
-            catch (DbUpdateException ex)
-            {
-                return GetErrorResult(ex);
-            }
-            
-            // return updated record
-            return Ok();
+            return base.Update(id, model);
         }
 
         [Route("{id}/credentials", Name = "UpdateFILogin")]
@@ -183,35 +108,27 @@ namespace Budget.API.Controllers
             }
         }
 
-        [Route("{id}/GetAccountList", Name = "GetAccountLists")]
+        [Route("{id}/GetAccountList", Name = "GetAccountListFromBank")]
         [HttpGet]
         [Authorize]
         public IHttpActionResult GetAccountList(int id)
         {
-            // lool for FI record
-            FinancialInstitutionModel entity = _dbContext.FinancialInstitutions.Find(id);
+            GetRecordAndIsAuthorized(id);
 
-            // return if not found
-            if (entity == null)
+            if (!_requestIsOk)
             {
-                return NotFound();
+                return _errorResponse;
             }
 
-            // return if requestor is not asuthorized
-            if (entity.UserId != User.Identity.GetUserId())
-            {
-                return Unauthorized();
-            }
-            
             // configure the ofx account list request
-            OfxClient.RequestConfig.OfxFid = entity.OfxFid;
-            OfxClient.RequestConfig.OfxOrg = entity.OfxOrg;
-            OfxClient.RequestConfig.Password = AesService.DecryptStringFromBytes(entity.PasswordHash);
+            OfxClient.RequestConfig.OfxFid = _record.OfxFid;
+            OfxClient.RequestConfig.OfxOrg = _record.OfxOrg;
+            OfxClient.RequestConfig.Password = AesService.DecryptStringFromBytes(_record.PasswordHash);
             OfxClient.RequestConfig.RequestType = OFXRequestConfigRequestType.AccountList;
-            OfxClient.RequestConfig.URL = new Uri(entity.OfxUrl);
-            OfxClient.RequestConfig.Username = entity.Username;
+            OfxClient.RequestConfig.URL = new Uri(_record.OfxUrl);
+            OfxClient.RequestConfig.Username = _record.Username;
             Guid clientId;
-            if (Guid.TryParse(entity.CLIENTUID, out clientId))
+            if (Guid.TryParse(_record.CLIENTUID, out clientId))
             {
                 OfxClient.RequestConfig.ClientUID = clientId;
             }
@@ -243,32 +160,5 @@ namespace Budget.API.Controllers
             return InternalServerError();
         }
 
-        // Get - OFX request for account list from FI
-        private IHttpActionResult GetErrorResult(DbUpdateException ex)
-        {
-            var errors = new Dictionary<int, string>
-            {
-                { 2601, "Operation failed because record already exists" }
-            };
-
-            if (ex.InnerException == null)
-            {
-                return BadRequest(ex.Message);
-            }
-
-            var exception = ex.InnerException;
-            while (exception.InnerException != null)
-            {
-                exception = exception.InnerException;
-            }
-
-            SqlException sqlEx = (SqlException)exception;
-            if (errors.ContainsKey(sqlEx.Number))
-            {
-                return BadRequest(errors[sqlEx.Number]);
-            }
-
-            return BadRequest(exception.Message);
-        }
     }
 }

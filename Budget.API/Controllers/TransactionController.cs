@@ -1,19 +1,19 @@
 ﻿using Budget.DAL;
 using System.Web.Http;
 using Budget.DAL.Models;
-using Microsoft.AspNet.Identity;
 using Budget.API.Services;
 using System.Linq;
-using System.Data.Entity;
 using System.Collections.Generic;
 using System;
 using System.Data.Entity.Infrastructure;
 using Budget.API.Services.OFXClient;
+using System.Linq.Expressions;
 
 namespace Budget.API.Controllers
 {
+    [RoutePrefix("api")]
     [Authorize]
-    public class TransactionController : ControllerBase
+    public class TransactionController : ControllerBase<TransactionModel>
     {
         public TransactionController(IApplicationDbContext dbContext) : base(dbContext)
         {
@@ -22,97 +22,27 @@ namespace Budget.API.Controllers
         [Authorize]
         [HttpGet]
         [Route("Transaction/{id}", Name = "GetTransaction")]
-        public IHttpActionResult Get(int id)
+        public override IHttpActionResult Get(int id)
         {
-            TransactionModel entity = _dbContext.Transactions
-                .Where(t => t.Id == id)
-                .Include(t => t.Details.Select(d => d.Payee))
-                .Include(t => t.Details.Select(d => d.Category))
-                .Include(t => t.Details.Select(d => d.SubCategory))
-                .Include(t => t.Account)
-                .FirstOrDefault();
+            // filters
+            List<Expression<Func<TransactionModel, bool>>> filters = new List<Expression<Func<TransactionModel, bool>>>();
+            filters.Add(t => t.Id == id);
 
-            if (entity == null)
-            {
-                return NotFound();
-            }
+            // include related entities
+            List<Expression<Func<TransactionModel, object>>> include = new List<Expression<Func<TransactionModel, object>>>();
+            include.Add(t => t.Details.Select(d => d.Payee));
+            include.Add(t => t.Details.Select(d => d.Category));
+            include.Add(t => t.Details.Select(d => d.SubCategory));
 
-            if (entity.Account.UserId != User.Identity.GetUserId())
-            {
-                return Unauthorized();
-            }
-
-            return Ok(ModelMapper.EntityToView(entity));
+            return base.Get<TransactionModel>(filters, include);
         }
 
         [Authorize]
         [HttpPut]
         [Route("Transaction/{id}", Name = "UpdateTransaction")]
-        public IHttpActionResult Update(int id, TransactionBindingModel bindModel)
+        public override IHttpActionResult Update<TransactionBindingModel>(int id, TransactionBindingModel model)
         {
-            // verify user is record owner
-            TransactionModel entity = _dbContext.Transactions
-                .Where(t => t.Id == id)
-                .Include(t => t.Details.Select(d => d.Payee))
-                .Include(t => t.Details.Select(d => d.Category))
-                .Include(t => t.Details.Select(d => d.SubCategory))
-                .Include(t => t.Account)
-                .FirstOrDefault();
-
-            if (entity == null)
-            {
-                return NotFound();
-            }
-
-            if (entity.Account.UserId != User.Identity.GetUserId())
-            {
-                return Unauthorized();
-            }
-
-            // verify model state
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            // Verify details
-            //   amount must be fully categorized
-            //   all detail keys must be unique
-            TransactionModel newTrans = ModelMapper.BindingToEntity(bindModel);
-            newTrans.Account = entity.Account;
-            newTrans.Amount = entity.Amount;
-            TransactionDetailsChecker detailsChecker = new TransactionDetailsChecker(newTrans, _dbContext);
-            
-            // verify that payee, cat and subcat are all unique
-            if (detailsChecker.DetailsKeysAreUnique == false)
-            {
-                return BadRequest("Payee, Category, Subcategory combination must be unique");
-            }
-
-            // update db context
-            entity.Status = bindModel.Status;
-            entity.CheckNum = bindModel.CheckNum;
-            entity.Details = bindModel.Details.Select(d => ModelMapper.BindingToEntity(d)).ToList();
-
-            // verify sum of detail amounts equals the transaction amount
-            //   add uncategorized detail to balance amount if needed
-            if (detailsChecker.AmountIsFullyCategorized == false)
-            {
-                entity.Details.Add(detailsChecker.UncategorizedDetail);
-            }
-
-            // commit changes
-            try
-            {
-                _dbContext.SaveChanges();
-            }
-            catch (DbUpdateException ex)
-            {
-                return GetErrorResult(ex);
-            }
-
-            // return the updated record from the DB
-            return Ok(ModelMapper.EntityToView(entity));
+            return base.Update(id, model);
         }
 
         // Get - query transactions in DB by date range api/account/{id}/Transactions/Date/{end}/{begin}
@@ -121,21 +51,6 @@ namespace Budget.API.Controllers
         [Authorize]
         public IHttpActionResult GetTransactionsFromDb(int id, string begin = "", string end = "")
         {
-            // look for FI record
-            AccountModel entity = _dbContext.Accounts.Find(id);
-
-            // return if not found
-            if (entity == null)
-            {
-                return NotFound();
-            }
-
-            // return if requestor is not asuthorized
-            if (entity.UserId != User.Identity.GetUserId())
-            {
-                return Unauthorized();
-            }
-
             // Parse date range
             DateTime beginDate, endDate;
             IHttpActionResult parseResult = ParseDateRange(begin, end, out beginDate, out endDate);
@@ -150,17 +65,22 @@ namespace Budget.API.Controllers
                 return BadRequest("End date must be later than begin date");
             }
 
-            // query transactions
-            List<TransactionModel> result = _dbContext.Transactions
-                .Where(t => t.AccountId == id)
-                .Where(t => t.Date >= beginDate)
-                .Where(t => t.Date <= endDate)
-                .Include(t => t.Details)
-                .OrderBy(t => t.Date)
-                .ToList();
+            // filters
+            List<Expression<Func<TransactionModel, bool>>> filters = new List<Expression<Func<TransactionModel, bool>>>();
+            filters.Add(t => t.AccountId == id);
+            filters.Add(t => t.Date >= beginDate);
+            filters.Add(t => t.Date <= endDate);
 
-            // return result
-            return Ok(result);
+            // verify existence of account
+            // and that user is authorized to access it
+            GetRecordAndIsAuthorized<AccountModel>(id);
+
+            if (!_requestIsOk)
+            {
+                return _errorResponse;
+            }
+
+            return GetAll<TransactionModel>(filters, null, t => t.Date);
         }
 
         // Post - OFX request to pull latest transactions api/account/{id}/Transactions/Date/{end}/{begin}
@@ -169,21 +89,17 @@ namespace Budget.API.Controllers
         [Authorize]
         public IHttpActionResult GetTransactionsFromBank(int id, string begin = "", string end = "")
         {
-            // look for FI record
-            AccountModel entity = _dbContext.Accounts.Find(id);
+            // verify existence of account
+            // and that user is authorized to access it
+            GetRecordAndIsAuthorized<AccountModel>(id);
 
-            // return if not found
-            if (entity == null)
+            if (!_requestIsOk)
             {
-                return NotFound();
+                return _errorResponse;
             }
 
-            // return if requestor is not asuthorized
-            if (entity.UserId != User.Identity.GetUserId())
-            {
-                return Unauthorized();
-            }
-
+            AccountModel entity = _record;
+            
             // Parse date range
             DateTime beginDate, endDate;
             IHttpActionResult parseResult = ParseDateRange(begin, end, out beginDate, out endDate);

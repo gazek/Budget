@@ -1,26 +1,22 @@
 ﻿using Budget.API.Models;
 using Budget.API.Services;
-using Budget.API.Services.OFXClient;
 using Budget.DAL;
 using Budget.DAL.Models;
-using Microsoft.AspNet.Identity;
-using System;
-using System.Collections.Generic;
 using System.Data.Entity.Infrastructure;
-using System.Linq;
 using System.Web.Http;
 
 namespace Budget.API.Controllers
 {
     [Authorize]
-    public class AccountController : ControllerBase
+    [RoutePrefix("api/Account")]
+    public class AccountController : ControllerBase<AccountModel>
     {
         public AccountController(IApplicationDbContext dbContext) : base(dbContext)
         {
         }
 
         // create account
-        [Route("Account", Name = "CreateAccount")]
+        [Route("", Name = "CreateAccount")]
         [HttpPost]
         [Authorize]
         public IHttpActionResult Create(AccountBindingModel model)
@@ -48,87 +44,30 @@ namespace Budget.API.Controllers
         }
 
         // get account by ID
-        [Route("Account/{id}", Name = "GetAccountById")]
+        [Route("{id}", Name = "GetAccountById")]
         [HttpGet]
         [Authorize]
-        public IHttpActionResult Get(int id)
+        public override IHttpActionResult Get(int id)
         {
-            AccountModel entity = _dbContext.Accounts.Find(id);
-
-            if (entity == null)
-            {
-                return NotFound();
-            }
-
-            if (entity.UserId != User.Identity.GetUserId())
-            {
-                return Unauthorized();
-            }
-
-            return Ok(ModelMapper.EntityToView(entity));
+            return base.Get(id);
         }
 
         // get all accounts owned by user
-        [Route("Account", Name = "GetAllAccounts")]
+        [Route("", Name = "GetAllAccounts")]
         [HttpGet]
         [Authorize]
-        public IHttpActionResult Get()
+        public override IHttpActionResult GetAll()
         {
-            string userId = User.Identity.GetUserId();
-            List<AccountModel> entities = _dbContext.Accounts
-                .Where(x => x.UserId == userId)
-                .ToList();
-
-            List<AccountViewModel> result = entities.Select(x => ModelMapper.EntityToView(x)).ToList();
-
-            return Ok(result);
+            return base.GetAll<AccountModel>();
         }
 
         // update account properties when owned by user
-        [Route("Account/{id}", Name = "UpdateAccount")]
+        [Route("{id}", Name = "UpdateAccount")]
         [HttpPut]
         [Authorize]
-        public IHttpActionResult Update(int id, AccountBindingModel model)
+        public override IHttpActionResult Update<AccountBindingModel>(int id, AccountBindingModel model)
         {
-            // look for record
-            AccountModel record = _dbContext.Accounts.Find(id);
-
-            // check if record exists
-            if (record == null)
-            {
-                return NotFound();
-            }
-
-            // check if user owns record
-            if (record.UserId != User.Identity.GetUserId())
-            {
-                return Unauthorized();
-            }
-
-            // verify model is valid
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            // make updates
-            foreach (string key in model.GetType().GetProperties().Select(x => x.Name))
-            {
-                record.GetType().GetProperty(key).SetValue(record, model.GetType().GetProperty(key).GetValue(model));
-            }
-
-            try
-            {
-                // commit changes
-                int result = _dbContext.SaveChanges();
-            }
-            catch (DbUpdateException ex)
-            {
-                return GetErrorResult(ex);
-            }
-
-            // return updated record
-            return Ok();
+            return base.Update(id, model);
         }
 
         // TODO:

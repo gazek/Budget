@@ -1,9 +1,5 @@
-﻿using Budget.API.Services.OFXClient;
-using Budget.DAL;
-using System.Web;
+﻿using Budget.DAL;
 using System.Web.Http;
-using System.Net.Http;
-using Microsoft.AspNet.Identity.Owin;
 using Budget.DAL.Models;
 using Microsoft.AspNet.Identity;
 using System.Collections.Generic;
@@ -11,11 +7,13 @@ using System.Linq;
 using Budget.API.Models;
 using Budget.API.Services;
 using System;
+using System.Linq.Expressions;
 
 namespace Budget.API.Controllers
 {
     [Authorize]
-    public class BalanceController : ControllerBase
+    [RoutePrefix("api")]
+    public class BalanceController : ControllerBase<BalanceModel>
     {
         public BalanceController(IApplicationDbContext dbContext) : base(dbContext)
         {
@@ -27,18 +25,6 @@ namespace Budget.API.Controllers
         [Authorize]
         public IHttpActionResult GetBalanceHistory(int id, string begin = "", string end = "")
         {
-            AccountModel account = _dbContext.Accounts.Find(id);
-
-            if (account == null)
-            {
-                return NotFound();
-            }
-
-            if (account.UserId != User.Identity.GetUserId())
-            {
-                return Unauthorized();
-            }
-
             // Parse date range
             DateTime beginDate, endDate;
             IHttpActionResult parseResult = ParseDateRange(begin, end, out beginDate, out endDate);
@@ -53,15 +39,22 @@ namespace Budget.API.Controllers
                 return BadRequest("End date must be later than begin date");
             }
 
-            List<BalanceModel> balances = _dbContext.Balances
-                .Where(b => b.AccountId == account.Id)
-                .Where(b => b.AsOfDate >= beginDate)
-                .Where(b => b.AsOfDate <= endDate)
-                .OrderByDescending(b => b.AsOfDate).ToList();
+            // filters
+            List<Expression<Func<BalanceModel, bool>>> filters = new List<Expression<Func<BalanceModel, bool>>>();
+            filters.Add(b => b.AccountId == id);
+            filters.Add(b => b.AsOfDate >= beginDate);
+            filters.Add(b => b.AsOfDate <= endDate);
 
-            List<BalanceViewModel> result = balances?.Select(x => ModelMapper.EntityToView(x)).ToList();
+            // verify existence of account
+            // and that user is authorized to access it
+            GetRecordAndIsAuthorized<AccountModel>(id);
 
-            return Ok(result);
+            if (!_requestIsOk)
+            {
+                return _errorResponse;
+            }
+
+            return GetAll<BalanceModel>(filters, null, b => b.AsOfDate);
         }
     }
 }
