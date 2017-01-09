@@ -321,5 +321,115 @@ namespace Budget.Tests.Services
             Assert.IsInstanceOfType(result, typeof(AccountType));
             Assert.AreEqual(result, AccountType.CreditCard);
         }
+
+        [TestMethod]
+        public void NEED_AccountModelGetUserId()
+        {
+            // Arrange
+
+            // Act
+
+            // Assert
+            Assert.IsTrue(false);
+        }
+
+        [TestMethod]
+        public void NEED_BalanceModelGetUserId()
+        {
+            // Arrange
+
+            // Act
+
+            // Assert
+            Assert.IsTrue(false);
+        }
+
+        [TestMethod]
+        public void NEED_FIModelGetUserId()
+        {
+            // Arrange
+
+            // Act
+
+            // Assert
+            Assert.IsTrue(false);
+        }
+
+        [TestMethod]
+        public void NEED_TransactionModelGetUserId()
+        {
+            // Arrange
+
+            // Act
+
+            // Assert
+            Assert.IsTrue(false);
+        }
+
+        [TestMethod]
+        public void NEED_TransDetailModelGetUserId()
+        {
+            // Arrange
+
+            // Act
+
+            // Assert
+            Assert.IsTrue(false);
+        }
+
+        [TestMethod]
+        public void NEED_CategoryModelGetUserId()
+        {
+            // Arrange
+
+            // Act
+
+            // Assert
+            Assert.IsTrue(false);
+        }
+
+        [TestMethod]
+        public void NEED_SubCatModelGetUserId()
+        {
+            // Arrange
+
+            // Act
+
+            // Assert
+            Assert.IsTrue(false);
+        }
+
+        [TestMethod]
+        public void NEED_PayeeModelGetUserId()
+        {
+            // Arrange
+
+            // Act
+
+            // Assert
+            Assert.IsTrue(false);
+        }
+
+        [TestMethod]
+        public void NEED_PayeeDetailModelGetUserId()
+        {
+            // Arrange
+
+            // Act
+
+            // Assert
+            Assert.IsTrue(false);
+        }
+
+        [TestMethod]
+        public void NEED_PayeeImportNameModelGetUserId()
+        {
+            // Arrange
+
+            // Act
+
+            // Assert
+            Assert.IsTrue(false);
+        }
     }
 }

@@ -100,85 +100,10 @@ namespace Budget.API.Tests.Controllers
 
             // Act
             var result = controller.Update(1, updatedTrans);
-            OkNegotiatedContentResult<TransactionViewModel> resultTyped = (OkNegotiatedContentResult<TransactionViewModel>)result;
 
             // Assert
             Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<TransactionViewModel>));
-            Assert.AreEqual(detail.CategoryId, resultTyped.Content.Details.First().CategoryId);
-            Assert.AreEqual(detail.Memo, resultTyped.Content.Details.First().Memo);
-            Assert.AreEqual(detail.PayeeId, resultTyped.Content.Details.First().PayeeId);
-            Assert.AreEqual(detail.SubCategoryId, resultTyped.Content.Details.First().SubCategoryId);
-        }
-
-        [TestMethod]
-        public void TransactionControllerUpdateByIdBadRequestNonUniqueDetailsResult()
-        {
-            // Arrange
-            var user = UserBuilder.CreateUser();
-            var dbContext = MakeContext(user).Object;
-            var controller = new TransactionController(dbContext);
-            var originalTrans = dbContext.Transactions.Where(t => t.Id == 1).FirstOrDefault();
-            var detail = new TransactionDetailBindingModel()
-            {
-                Amount = originalTrans.Amount,
-                CategoryId = 99,
-                Memo = "foo",
-                PayeeId = 100,
-                SubCategoryId = 101
-            };
-            var updatedTrans = new TransactionBindingModel()
-            {
-                CheckNum = 1,
-                Status = TransactionStatus.Rejected,
-                Details = new List<TransactionDetailBindingModel>() { detail, detail }
-            };
-            controller.User = user;
-
-            // Act
-            var result = controller.Update(1, updatedTrans);
-            BadRequestErrorMessageResult resultTyped = (BadRequestErrorMessageResult)result;
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(BadRequestErrorMessageResult));
-            Assert.AreEqual("Payee, Category, Subcategory combination must be unique", resultTyped.Message);
-        }
-
-        [TestMethod]
-        public void TransactionControllerUpdateByIdBadRequestOkResultWithUncatAdded()
-        {
-            // Arrange
-            var user = UserBuilder.CreateUser();
-            var dbContext = MakeContext(user).Object;
-            var controller = new TransactionController(dbContext);
-            var originalTrans = dbContext.Transactions.Where(t => t.Id == 1).FirstOrDefault();
-            var unCatAmount = 1.23m;
-            var detail1 = new TransactionDetailBindingModel()
-            {
-                Amount = originalTrans.Amount - unCatAmount,
-                CategoryId = 99,
-                Memo = "foo",
-                PayeeId = 100,
-                SubCategoryId = 101
-            };
-            var updatedTrans = new TransactionBindingModel()
-            {
-                CheckNum = 1,
-                Status = TransactionStatus.Rejected,
-                Details = new List<TransactionDetailBindingModel>() { detail1 }
-            };
-            controller.User = user;
-
-            // Act
-            var result = controller.Update(1, updatedTrans);
-            OkNegotiatedContentResult<TransactionViewModel> resultTyped = (OkNegotiatedContentResult<TransactionViewModel>)result;
-            var unCatDetail = resultTyped.Content.Details.Where(d => d.Amount == unCatAmount).FirstOrDefault();
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<TransactionViewModel>));
-            Assert.IsNotNull(unCatDetail);
+            Assert.IsInstanceOfType(result, typeof(OkResult));
         }
 
         [TestMethod]
@@ -233,13 +158,15 @@ namespace Budget.API.Tests.Controllers
 
             // Act
             var result = controller.GetTransactionsFromDb(1, startDate.ToShortDateString(), endDate.ToShortDateString());
-            var resultTyped = (OkNegotiatedContentResult<List<TransactionModel>>)result;
+            var resultTyped = (OkNegotiatedContentResult<List<object>>)result;
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<TransactionModel>>));
+            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<object>>));
             Assert.AreEqual(1, resultTyped.Content.Count);
-            Assert.IsTrue(resultTyped.Content.FirstOrDefault().Date >= startDate);
-            Assert.IsTrue(resultTyped.Content.FirstOrDefault().Date <= endDate);
+            Assert.IsInstanceOfType(resultTyped.Content.First(), typeof(TransactionViewModel));
+            TransactionViewModel first = resultTyped.Content.FirstOrDefault() as TransactionViewModel;
+            Assert.IsTrue(first.Date >= startDate);
+            Assert.IsTrue(first.Date <= endDate);
         }
 
         [TestMethod]
@@ -255,10 +182,10 @@ namespace Budget.API.Tests.Controllers
 
             // Act
             var result = controller.GetTransactionsFromDb(1, startDate.ToShortDateString(), endDate.ToShortDateString());
-            var resultTyped = (OkNegotiatedContentResult<List<TransactionModel>>)result;
+            var resultTyped = (OkNegotiatedContentResult<List<object>>)result;
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<TransactionModel>>));
+            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<object>>));
             Assert.AreEqual(0, resultTyped.Content.Count);
         }
 
@@ -322,12 +249,14 @@ namespace Budget.API.Tests.Controllers
         {
             var account1 = new AccountModel()
             {
-                UserId = user.Identity.GetUserId()
+                UserId = user.Identity.GetUserId(),
+                Id = 1
             };
 
             var account2 = new AccountModel()
             {
-                UserId = UserBuilder.CreateUser().Identity.GetUserId()
+                UserId = UserBuilder.CreateUser().Identity.GetUserId(),
+                Id = 2
             };
 
             var trans1 = new TransactionModel()
@@ -434,6 +363,9 @@ namespace Budget.API.Tests.Controllers
                 .WithData(new List<AccountModel>() { account1, account2 })
                 .SetupFind(1, account1)
                 .SetupFind(2, account2)
+                .SetupFind(1, trans1)
+                .SetupFind(2, trans2)
+                .SetupFind(3, trans3)
                 .Finalize();
 
             return contextMockBuilder.Context;

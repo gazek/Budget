@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Principal;
 using System.Web.Http;
 using System.Web.Http.Results;
@@ -63,8 +64,8 @@ namespace Budget.API.Tests.Controllers
             IHttpActionResult result = controller.GetBalanceHistory(3);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<BalanceViewModel>>));
-            var typedResult = (OkNegotiatedContentResult<List<BalanceViewModel>>)result;
+            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<object>>));
+            var typedResult = (OkNegotiatedContentResult<List<object>>)result;
             Assert.AreEqual(0, typedResult.Content.Count);
         }
 
@@ -81,9 +82,13 @@ namespace Budget.API.Tests.Controllers
             IHttpActionResult result = controller.GetBalanceHistory(1);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<BalanceViewModel>>));
-            var typedResult = (OkNegotiatedContentResult<List<BalanceViewModel>>)result;
+            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<object>>));
+            var typedResult = (OkNegotiatedContentResult<List<object>>)result;
             Assert.AreEqual(2, typedResult.Content.Count);
+            Assert.IsInstanceOfType(typedResult.Content.First(), typeof(BalanceViewModel));
+            DateTime asOf1 = (DateTime)typedResult.Content[0].GetType().GetProperty("AsOfDate").GetValue(typedResult.Content[0]);
+            DateTime asOf2 = (DateTime)typedResult.Content[1].GetType().GetProperty("AsOfDate").GetValue(typedResult.Content[1]);
+            Assert.IsTrue(asOf1 < asOf2);
         }
 
         [TestMethod]
@@ -99,8 +104,9 @@ namespace Budget.API.Tests.Controllers
             IHttpActionResult result = controller.GetBalanceHistory(1, "01-01-2015", "2016-01-01");
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<BalanceViewModel>>));
-            var typedResult = (OkNegotiatedContentResult<List<BalanceViewModel>>)result;
+            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<object>>));
+            var typedResult = (OkNegotiatedContentResult<List<object>>)result;
+            Assert.IsInstanceOfType(typedResult.Content.First(), typeof(BalanceViewModel));
             Assert.AreEqual(1, typedResult.Content.Count);
         }
 

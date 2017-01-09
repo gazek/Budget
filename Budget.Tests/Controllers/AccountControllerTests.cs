@@ -132,12 +132,13 @@ namespace Budget.API.Tests.Controllers
             controller.User = user;
 
             // Act
-            IHttpActionResult result = controller.Get();
-            var castResult = (OkNegotiatedContentResult<List<AccountViewModel>>)result;
+            IHttpActionResult result = controller.GetAll();
+            var castResult = (OkNegotiatedContentResult<List<object>>)result;
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<AccountViewModel>>));
+            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<object>>));
             Assert.IsTrue(castResult.Content.Count > 0);
+            Assert.IsInstanceOfType(castResult.Content[0], typeof(AccountViewModel));
         }
 
         [TestMethod]
@@ -150,11 +151,11 @@ namespace Budget.API.Tests.Controllers
             controller.User = user;
 
             // Act
-            IHttpActionResult result = controller.Get();
-            var castResult = (OkNegotiatedContentResult<List<AccountViewModel>>)result;
+            IHttpActionResult result = controller.GetAll();
+            var castResult = (OkNegotiatedContentResult<List<object>>)result;
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<AccountViewModel>>));
+            Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<object>>));
             Assert.IsTrue(castResult.Content.Count == 0);
         }
         #endregion
