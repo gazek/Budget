@@ -6,12 +6,14 @@ namespace Budget.DAL
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplicationDbContext
     {
+        public DbSet<FinancialInstitutionModel> FinancialInstitutions { get; set; }
         public DbSet<AccountModel> Accounts { get; set; }
         public DbSet<BalanceModel> Balances { get; set; }
-        public DbSet<CategoryModel> Categories { get; set; }
-        public DbSet<FinancialInstitutionModel> FinancialInstitutions { get; set; }
-        public DbSet<PayeeModel> Payees { get; set; }
         public DbSet<TransactionModel> Transactions { get; set; }
+        public DbSet<TransactionDetailModel> TransactionDetailss { get; set; }
+        public DbSet<CategoryModel> Categories { get; set; }
+        public DbSet<SubCategoryModel> SubCategories { get; set; }
+        public DbSet<PayeeModel> Payees { get; set; }
 
         public ApplicationDbContext()
             : base("DefaultConnection", throwIfV1Schema: false)
