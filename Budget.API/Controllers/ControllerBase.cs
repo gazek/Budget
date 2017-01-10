@@ -189,7 +189,66 @@ namespace Budget.API.Controllers
         #endregion
 
         #region Create
+        public virtual IHttpActionResult Create<Tb, Tv, TPrincipal>(Tb model, TPrincipal principal, Func<int, string> locationFunc = null)
+            where Tb : class
+            where TPrincipal : class
+        {
+            return Create<Tb, object, TPrincipal>(model, 0, principal, locationFunc);
+        }
 
+        public virtual IHttpActionResult Create<Tb, TAuth>(Tb model, int authId, Func<int, string> locationFunc = null)
+            where Tb : class
+            where TAuth : class
+        {
+            return Create<Tb, TAuth, TAuth> (model, authId, null, locationFunc);
+        }
+
+        private IHttpActionResult Create<Tb, TAuth, TPrincipal>(Tb model, int authId, TPrincipal principal, Func<int, string> locationFunc = null)
+            where Tb : class
+            where TAuth : class
+            where TPrincipal : class
+        {
+            // look for principal record
+            // check if record exists
+            // verify user is authorized create dependent entity
+            if (authId > 0)
+            {
+                GetRecordAndIsAuthorized<TAuth>(authId);
+                principal = _record;
+            }
+
+            // verify model is valid
+            VerifyModel();
+
+            // create entity
+            T newEntity = CreateEntity<Tb, TPrincipal>(model, principal);
+
+            // add to context
+            T newRecord = AddEntityToContext(newEntity);
+
+            // commit changes
+            CommitChanges();
+
+            // return result
+            if (_requestIsOk)
+            {
+                // convert new record to view model
+                var result = ModelMapper.EntityToView<T>(newRecord);
+
+                // set location
+                string location = "";
+                if (locationFunc != null)
+                {
+                    location = locationFunc(result.Id);
+                }
+                // return result
+                return Created(location, result);
+            }
+            else
+            {
+                return _errorResponse;
+            }
+        }
         #endregion
 
         #region Delete
@@ -274,6 +333,29 @@ namespace Budget.API.Controllers
                     existingRecord.GetType().GetProperty(key).SetValue(existingRecord, update.GetType().GetProperty(key).GetValue(update));
                 }
             }
+        }
+
+        protected T CreateEntity<Tb>(Tb model)
+        {
+            return ModelMapper.BindingToEntity<Tb>(model);
+        }
+
+        protected T CreateEntity<Tb, TPrincipal>(Tb model, TPrincipal principal)
+        {
+            if (principal == null)
+            {
+                return ModelMapper.BindingToEntity<Tb>(model);
+            }
+            else
+            {
+                return ModelMapper.BindingToEntity<Tb, TPrincipal>(model, principal);
+            }
+        }
+
+        protected T AddEntityToContext(T entity)
+        {
+            DbSet<T> dbset = GetDbSet<T>();
+            return dbset.Add(entity);
         }
 
         private DbSet<TEntity> GetDbSet<TEntity>() where TEntity : class
@@ -427,11 +509,11 @@ namespace Budget.API.Controllers
 
         private void SetErrorResponse(IHttpActionResult response)
         {
+            // set in error flag
+            _requestIsOk = false;
+            // set error response, if not already set
             if (_errorResponse == null)
             {
-                // set in error flag
-                _requestIsOk = false;
-                // set error response
                 _errorResponse = response;
             }
         }
