@@ -60,6 +60,23 @@ namespace Budget.API.Services
             };
         }
 
+        public static AccountModel BindingToEntity(AccountBindingModel model, FinancialInstitutionModel fiModel)
+        {
+            return new AccountModel
+            {
+                Id = model.Id,
+                UserId = fiModel.UserId,
+                FinancialInstitutionId = fiModel.Id,
+                RoutingNumber = model.RoutingNumber,
+                Number = model.Number,
+                Name = model.Name,
+                Type = model.Type,
+                Description = model.Description ?? model.Name,
+                Transactions = new List<TransactionModel>(),
+                BalanceHistory = new List<BalanceModel>()
+            };
+        }
+
         public static AccountViewModel EntityToView(AccountModel model)
         {
             return new AccountViewModel
@@ -491,6 +508,34 @@ namespace Budget.API.Services
                 if (model.GetType() == typeof(T))
                 {
                     return EntityToView(Convert.ChangeType(model, typeof(T)));
+                }
+            }
+
+            // if unknown type
+            return null;
+        }
+
+        public static dynamic BindingToEntity<T>(dynamic model)
+        {
+            foreach (Type t in _types)
+            {
+                if (model.GetType() == typeof(T))
+                {
+                    return BindingToEntity(Convert.ChangeType(model, typeof(T)));
+                }
+            }
+
+            // if unknown type
+            return null;
+        }
+
+        public static dynamic BindingToEntity<T, Tp>(dynamic model, dynamic principal)
+        {
+            foreach (Type t in _types)
+            {
+                if (model.GetType() == typeof(T))
+                {
+                    return BindingToEntity(Convert.ChangeType(model, typeof(T)), (Tp)principal);
                 }
             }
 
