@@ -14,6 +14,7 @@ using System.Web.Http.Routing;
 using Budget.API.Tests.Fakes;
 using Moq;
 using Budget.API.Tests.FakesAndMocks;
+using Microsoft.AspNet.Identity;
 
 namespace Budget.API.Tests.Controllers
 {
@@ -25,15 +26,18 @@ namespace Budget.API.Tests.Controllers
         public void AccountCreateWithValidModel()
         {
             // Arrange
-            var contextMock = GetContextMock();
+            var user = UserBuilder.CreateUser();
+            var contextMock = GetContextMock(user);
             AccountController controller = new AccountController(contextMock.Object);
             var urlHelperMock = new Mock<UrlHelper>();
             urlHelperMock.Setup(x => x.Link(It.IsAny<string>(), It.IsAny<Object>()))
                 .Returns("anyvalue");
             controller.Url = urlHelperMock.Object;
+            controller.User = user;
+            AccountBindingModel model = (GetValidBindingModel());
 
             // Act
-            IHttpActionResult result = controller.Create(GetValidBindingModel());
+            IHttpActionResult result = controller.Create(model.FinancialInstitutionId, model);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(CreatedNegotiatedContentResult<AccountViewModel>));
@@ -46,9 +50,10 @@ namespace Budget.API.Tests.Controllers
             var contextMock = GetContextMock();
             AccountController controller = new AccountController(contextMock.Object);
             controller.ModelState.AddModelError("test", "TEST");
+            AccountBindingModel model = (GetValidBindingModel());
 
             // Act
-            IHttpActionResult result = controller.Create(GetValidBindingModel());
+            IHttpActionResult result = controller.Create(model.FinancialInstitutionId, model);
 
             // Assert
             Assert.IsNotInstanceOfType(result, typeof(OkNegotiatedContentResult<AccountViewModel>));
@@ -58,14 +63,17 @@ namespace Budget.API.Tests.Controllers
         public void AccountCreateWithDuplicateModel()
         {
             // Arrange
-            var contextMock = GetContextMock();
+            var user = UserBuilder.CreateUser();
+            var contextMock = GetContextMock(user);
             var inner2 = new SqlExceptionBuilder().WithErrorNumber(2601).Build();
             var inner1 = new Exception("", inner2);
             contextMock.Setup(x => x.SaveChanges()).Throws(new DbUpdateException("", inner1));
             AccountController controller = new AccountController(contextMock.Object);
+            controller.User = user;
+            AccountBindingModel model = (GetValidBindingModel());
 
             // Act
-            IHttpActionResult result = controller.Create(GetValidBindingModel());
+            IHttpActionResult result = controller.Create(model.FinancialInstitutionId, model);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestErrorMessageResult));
@@ -278,8 +286,28 @@ namespace Budget.API.Tests.Controllers
                 entityWithId1, entityWithId2, entityWithId3
             };
 
+            var fiData = new List<FinancialInstitutionModel>()
+            {
+                new FinancialInstitutionModel()
+                {
+                    Id = 1,
+                    UserId = user.Identity.GetUserId()
+                },
+                new FinancialInstitutionModel()
+                {
+                    Id = 2,
+                    UserId = "id2"
+                },
+                new FinancialInstitutionModel()
+                {
+                    Id = 3,
+                    UserId = "id3"
+                }
+            };
+
             // mock context
             var contextMockBuilder = new MockDbContext()
+                .WithData(fiData)
                 .WithData(data)
                 .SetupAdd(entityWithId1, entityWithId1)
                 .SetupFind(1, entityWithId1)
