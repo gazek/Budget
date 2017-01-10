@@ -12,6 +12,7 @@ using Microsoft.AspNet.Identity;
 using System.Data.Entity.Infrastructure;
 using System;
 using Budget.API.Services.OFXClient;
+using System.Security.Principal;
 
 namespace Budget.API.Controllers
 {
@@ -28,24 +29,8 @@ namespace Budget.API.Controllers
         [Authorize]
         public IHttpActionResult Create(FinancialInstitutionCreateBindingModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var entity = ModelMapper.BindingToEntity(model, User);
-
-            var record = _dbContext.FinancialInstitutions.Add(entity);
-            try
-            {
-                var result = _dbContext.SaveChanges();
-            }
-            catch (DbUpdateException ex)
-            {
-                return GetErrorResult(ex);
-            }
-
-            return Created<FinancialInstitutionViewModel>(Url.Link("GetFiById", new { id = record.Id }), ModelMapper.EntityToView(record));
+            Func<int, string> location = x => Url.Link("GetFiById", new { id = x });
+            return base.Create<FinancialInstitutionCreateBindingModel, FinancialInstitutionViewModel, IPrincipal>(model, User);
         }
 
         [Route("{id}", Name = "GetFiById")]

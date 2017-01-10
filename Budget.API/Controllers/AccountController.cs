@@ -2,13 +2,16 @@
 using Budget.API.Services;
 using Budget.DAL;
 using Budget.DAL.Models;
+using System;
+using System.Collections.Generic;
 using System.Data.Entity.Infrastructure;
+using System.Linq.Expressions;
 using System.Web.Http;
 
 namespace Budget.API.Controllers
 {
     [Authorize]
-    [RoutePrefix("api/Account")]
+    [RoutePrefix("api")]
     public class AccountController : ControllerBase<AccountModel>
     {
         public AccountController(IApplicationDbContext dbContext) : base(dbContext)
@@ -16,35 +19,16 @@ namespace Budget.API.Controllers
         }
 
         // create account
-        [Route("", Name = "CreateAccount")]
+        [Route("FinancialInstitution/{fiId}/Account", Name = "CreateAccount")]
         [HttpPost]
         [Authorize]
-        public IHttpActionResult Create(AccountBindingModel model)
+        public IHttpActionResult Create(int fiId, AccountBindingModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            AccountModel entity = ModelMapper.BindingToEntity(model, User);
-
-            AccountModel record = _dbContext.Accounts.Add(entity);
-            try
-            {
-                int result = _dbContext.SaveChanges();
-            }
-            catch (DbUpdateException ex)
-            {
-                return GetErrorResult(ex);
-            }
-
-            AccountViewModel viewmodel = ModelMapper.EntityToView(record);
-
-            return Created(Url.Link("GetAccountById", new { id = record.Id }), viewmodel);
+            return base.Create<AccountBindingModel, FinancialInstitutionModel>(model, fiId);
         }
 
         // get account by ID
-        [Route("{id}", Name = "GetAccountById")]
+        [Route("Account/{id}", Name = "GetAccountById")]
         [HttpGet]
         [Authorize]
         public override IHttpActionResult Get(int id)
@@ -53,7 +37,7 @@ namespace Budget.API.Controllers
         }
 
         // get all accounts owned by user
-        [Route("", Name = "GetAllAccounts")]
+        [Route("Account/", Name = "GetAllAccounts")]
         [HttpGet]
         [Authorize]
         public override IHttpActionResult GetAll()
@@ -62,7 +46,7 @@ namespace Budget.API.Controllers
         }
 
         // update account properties when owned by user
-        [Route("{id}", Name = "UpdateAccount")]
+        [Route("Account/{id}", Name = "UpdateAccount")]
         [HttpPut]
         [Authorize]
         public override IHttpActionResult Update<AccountBindingModel>(int id, AccountBindingModel model)
