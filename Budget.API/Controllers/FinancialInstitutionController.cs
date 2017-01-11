@@ -13,6 +13,7 @@ using System.Data.Entity.Infrastructure;
 using System;
 using Budget.API.Services.OFXClient;
 using System.Security.Principal;
+using System.Linq.Expressions;
 
 namespace Budget.API.Controllers
 {
@@ -46,7 +47,10 @@ namespace Budget.API.Controllers
         [Authorize]
         public override IHttpActionResult GetAll()
         {
-            return base.GetAll<FinancialInstitutionModel>();
+            string userId = User.Identity.GetUserId();
+            var filter = new List<Expression<Func<FinancialInstitutionModel, bool>>>();
+            filter.Add(fi => fi.UserId == userId);
+            return base.GetAll<FinancialInstitutionModel, string>(filter, null, fi => fi.Name);
         }
         
         [Route("{id}", Name = "UpdateFI")]
