@@ -26,22 +26,6 @@ namespace Budget.API.Services
      */
     public static class ModelMapper
     {
-        #region Types List
-        private static List<Type> _types = new List<Type>()
-            {
-                typeof(AccountModel),
-                typeof(BalanceModel),
-                typeof(CategoryModel),
-                typeof(FinancialInstitutionModel),
-                typeof(ImportNameToPayeeModel),
-                typeof(PayeeDefaultDetailsModel),
-                typeof(PayeeModel),
-                typeof(SubCategoryModel),
-                typeof(TransactionDetailModel),
-                typeof(TransactionModel)
-            };
-        #endregion
-
         #region Account
         public static AccountModel BindingToEntity(AccountBindingModel model, IPrincipal user)
         {
@@ -204,8 +188,7 @@ namespace Budget.API.Services
             return new TransactionModel
             {
                 Status = model.Status,
-                CheckNum = model.CheckNum,
-                Details = new List<TransactionDetailModel>(model.Details.Select(d => BindingToEntity(d)))
+                CheckNum = model.CheckNum
             };
         }
 
@@ -263,14 +246,17 @@ namespace Budget.API.Services
             public TopFields(TransactionModel trans)
             {
                 details = trans.Details;
-                // payee
-                GetTopPayee();
-                // category
-                GetTopCategory();
-                // subcategory
-                GetTopSubCategory();
-                // memo
-                GetTopMemo();
+                if (details != null)
+                {
+                    // payee
+                    GetTopPayee();
+                    // category
+                    GetTopCategory();
+                    // subcategory
+                    GetTopSubCategory();
+                    // memo
+                    GetTopMemo();
+                }
             }
 
             private void GetTopPayee()
@@ -387,22 +373,11 @@ namespace Budget.API.Services
         #region Category
         public static CategoryModel BindingToEntity(CategoryBindingModel model, IPrincipal user)
         {
-            List<SubCategoryModel> subcats;
-            if (model.SubCategories == null)
-            {
-                subcats = new List<SubCategoryModel>();
-            }
-            else
-            {
-                subcats = new List<SubCategoryModel>(model.SubCategories.Select(s => BindingToEntity(s)));
-            }
-
             return new CategoryModel()
             {
                 Id = model.Id,
                 UserId = user.Identity.GetUserId(),
                 Name = model.Name,
-                SubCategories = subcats
             };
         }
 
@@ -486,61 +461,26 @@ namespace Budget.API.Services
         }
         #endregion
 
-        #region Generic
-        public static string GetUserId<T>(dynamic model, IApplicationDbContext dbContext)
+        #region Generics
+        // 
+        public static string GetUserId(dynamic model, IApplicationDbContext dbContext)
         {
-            foreach (Type t in _types)
-            {
-                if (model.GetType() == t)
-                {
-                    return GetUserId(Convert.ChangeType(model, t), dbContext);
-                }
-            }
-
-            // if unknown type
-            return "";
+            return GetUserId(model, dbContext);
         }
 
-        public static dynamic EntityToView<T>(dynamic model)
+        public static dynamic EntityToView(dynamic model)
         {
-            foreach (Type t in _types)
-            {
-                if (model.GetType() == typeof(T))
-                {
-                    return EntityToView(Convert.ChangeType(model, typeof(T)));
-                }
-            }
-
-            // if unknown type
-            return null;
+            return EntityToView(model);
         }
 
-        public static dynamic BindingToEntity<T>(dynamic model)
+        public static dynamic BindingToEntity(dynamic model)
         {
-            foreach (Type t in _types)
-            {
-                if (model.GetType() == typeof(T))
-                {
-                    return BindingToEntity(Convert.ChangeType(model, typeof(T)));
-                }
-            }
-
-            // if unknown type
-            return null;
+            return BindingToEntity(model);
         }
 
-        public static dynamic BindingToEntity<T, Tp>(dynamic model, dynamic principal)
+        public static dynamic BindingToEntity(dynamic model, dynamic principal)
         {
-            foreach (Type t in _types)
-            {
-                if (model.GetType() == typeof(T))
-                {
-                    return BindingToEntity(Convert.ChangeType(model, typeof(T)), (Tp)principal);
-                }
-            }
-
-            // if unknown type
-            return null;
+            return BindingToEntity(model, principal);
         }
         #endregion
     }
