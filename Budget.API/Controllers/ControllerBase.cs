@@ -4,7 +4,6 @@ using Budget.DAL;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
@@ -12,6 +11,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
+using System.Reflection;
 using System.Web;
 using System.Web.Http;
 using System.Web.Http.Results;
@@ -59,9 +59,10 @@ namespace Budget.API.Controllers
 
         public virtual IHttpActionResult Get<Tr>(int id) where Tr : class
         {
-            Expression<Func<Tr, bool>> idFunc = x => (int)x.GetType().GetProperty("Id").GetValue(x) == id;
-            List<Expression<Func<Tr, bool>>> where = new List<Expression<Func<Tr, bool>>>() { idFunc };
-            var response =  Get<Tr>(where);
+            List<Expression<Func<Tr, bool>>> filter = new List<Expression<Func<Tr, bool>>>();
+            filter.Add(BuildFilterExpression<Tr, int>(typeof(Tr).GetProperty("Id"), id));
+
+            var response =  Get<Tr>(filter);
             if (response.GetType() == typeof(OkNegotiatedContentResult<ICollection<object>>))
             {
                 OkNegotiatedContentResult<ICollection<object>> responseTyped = response as OkNegotiatedContentResult<ICollection<object>>;
@@ -109,11 +110,9 @@ namespace Budget.API.Controllers
         public virtual IHttpActionResult GetAll<TEntity>() where TEntity : class
         {
             string userId = User.Identity.GetUserId();
-            List<Expression<Func<TEntity, bool>>> funcs = new List<Expression<Func<TEntity, bool>>>()
-            {
-                x => (string)x.GetType().GetProperty("UserId").GetValue(x) == userId
-            };
-            return GetAll<TEntity>(funcs);
+            List<Expression<Func<TEntity, bool>>> filter = new List<Expression<Func<TEntity, bool>>>();
+            filter.Add(BuildFilterExpression<TEntity, string>(typeof(TEntity).GetProperty("UserId"), userId));
+            return GetAll<TEntity>(filter);
         }
 
         public virtual IHttpActionResult GetAll<TEntity>(ICollection<Expression<Func<TEntity, bool>>> where,
@@ -265,9 +264,9 @@ namespace Budget.API.Controllers
 
         protected void GetRecord<Tr>(int id) where Tr : class
         {
-            Expression<Func<Tr, bool>> idFunc = x => (int)x.GetType().GetProperty("Id").GetValue(x) == id;
-            List<Expression<Func<Tr, bool>>> where = new List<Expression<Func<Tr, bool>>>() { idFunc };
-            GetRecord<Tr>(where);
+            List<Expression<Func<Tr, bool>>> filter = new List<Expression<Func<Tr, bool>>>();
+            filter.Add(BuildFilterExpression<Tr, int>(typeof(Tr).GetProperty("Id"), id));
+            GetRecord<Tr>(filter);
         }
 
         protected void GetRecord<Tr>(ICollection<Expression<Func<Tr, bool>>> where, ICollection<Expression<Func<Tr, object>>> include = null) where Tr : class
@@ -305,9 +304,9 @@ namespace Budget.API.Controllers
 
         protected void GetRecordAndIsAuthorized<Tr>(int id) where Tr : class
         {
-            Expression<Func<Tr, bool>> idFunc = x => (int)x.GetType().GetProperty("Id").GetValue(x) == id;
-            List<Expression<Func<Tr, bool>>> where = new List<Expression<Func<Tr, bool>>>() { idFunc };
-            GetRecordAndIsAuthorized<Tr>(where);
+            List<Expression<Func<Tr, bool>>> filter = new List<Expression<Func<Tr, bool>>>();
+            filter.Add(BuildFilterExpression<Tr, int>(typeof(Tr).GetProperty("Id"), id));
+            GetRecordAndIsAuthorized<Tr>(filter);
         }
 
         protected void GetRecordAndIsAuthorized<Tr>(ICollection<Expression<Func<Tr, bool>>> where, ICollection<Expression<Func<Tr, object>>> include = null) where Tr : class
@@ -327,20 +326,16 @@ namespace Budget.API.Controllers
 
             foreach (string key in update.GetType().GetProperties().Select(x => x.Name))
             {
-                object theType = existingRecord.GetType().GetProperty(key).GetValue(existingRecord);
-                if (!(theType is ICollection))
-                {
-                    existingRecord.GetType().GetProperty(key).SetValue(existingRecord, update.GetType().GetProperty(key).GetValue(update));
-                }
+                existingRecord.GetType().GetProperty(key).SetValue(existingRecord, update.GetType().GetProperty(key).GetValue(update));
             }
         }
 
-        protected T CreateEntity<Tb>(Tb model)
+        protected T CreateEntity<Tb>(Tb model) where Tb : class
         {
             return ModelMapper.BindingToEntity<Tb>(model);
         }
 
-        protected T CreateEntity<Tb, TPrincipal>(Tb model, TPrincipal principal)
+        protected T CreateEntity<Tb, TPrincipal>(Tb model, TPrincipal principal) where Tb : class
         {
             if (principal == null)
             {
@@ -516,6 +511,14 @@ namespace Budget.API.Controllers
             {
                 _errorResponse = response;
             }
+        }
+
+        private Expression<Func<TItem, bool>> BuildFilterExpression<TItem, TValue>(PropertyInfo property, TValue value)
+        {
+            var param = Expression.Parameter(typeof(TItem));
+            var body = Expression.Equal(Expression.Property(param, property),
+                Expression.Constant(value));
+            return Expression.Lambda<Func<TItem, bool>>(body, param);
         }
     }
 }
