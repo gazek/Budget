@@ -40,9 +40,9 @@ namespace Budget.API.Controllers
         [Authorize]
         [HttpPut]
         [Route("Transaction/{id}", Name = "UpdateTransaction")]
-        public override IHttpActionResult Update<TransactionBindingModel>(int id, TransactionBindingModel model)
+        public IHttpActionResult Update(int id, TransactionBindingModel model)
         {
-            return base.Update(id, model);
+            return base.Update<TransactionBindingModel>(id, model);
         }
 
         // Get - query transactions in DB by date range api/account/{id}/Transactions/Date/{end}/{begin}
@@ -71,6 +71,10 @@ namespace Budget.API.Controllers
             filters.Add(t => t.Date >= beginDate);
             filters.Add(t => t.Date <= endDate);
 
+            // get related entities
+            var include = new List<string>();
+            include.Add("Details");
+
             // verify existence of account
             // and that user is authorized to access it
             GetRecordAndIsAuthorized<AccountModel>(id);
@@ -80,7 +84,7 @@ namespace Budget.API.Controllers
                 return _errorResponse;
             }
 
-            return GetAll<TransactionModel>(filters, null, t => t.Date);
+            return GetAll<TransactionModel, DateTime>(filters, include, t => t.Date);
         }
 
         // Post - OFX request to pull latest transactions api/account/{id}/Transactions/Date/{end}/{begin}
