@@ -92,7 +92,7 @@ namespace Budget.API.Controllers
             // return response
             if (_requestIsOk)
             {
-                return Ok(ModelMapper.EntityToView<T>(_record));
+                return Ok(ModelMapper.EntityToView(_record));
             }
             else
             {
@@ -112,12 +112,12 @@ namespace Budget.API.Controllers
             string userId = User.Identity.GetUserId();
             List<Expression<Func<TEntity, bool>>> filter = new List<Expression<Func<TEntity, bool>>>();
             filter.Add(BuildFilterExpression<TEntity, string>(typeof(TEntity).GetProperty("UserId"), userId));
-            return GetAll<TEntity>(filter);
+            return GetAll<TEntity, object>(filter);
         }
 
-        public virtual IHttpActionResult GetAll<TEntity>(ICollection<Expression<Func<TEntity, bool>>> where,
+        public virtual IHttpActionResult GetAll<TEntity, TSort>(ICollection<Expression<Func<TEntity, bool>>> where,
             ICollection<string> include = null,
-            Expression<Func<TEntity, object>> orderby = null,
+            Expression<Func<TEntity, TSort>> orderby = null,
             bool orderByOrderByDescending = false) where TEntity : class
         {
             // get dbset
@@ -150,9 +150,9 @@ namespace Budget.API.Controllers
                 }
             }
             // convert to list
-            List<TEntity> entities = queriable.ToList();
+            var entities = queriable.ToList();
             // map to view model
-            var result = entities.Select(x => ModelMapper.EntityToView<TEntity>(x)).ToList();
+            var result = entities.Select(x => ModelMapper.EntityToView(x)).ToList();
             // return result
             return Ok(result);
         }
@@ -232,7 +232,7 @@ namespace Budget.API.Controllers
             if (_requestIsOk)
             {
                 // convert new record to view model
-                var result = ModelMapper.EntityToView<T>(newRecord);
+                var result = ModelMapper.EntityToView(newRecord);
 
                 // set location
                 string location = "";
@@ -332,18 +332,18 @@ namespace Budget.API.Controllers
 
         protected T CreateEntity<Tb>(Tb model) where Tb : class
         {
-            return ModelMapper.BindingToEntity<Tb>(model);
+            return ModelMapper.BindingToEntity(model);
         }
 
         protected T CreateEntity<Tb, TPrincipal>(Tb model, TPrincipal principal) where Tb : class
         {
             if (principal == null)
             {
-                return ModelMapper.BindingToEntity<Tb>(model);
+                return ModelMapper.BindingToEntity(model);
             }
             else
             {
-                return ModelMapper.BindingToEntity<Tb, TPrincipal>(model, principal);
+                return ModelMapper.BindingToEntity(model, principal);
             }
         }
 
@@ -395,7 +395,7 @@ namespace Budget.API.Controllers
                 return;
             }
             
-            string userId = ModelMapper.GetUserId<T>(record, _dbContext);
+            string userId = ModelMapper.GetUserId(record, _dbContext);
             if (userId == User.Identity.GetUserId())
             {
                 _isAuthorized = true;
