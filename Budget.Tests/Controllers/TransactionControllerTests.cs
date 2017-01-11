@@ -93,8 +93,7 @@ namespace Budget.API.Tests.Controllers
             var updatedTrans = new TransactionBindingModel()
             {
                 CheckNum = 1,
-                Status = TransactionStatus.Rejected,
-                Details = new List<TransactionDetailBindingModel>() { detail }
+                Status = TransactionStatus.Rejected
             };
             controller.User = user;
 
