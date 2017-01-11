@@ -54,7 +54,7 @@ namespace Budget.API.Controllers
                 return _errorResponse;
             }
 
-            return GetAll<BalanceModel>(filters, null, b => b.AsOfDate);
+            return GetAll<BalanceModel, DateTime>(filters, null, b => b.AsOfDate);
         }
     }
 }
