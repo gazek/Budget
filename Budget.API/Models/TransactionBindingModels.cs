@@ -11,8 +11,5 @@ namespace Budget.API.Services
         public TransactionStatus Status { get; set; }
 
         public int CheckNum { get; set; }
-
-        [Required]
-        public ICollection<TransactionDetailBindingModel> Details { get; set; }
     }
 }

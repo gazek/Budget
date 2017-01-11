@@ -14,7 +14,5 @@ namespace Budget.API.Models
         [Required]
         [StringLength(100)]
         public string Name { get; set; }
-
-        public ICollection<SubCategoryBindingModel> SubCategories { get; set; }
     }
 }
