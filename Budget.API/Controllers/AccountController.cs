@@ -24,6 +24,7 @@ namespace Budget.API.Controllers
         [Authorize]
         public IHttpActionResult Create(int fiId, AccountBindingModel model)
         {
+            Func<int, string> location = x => Url.Link("GetAccountById", new { id = x });
             return base.Create<AccountBindingModel, FinancialInstitutionModel>(model, fiId);
         }
 
