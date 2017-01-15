@@ -67,7 +67,6 @@
     <Compile Include="Migrations\201701152032230_initial.Designer.cs">
       <DependentUpon>201701152032230_initial.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountModel.cs" />
     <Compile Include="Models\BalanceModel.cs" />
     <Compile Include="Models\PayeeDefaultDetailsModel.cs" />
