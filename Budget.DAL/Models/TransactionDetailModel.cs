@@ -8,19 +8,22 @@ namespace Budget.DAL.Models
     public class TransactionDetailModel
     {
         [Key]
-        [Column(Order = 1)]
+        public int Id { get; set; }
+
+        [Required]
+        [Index("IX_TransDetailTransPayeeCatSubUnique", 1, IsUnique = true)]
         public int TransactionId { get; set; }
 
-        [Key]
-        [Column(Order = 2)]
+        [Required]
+        [Index("IX_TransDetailTransPayeeCatSubUnique", 2, IsUnique = true)]
         public int PayeeId { get; set; }
 
-        [Key]
-        [Column(Order = 3)]
+        [Required]
+        [Index("IX_TransDetailTransPayeeCatSubUnique", 3, IsUnique = true)]
         public int CategoryId { get; set; }
 
-        [Key]
-        [Column(Order = 4)]
+        [Required]
+        [Index("IX_TransDetailTransPayeeCatSubUnique", 4, IsUnique = true)]
         public int SubCategoryId { get; set; }
 
         [Required]
