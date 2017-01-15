@@ -68,6 +68,7 @@
       <DependentUpon>201701152215119_initial.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Migrations\Seed.cs" />
     <Compile Include="Models\AccountModel.cs" />
     <Compile Include="Models\BalanceModel.cs" />
     <Compile Include="Models\PayeeDefaultDetailsModel.cs" />
