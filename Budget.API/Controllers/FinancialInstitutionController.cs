@@ -31,7 +31,7 @@ namespace Budget.API.Controllers
         public IHttpActionResult Create(FinancialInstitutionCreateBindingModel model)
         {
             Func<int, string> location = x => Url.Link("GetFiById", new { id = x });
-            return base.Create<FinancialInstitutionCreateBindingModel, FinancialInstitutionViewModel, IPrincipal>(model, User);
+            return base.Create<FinancialInstitutionCreateBindingModel, IPrincipal>(model, User);
         }
 
         [Route("{id}", Name = "GetFiById")]
