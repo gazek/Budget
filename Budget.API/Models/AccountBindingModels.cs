@@ -5,9 +5,6 @@ namespace Budget.API.Models
 {
     public class AccountBindingModel
     {
-        [Display(Name = "Account ID")]
-        public int Id { get; set; }
-
         [Required]
         [Display(Name = "Financial Institution ID")]
         public int FinancialInstitutionId { get; set; }

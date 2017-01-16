@@ -148,7 +148,6 @@ namespace Budget.API.Tests.Controllers
         {
             return new AccountBindingModel()
             {
-                Id = 0,
                 FinancialInstitutionId = 1,
                 Number = "A123",
                 Name = "The account name",

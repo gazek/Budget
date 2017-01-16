@@ -61,7 +61,6 @@ namespace Budget.Tests.Services
             // Arrange
             var model = new FinancialInstitutionCreateBindingModel
             {
-                Id = 1234,
                 Name = "Some FI Name",
                 OfxFid = 5678,
                 OfxUrl = "Https://ofx.bank.com",
@@ -77,7 +76,6 @@ namespace Budget.Tests.Services
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(FinancialInstitutionModel));
-            Assert.AreEqual(model.Id, result.Id);
             Assert.AreEqual(model.Name, result.Name);
             Assert.AreEqual(model.OfxFid, result.OfxFid);
             Assert.AreEqual(model.OfxUrl, result.OfxUrl);

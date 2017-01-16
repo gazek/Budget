@@ -181,7 +181,7 @@ namespace Budget.API.Tests.Controllers
             controller.User = user;
 
             // Act
-            var result = controller.Update(bindingModel.Id, bindingModel);
+            var result = controller.Update(1, bindingModel);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(OkResult));
@@ -215,7 +215,7 @@ namespace Budget.API.Tests.Controllers
             contextMock.Setup(x => x.SaveChanges()).Throws(new DbUpdateException("some message"));
 
             // Act
-            var result = controller.Update(bindingModel.Id, bindingModel);
+            var result = controller.Update(1, bindingModel);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestErrorMessageResult));
@@ -233,7 +233,7 @@ namespace Budget.API.Tests.Controllers
             controller.User = user;
 
             // Act
-            var result = controller.Update(bindingModel.Id, bindingModel);
+            var result = controller.Update(1, bindingModel);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(UnauthorizedResult));
@@ -244,7 +244,6 @@ namespace Budget.API.Tests.Controllers
         {
             return new AccountBindingModel()
             {
-                Id = 0,
                 FinancialInstitutionId = 1,
                 Number = "A123",
                 Name = "The account name",
@@ -257,7 +256,6 @@ namespace Budget.API.Tests.Controllers
         {
             return new AccountBindingModel()
             {
-                Id = 1,
                 FinancialInstitutionId = 1,
                 Number = "A1234",
                 Name = "The new account name",

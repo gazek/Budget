@@ -7,9 +7,6 @@ namespace Budget.API.Models
 {
     public class FinancialInstitutionCreateBindingModel
     {
-        [Display(Name = "Financial Institution ID")]
-        public int Id { get; set; }
-
         [Required]
         [Display(Name = "Name of financial institution")]
         [StringLength(100)]

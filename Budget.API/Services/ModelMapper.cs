@@ -31,7 +31,6 @@ namespace Budget.API.Services
         {
             return new AccountModel
             {
-                Id = model.Id,
                 UserId = user.Identity.GetUserId(),
                 FinancialInstitutionId = model.FinancialInstitutionId,
                 RoutingNumber = model.RoutingNumber,
@@ -48,7 +47,6 @@ namespace Budget.API.Services
         {
             return new AccountModel
             {
-                Id = model.Id,
                 UserId = fiModel.UserId,
                 FinancialInstitutionId = fiModel.Id,
                 RoutingNumber = model.RoutingNumber,
@@ -150,7 +148,6 @@ namespace Budget.API.Services
             byte[] hash = AesService.EncryptStringToBytes(model.Password);
             return new FinancialInstitutionModel
             {
-                Id = model.Id,
                 Name = model.Name,
                 OfxFid = model.OfxFid,
                 OfxUrl = model.OfxUrl,
@@ -375,7 +372,6 @@ namespace Budget.API.Services
         {
             return new CategoryModel()
             {
-                Id = model.Id,
                 UserId = user.Identity.GetUserId(),
                 Name = model.Name,
             };
@@ -412,7 +408,6 @@ namespace Budget.API.Services
         {
             return new SubCategoryModel()
             {
-                Id = model.Id,
                 CategoryId = model.CategoryId,
                 Name = model.Name
             };
