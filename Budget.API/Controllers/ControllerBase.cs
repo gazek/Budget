@@ -188,7 +188,7 @@ namespace Budget.API.Controllers
         #endregion
 
         #region Create
-        public virtual IHttpActionResult Create<Tb, Tv, TPrincipal>(Tb model, TPrincipal principal, Func<int, string> locationFunc = null)
+        public virtual IHttpActionResult Create<Tb, TPrincipal>(Tb model, TPrincipal principal, Func<int, string> locationFunc = null)
             where Tb : class
             where TPrincipal : class
         {
@@ -251,7 +251,22 @@ namespace Budget.API.Controllers
         #endregion
 
         #region Delete
+        public virtual IHttpActionResult BaseDelete(int id, ICollection<Expression> authExpressions)
+        {
+            // look for record
+            // check record exists
+            // verify user is authorized to access record
+            GetRecordAndIsAuthorized(id);
 
+            // delete record if not referenced in other tables
+            DeleteEntityFromContext(id);
+
+            // commit changes and check result
+            CommitChanges();
+
+            // return response
+            return _requestIsOk ? Ok() : _errorResponse;
+        }
         #endregion
 
         #endregion
@@ -353,6 +368,13 @@ namespace Budget.API.Controllers
             return dbset.Add(entity);
         }
 
+        protected void DeleteEntityFromContext(int id)
+        {
+            DbSet<T> dbset = GetDbSet<T>();
+            var entity = dbset.Find(id);
+            dbset.Remove(entity);
+        }
+
         private DbSet<TEntity> GetDbSet<TEntity>() where TEntity : class
         {
             var properties = _dbContext.GetType().GetProperties();
@@ -434,7 +456,8 @@ namespace Budget.API.Controllers
         {
             var errors = new Dictionary<int, string>
             {
-                { 2601, "Operation failed because record already exists" }
+                { 2601, "Operation failed because the record already exists" },
+                { 547, "Delete operation failed because the record is referenced as a foreign key" }
             };
 
             if (ex.InnerException == null)
@@ -502,7 +525,7 @@ namespace Budget.API.Controllers
             return null;
         }
 
-        private void SetErrorResponse(IHttpActionResult response)
+        protected void SetErrorResponse(IHttpActionResult response)
         {
             // set in error flag
             _requestIsOk = false;
