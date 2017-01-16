@@ -3,10 +3,13 @@ using Budget.API.Services;
 using Budget.DAL;
 using Budget.DAL.Models;
 using Microsoft.AspNet.Identity;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Security.Principal;
 using System.Web.Http;
 
 namespace Budget.API.Controllers
@@ -19,85 +22,45 @@ namespace Budget.API.Controllers
         {
         }
 
+        [Route("{id}", Name = "DeleteCategory")]
+        [HttpDelete]
+        [Authorize]
+        public IHttpActionResult Delete(int id)
+        {
+            // look for record
+            // check record exists
+            // verify user is authorized to access record
+            GetRecordAndIsAuthorized(id);
+
+            // make sure it is not uncategorized
+            if (_record.Name.ToLower().Contains("uncategorized"))
+            {
+                SetErrorResponse(BadRequest("Uncategorized category may not be modified or deleted"));
+            }
+
+            // delete record if not referenced in other tables
+            DeleteEntityFromContext(id);
+
+            // commit changes and check result
+            CommitChanges();
+
+            // return response
+            return _requestIsOk ? Ok() : _errorResponse;
+        }
+
         [Route("", Name = "CreateCategory")]
         [HttpPost]
         [Authorize]
         public IHttpActionResult Create(CategoryBindingModel model)
         {
-            // verify cat and subcat names do not contain 'uncategorized'
-            // verfiy cat and subcat ID are not used in transactions
-            //    if they are either return BadRequest of set transactions to uncat
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            CategoryModel entity = ModelMapper.BindingToEntity(model, User);
-
-            CategoryModel record = _dbContext.Categories.Add(entity);
-            try
-            {
-                int result = _dbContext.SaveChanges();
-            }
-            catch (DbUpdateException ex)
-            {
-                return GetErrorResult(ex);
-            }
-
-            CategoryViewModel viewmodel = ModelMapper.EntityToView(record);
-
-            return Created(Url.Link("GetCategoryById", new { id = record.Id }), viewmodel);
+            return Create<CategoryBindingModel, IPrincipal>(model, User);
         }
 
         [Route("{id}", Name = "UpdateCategory")]
         [HttpPut]
         public IHttpActionResult Update(int id, CategoryBindingModel model)
         {
-            // verify cat and subcat names do not contain 'uncategorized'
-            // check if any subcats are being deleted
-            //    if subcat deletion and deleted subcat is used in transaction
-            //    either give badrequest response to set transactions subcat to use uncat subcatId
-
-            // look for record
-            CategoryModel record = _dbContext.Categories.Where(c => c.Id == id).FirstOrDefault();
-
-            // check if record exists
-            if (record == null)
-            {
-                return NotFound();
-            }
-
-            // check if user owns record
-            if (record.UserId != User.Identity.GetUserId())
-            {
-                return Unauthorized();
-            }
-
-            // verify model is valid
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            // make updates
-            CategoryModel entity = ModelMapper.BindingToEntity(model, User);
-            record.Name = entity.Name;
-            // make a sub category controller to do CRUD and usage checks
-            //record.SubCategories = entity.SubCategories;
-
-            try
-            {
-                // commit changes
-                int result = _dbContext.SaveChanges();
-            }
-            catch (DbUpdateException ex)
-            {
-                return GetErrorResult(ex);
-            }
-
-            // return updated record
-            return Ok();
+            return Update<CategoryBindingModel>(id, model);
         }
 
         [Route("{id}", Name = "GetCategoryById")]
@@ -105,22 +68,7 @@ namespace Budget.API.Controllers
         [Authorize]
         public override IHttpActionResult Get(int id)
         {
-            CategoryModel entity = _dbContext.Categories
-                .Where(c => c.Id == id)
-                .Include(c => c.SubCategories)
-                .FirstOrDefault();
-
-            if (entity == null)
-            {
-                return NotFound();
-            }
-
-            if (entity.UserId != User.Identity.GetUserId())
-            {
-                return Unauthorized();
-            }
-
-            return Ok(ModelMapper.EntityToView(entity));
+            return base.Get(id);
         }
 
         // get all categories owned by user
@@ -129,15 +77,16 @@ namespace Budget.API.Controllers
         [Authorize]
         public override IHttpActionResult GetAll()
         {
+            // filters
+            List<Expression<Func<CategoryModel, bool>>> filters = new List<Expression<Func<CategoryModel, bool>>>();
             string userId = User.Identity.GetUserId();
-            List<CategoryModel> entities = _dbContext.Categories
-                .Where(x => x.UserId == userId)
-                .Include(c => c.SubCategories)
-                .ToList();
+            filters.Add(c => c.UserId == userId);
 
-            List<CategoryViewModel> result = entities.Select(x => ModelMapper.EntityToView(x)).ToList();
+            // get related entities
+            var include = new List<string>();
+            include.Add("SubCategories");
 
-            return Ok(result);
+            return GetAll<CategoryModel, string>(filters, include, c => c.Name);
         }
     }
 }
