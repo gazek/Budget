@@ -14,6 +14,8 @@ namespace Budget.DAL
         public DbSet<CategoryModel> Categories { get; set; }
         public DbSet<SubCategoryModel> SubCategories { get; set; }
         public DbSet<PayeeModel> Payees { get; set; }
+        public DbSet<ImportNameToPayeeModel> ImportNames { get; set; }
+        public DbSet<PayeeDefaultDetailsModel> DefaultDetails { get; set; }
 
         public ApplicationDbContext()
             : base("DefaultConnection", throwIfV1Schema: false)
@@ -56,7 +58,7 @@ namespace Budget.DAL
             
             modelBuilder.Entity<SubCategoryModel>()
                 .HasRequired(s => s.Category)
-                .WithMany()
+                .WithMany(c => c.SubCategories)
                 .HasForeignKey(s => s.CategoryId)
                 .WillCascadeOnDelete(false);
                 
