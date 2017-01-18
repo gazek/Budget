@@ -9,7 +9,7 @@ namespace Budget.API.Models
 
         [Required]
         [StringLength(100)]
-        [RegularExpression("^(?i:!.*uncategorized).*$", ErrorMessage = "Invalid SubCategory name: SubCategory name may not contain the string uncategorized")]
+        [RegularExpression("(?i)^(?!.*uncategorized).*$", ErrorMessage = "Invalid SubCategory name: SubCategory name may not contain the string uncategorized")]
         public string Name { get; set; }
     }
 }
