@@ -6,9 +6,6 @@ namespace Budget.DAL.Models
 {
     public class SubCategoryModel
     {
-        // TODO:
-        //   EF creates a CategoryModel_Id FK even though
-        //   there is a CategoryId FK already defined
         [Key]
         [Display(Name = "Subcategory ID")]
         public int Id { get; set; }
