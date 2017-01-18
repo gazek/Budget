@@ -176,13 +176,10 @@ namespace Budget.DAL.Migrations
                         Id = c.Int(nullable: false, identity: true),
                         CategoryId = c.Int(nullable: false),
                         Name = c.String(nullable: false, maxLength: 100),
-                        CategoryModel_Id = c.Int(),
                     })
                 .PrimaryKey(t => t.Id)
                 .ForeignKey("dbo.CategoryModels", t => t.CategoryId)
-                .ForeignKey("dbo.CategoryModels", t => t.CategoryModel_Id)
-                .Index(t => new { t.CategoryId, t.Name }, unique: true, name: "IX_CategoryIdName")
-                .Index(t => t.CategoryModel_Id);
+                .Index(t => new { t.CategoryId, t.Name }, unique: true, name: "IX_CategoryIdName");
             
             CreateTable(
                 "dbo.PayeeModels",
@@ -251,7 +248,6 @@ namespace Budget.DAL.Migrations
             DropForeignKey("dbo.PayeeDefaultDetailsModels", "CategoryId", "dbo.CategoryModels");
             DropForeignKey("dbo.TransactionDetailModels", "CategoryId", "dbo.CategoryModels");
             DropForeignKey("dbo.CategoryModels", "UserId", "dbo.AspNetUsers");
-            DropForeignKey("dbo.SubCategoryModels", "CategoryModel_Id", "dbo.CategoryModels");
             DropForeignKey("dbo.SubCategoryModels", "CategoryId", "dbo.CategoryModels");
             DropForeignKey("dbo.TransactionModels", "AccountId", "dbo.AccountModels");
             DropForeignKey("dbo.AccountModels", "FinancialInstitutionId", "dbo.FinancialInstitutionModels");
@@ -264,7 +260,6 @@ namespace Budget.DAL.Migrations
             DropIndex("dbo.ImportNameToPayeeModels", "IX_PayeeImportName");
             DropIndex("dbo.PayeeDefaultDetailsModels", "IX_PayeeCatSubCatIds");
             DropIndex("dbo.PayeeModels", "IX_NameUserId");
-            DropIndex("dbo.SubCategoryModels", new[] { "CategoryModel_Id" });
             DropIndex("dbo.SubCategoryModels", "IX_CategoryIdName");
             DropIndex("dbo.CategoryModels", "IX_NameUsderId");
             DropIndex("dbo.TransactionDetailModels", new[] { "TransferTransactionId" });
