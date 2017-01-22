@@ -25,7 +25,7 @@ namespace Budget.API.Controllers
         [Route("{id}", Name = "DeleteCategory")]
         [HttpDelete]
         [Authorize]
-        public IHttpActionResult Delete(int id)
+        public override IHttpActionResult Delete(int id)
         {
             // look for record
             // check record exists
@@ -33,10 +33,7 @@ namespace Budget.API.Controllers
             GetRecordAndIsAuthorized(id);
 
             // make sure it is not uncategorized
-            if (_record.Name.ToLower().Contains("uncategorized"))
-            {
-                SetErrorResponse(BadRequest("Uncategorized category may not be modified or deleted"));
-            }
+            VerifyName(_record?.Name ?? "");
 
             // delete record if not referenced in other tables
             DeleteEntityFromContext(id);
@@ -53,6 +50,8 @@ namespace Budget.API.Controllers
         [Authorize]
         public IHttpActionResult Create(CategoryBindingModel model)
         {
+            // make sure it is not uncategorized
+            VerifyName(model.Name ?? "");
             return Create<CategoryBindingModel, IPrincipal>(model, User);
         }
 
@@ -60,6 +59,8 @@ namespace Budget.API.Controllers
         [HttpPut]
         public IHttpActionResult Update(int id, CategoryBindingModel model)
         {
+            // make sure it is not uncategorized
+            VerifyName(model?.Name ?? "");
             return Update<CategoryBindingModel>(id, model);
         }
 
@@ -68,7 +69,15 @@ namespace Budget.API.Controllers
         [Authorize]
         public override IHttpActionResult Get(int id)
         {
-            return base.Get(id);
+            // filters
+            List<Expression<Func<CategoryModel, bool>>> filters = new List<Expression<Func<CategoryModel, bool>>>();
+            filters.Add(c => c.Id == id);
+
+            // include related entities
+            List<Expression<Func<CategoryModel, object>>> include = new List<Expression<Func<CategoryModel, object>>>();
+            include.Add(c => c.SubCategories);
+
+            return base.Get<CategoryModel>(filters, include);
         }
 
         // get all categories owned by user
@@ -87,6 +96,16 @@ namespace Budget.API.Controllers
             include.Add("SubCategories");
 
             return GetAll<CategoryModel, string>(filters, include, c => c.Name);
+        }
+
+        private void VerifyName(string name)
+        {
+            // make sure it is not uncategorized
+            if (name.ToLower().Contains("uncategorized"))
+            {
+                SetErrorResponse(BadRequest("Uncategorized category may not be added, modified or deleted"));
+
+            }
         }
     }
 }
