@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNet.Identity.EntityFramework;
 using Newtonsoft.Json;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -44,6 +46,8 @@ namespace Budget.DAL.Models
 
         [Required]
         public byte[] PasswordHash { get; set; }
+
+        public ICollection<AccountModel> Accounts {get; set;}
 
         [ForeignKey("UserId")]
         [JsonIgnore]
