@@ -48,8 +48,11 @@ namespace Budget.API.Controllers
         public override IHttpActionResult GetAll()
         {
             string userId = User.Identity.GetUserId();
+
+            // filters
             var filter = new List<Expression<Func<FinancialInstitutionModel, bool>>>();
             filter.Add(fi => fi.UserId == userId);
+
             return base.GetAll<FinancialInstitutionModel, string>(filter, null, fi => fi.Name);
         }
         
@@ -66,35 +69,15 @@ namespace Budget.API.Controllers
         [Authorize]
         public IHttpActionResult UpdateLogin(int id, FinancialInstitutionUpdateLoginBindingModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            VerifyModel();
 
-            FinancialInstitutionModel record = _dbContext.FinancialInstitutions.Find(id);
-
-            if (record == null)
+            var hashedModel = new FinancialInstitutionUpdateLoginBindingModelHashed()
             {
-                return NotFound();
-            }
+                Username = model.Username,
+                PasswordHash = AesService.EncryptStringToBytes(model.Password)
+            };
 
-            if (record.UserId != User.Identity.GetUserId())
-            {
-                return Unauthorized();
-            }
-
-            record.Username = model.Username;
-            record.PasswordHash = AesService.EncryptStringToBytes(model.Password);
-
-            try
-            {
-                int result = _dbContext.SaveChanges();
-                return Ok();
-            }
-            catch (DbUpdateException ex)
-            {
-                return GetErrorResult(ex);
-            }
+            return Update<FinancialInstitutionUpdateLoginBindingModelHashed>(id, hashedModel);
         }
 
         [Route("{id}/GetAccountList", Name = "GetAccountListFromBank")]
