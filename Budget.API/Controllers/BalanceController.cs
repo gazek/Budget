@@ -1,11 +1,7 @@
 ﻿using Budget.DAL;
 using System.Web.Http;
 using Budget.DAL.Models;
-using Microsoft.AspNet.Identity;
 using System.Collections.Generic;
-using System.Linq;
-using Budget.API.Models;
-using Budget.API.Services;
 using System;
 using System.Linq.Expressions;
 
@@ -20,24 +16,14 @@ namespace Budget.API.Controllers
         }
         
         // GET - get balance history api/account/{id}/balance
-        [Route("Account/{id}/Balance/{begin?}/{end?}", Name = "GetAccountBalanceHistory")]
+        [Route("Account/{id}/Balance/Date/{begin?}/{end?}", Name = "GetAccountBalanceHistory")]
         [HttpGet]
         [Authorize]
         public IHttpActionResult GetBalanceHistory(int id, string begin = "", string end = "")
         {
             // Parse date range
             DateTime beginDate, endDate;
-            IHttpActionResult parseResult = ParseDateRange(begin, end, out beginDate, out endDate);
-            if (parseResult != null)
-            {
-                return parseResult;
-            }
-
-            // make sure the begin is earlier than end
-            if (beginDate > endDate)
-            {
-                return BadRequest("End date must be later than begin date");
-            }
+            ParseDateRange(begin, end, out beginDate, out endDate);
 
             // filters
             List<Expression<Func<BalanceModel, bool>>> filters = new List<Expression<Func<BalanceModel, bool>>>();
