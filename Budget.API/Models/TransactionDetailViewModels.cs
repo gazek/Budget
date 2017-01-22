@@ -4,8 +4,8 @@ namespace Budget.API.Models
 {
     public class TransactionDetailViewModel
     {
-        //public int Id { get; set; }
-        //public int TransactionId { get; set; }
+        public int Id { get; set; }
+        public int TransactionId { get; set; }
         public int PayeeId { get; set; }
         public string PayeeName { get; set; }
         public int CategoryId { get; set; }
