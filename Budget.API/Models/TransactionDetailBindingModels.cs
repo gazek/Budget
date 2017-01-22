@@ -13,7 +13,7 @@ namespace Budget.API.Models
 
         [Required]
         public int CategoryId { get; set; }
-        
+        [Required]
         public int SubCategoryId { get; set; }
 
         [Required]
