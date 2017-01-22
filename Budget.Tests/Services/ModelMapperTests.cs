@@ -182,7 +182,6 @@ namespace Budget.Tests.Services
             Assert.AreEqual(model.Name, result.Name);
             Assert.AreEqual(model.Type, result.Type);
             Assert.AreEqual(model.Description, result.Description);
-            Assert.AreEqual(model.Transactions, result.Transactions);
             Assert.AreEqual(model.BalanceHistory.OrderByDescending(x => x.AsOfDate).FirstOrDefault(), result.Balance);
         }
 
