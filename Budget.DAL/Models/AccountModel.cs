@@ -10,12 +10,6 @@ namespace Budget.DAL.Models
         [Key]
         public int Id { get; set; }
 
-        // App ID of account owner
-        [Required]
-        [Display(Name = "User ID")]
-        [Index("IX_UserFinancialInstitutionAccountNumber", 1, IsUnique = true)]
-        public string UserId { get; set; }
-
         [Required]
         [Index("IX_UserFinancialInstitutionAccountNumber", 2, IsUnique = true)]
         [Display(Name = "Financial Institution ID")]
@@ -46,10 +40,6 @@ namespace Budget.DAL.Models
         public ICollection<TransactionModel> Transactions { get; set; }
 
         public ICollection<BalanceModel> BalanceHistory { get; set; }
-
-        [ForeignKey("UserId")]
-        [JsonIgnore]
-        public virtual ApplicationUser User { get; set; }
 
         [ForeignKey("FinancialInstitutionId")]
         [JsonIgnore]

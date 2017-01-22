@@ -103,7 +103,10 @@ namespace Budget.API.Tests.Services
                 Details = details,
                 Account = new AccountModel()
                 {
-                    UserId = userId
+                    FinancialInstitution = new FinancialInstitutionModel()
+                    {
+                        UserId = userId
+                    }
                 }
             };
 

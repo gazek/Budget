@@ -225,8 +225,10 @@ namespace Budget.API.Tests.Services
             {
                 Id = 13,
                 Transactions = trans,
-                UserId = user.Id,
-                User = user
+                FinancialInstitution = new FinancialInstitutionModel()
+                {
+                    UserId = user.Id
+                }
             };
         }
 

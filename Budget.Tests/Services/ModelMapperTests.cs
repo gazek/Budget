@@ -156,7 +156,10 @@ namespace Budget.Tests.Services
             var model = new AccountModel
             {
                 Id = 1223,
-                UserId = Guid.NewGuid().ToString(),
+                FinancialInstitution = new FinancialInstitutionModel()
+                {
+                    UserId = Guid.NewGuid().ToString()
+                },
                 FinancialInstitutionId = 12,
                 RoutingNumber = 1234567890,
                 Number = "s123",
@@ -190,7 +193,11 @@ namespace Budget.Tests.Services
             var model = new AccountModel
             {
                 Id = 1223,
-                UserId = Guid.NewGuid().ToString(),
+                FinancialInstitution = new FinancialInstitutionModel()
+                {
+                    Id = 12,
+                    UserId = Guid.NewGuid().ToString()
+                },
                 FinancialInstitutionId = 12,
                 RoutingNumber = 1234567890,
                 Number = "s123",

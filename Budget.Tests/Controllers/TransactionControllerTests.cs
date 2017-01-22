@@ -246,15 +246,30 @@ namespace Budget.API.Tests.Controllers
 
         private Mock<IApplicationDbContext> MakeContext(IPrincipal user)
         {
+            var fi1 = new FinancialInstitutionModel()
+            {
+                Id = 1,
+                UserId = user.Identity.GetUserId()
+            };
+            var fi2 = new FinancialInstitutionModel()
+            {
+                Id = 2,
+                UserId = UserBuilder.CreateUser().Identity.GetUserId()
+            };
+            var fi3 = new FinancialInstitutionModel()
+            {
+                Id = 3,
+                UserId = UserBuilder.CreateUser().Identity.GetUserId()
+            };
             var account1 = new AccountModel()
             {
-                UserId = user.Identity.GetUserId(),
+                FinancialInstitutionId = fi1.Id,
                 Id = 1
             };
 
             var account2 = new AccountModel()
             {
-                UserId = UserBuilder.CreateUser().Identity.GetUserId(),
+                FinancialInstitutionId = fi2.Id,
                 Id = 2
             };
 
@@ -312,7 +327,8 @@ namespace Budget.API.Tests.Controllers
                 AccountId = 2,
                 Account = new AccountModel()
                 {
-                    UserId = UserBuilder.CreateUser().Identity.GetUserId()
+                    FinancialInstitutionId = fi2.Id,
+                    FinancialInstitution = fi2
                 },
                 Amount = 444.44m,
                 Date = DateTime.Now.AddDays(-4),

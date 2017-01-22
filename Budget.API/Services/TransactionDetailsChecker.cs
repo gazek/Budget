@@ -79,7 +79,7 @@ namespace Budget.API.Services
 
         private void InitializeUncatDetail()
         {
-            TransactionDefaults defaults = new TransactionDefaults(_dbContext, Transaction.Account.UserId);
+            TransactionDefaults defaults = new TransactionDefaults(_dbContext, ModelMapper.GetUserId(Transaction, _dbContext));
             // initialize uncategorized detail
             UncategorizedDetail = new TransactionDetailModel
             {
