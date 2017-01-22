@@ -12,7 +12,6 @@ namespace Budget.DAL.Migrations
                 c => new
                     {
                         Id = c.Int(nullable: false, identity: true),
-                        UserId = c.String(nullable: false, maxLength: 128),
                         FinancialInstitutionId = c.Int(nullable: false),
                         Number = c.String(nullable: false, maxLength: 100),
                         RoutingNumber = c.Int(nullable: false),
@@ -22,8 +21,7 @@ namespace Budget.DAL.Migrations
                     })
                 .PrimaryKey(t => t.Id)
                 .ForeignKey("dbo.FinancialInstitutionModels", t => t.FinancialInstitutionId, cascadeDelete: true)
-                .ForeignKey("dbo.AspNetUsers", t => t.UserId)
-                .Index(t => new { t.UserId, t.FinancialInstitutionId, t.Number }, unique: true, name: "IX_UserFinancialInstitutionAccountNumber");
+                .Index(t => new { t.FinancialInstitutionId, t.Number }, unique: true, name: "IX_UserFinancialInstitutionAccountNumber");
             
             CreateTable(
                 "dbo.BalanceModels",
@@ -53,7 +51,7 @@ namespace Budget.DAL.Migrations
                         CLIENTUID = c.String(),
                     })
                 .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.AspNetUsers", t => t.UserId)
+                .ForeignKey("dbo.AspNetUsers", t => t.UserId, cascadeDelete: true)
                 .Index(t => new { t.OfxFid, t.Name, t.UserId }, unique: true, name: "IX_FIDFINameUserId");
             
             CreateTable(
@@ -236,7 +234,6 @@ namespace Budget.DAL.Migrations
         public override void Down()
         {
             DropForeignKey("dbo.AspNetUserRoles", "RoleId", "dbo.AspNetRoles");
-            DropForeignKey("dbo.AccountModels", "UserId", "dbo.AspNetUsers");
             DropForeignKey("dbo.TransactionDetailModels", "TransferTransactionId", "dbo.TransactionModels");
             DropForeignKey("dbo.TransactionDetailModels", "TransactionId", "dbo.TransactionModels");
             DropForeignKey("dbo.TransactionDetailModels", "SubCategoryId", "dbo.SubCategoryModels");
