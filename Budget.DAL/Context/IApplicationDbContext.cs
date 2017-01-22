@@ -12,7 +12,7 @@ namespace Budget.DAL
         DbSet<FinancialInstitutionModel> FinancialInstitutions { get; set; }
         DbSet<PayeeModel> Payees { get; set; }
         DbSet<TransactionModel> Transactions { get; set; }
-        DbSet<TransactionDetailModel> TransactionDetailss { get; set; }
+        DbSet<TransactionDetailModel> TransactionDetails { get; set; }
         int SaveChanges();
     }
 }
