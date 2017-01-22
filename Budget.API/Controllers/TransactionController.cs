@@ -21,7 +21,7 @@ namespace Budget.API.Controllers
 
         [Authorize]
         [HttpGet]
-        [Route("Transaction/{id}", Name = "GetTransaction")]
+        [Route("Transaction/{id}", Name = "GetTransactionById")]
         public override IHttpActionResult Get(int id)
         {
             // filters
@@ -42,28 +42,18 @@ namespace Budget.API.Controllers
         [Route("Transaction/{id}", Name = "UpdateTransaction")]
         public IHttpActionResult Update(int id, TransactionBindingModel model)
         {
-            return base.Update<TransactionBindingModel>(id, model);
+            return Update<TransactionBindingModel>(id, model);
         }
 
         // Get - query transactions in DB by date range api/account/{id}/Transactions/Date/{end}/{begin}
-        [Route("Account/{id:int}/Transactions/Date/{begin}/{end?}", Name = "QueryTransactions")]
+        [Route("Account/{id:int}/Transactions/Date/{begin}/{end?}", Name = "GetTransactionsByAccountAndDateRange")]
         [HttpGet]
         [Authorize]
         public IHttpActionResult GetTransactionsFromDb(int id, string begin = "", string end = "")
         {
             // Parse date range
             DateTime beginDate, endDate;
-            IHttpActionResult parseResult = ParseDateRange(begin, end, out beginDate, out endDate);
-            if (parseResult != null)
-            {
-                return parseResult;
-            }
-
-            // make sure the begin is earlier than end
-            if (beginDate > endDate)
-            {
-                return BadRequest("End date must be later than begin date");
-            }
+            ParseDateRange(begin, end, out beginDate, out endDate);
 
             // filters
             List<Expression<Func<TransactionModel, bool>>> filters = new List<Expression<Func<TransactionModel, bool>>>();
@@ -88,7 +78,7 @@ namespace Budget.API.Controllers
         }
 
         // Post - OFX request to pull latest transactions api/account/{id}/Transactions/Date/{end}/{begin}
-        [Route("Account/{id:int}/Transactions/Date/{begin}/{end?}", Name = "PullLatestTransactions")]
+        [Route("Account/{id:int}/Transactions/Date/{begin}/{end?}", Name = "PullLatestTransactionsFromBank")]
         [HttpPost]
         [Authorize]
         public IHttpActionResult GetTransactionsFromBank(int id, string begin = "", string end = "")
@@ -106,17 +96,7 @@ namespace Budget.API.Controllers
             
             // Parse date range
             DateTime beginDate, endDate;
-            IHttpActionResult parseResult = ParseDateRange(begin, end, out beginDate, out endDate);
-            if (parseResult != null)
-            {
-                return parseResult;
-            }
-
-            // make sure the begin is earlier than end
-            if (beginDate > endDate)
-            {
-                return BadRequest("End date must be later than begin date");
-            }
+            ParseDateRange(begin, end, out beginDate, out endDate);
 
             // Configure request
             ConfigureOfxStatementRequest(entity, beginDate, endDate);
@@ -213,5 +193,10 @@ namespace Budget.API.Controllers
             }
         }
 
+        // TODO:
+        //   Add routes to query by: amount
+        //                           payee
+        //                           category
+        //                           subcategory
     }
 }
