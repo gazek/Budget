@@ -32,7 +32,7 @@ namespace Budget.API.Services
             // initialize everything except TransactionDefaults class
             _TransactionImporter(transactions, account, dbContext);
             // initialize TransactionDefaults class
-            transDefaults = new TransactionDefaults(_dbContext, account.UserId);
+            transDefaults = new TransactionDefaults(_dbContext, ModelMapper.GetUserId(account, _dbContext));
         }
 
         // just needed for testing
@@ -246,7 +246,14 @@ namespace Budget.API.Services
                         result.AddRange(details);
                     }
                 }
+                // store details in transaction
                 t.Details = result;
+                // Verify sum of details and add uncat to balance if needed
+                var detailChecker = new TransactionDetailsChecker(t, _dbContext);
+                if (!detailChecker.AmountIsFullyCategorized)
+                {
+                    t.Details.Add(detailChecker.UncategorizedDetail);
+                }
             }
         }
         #endregion
