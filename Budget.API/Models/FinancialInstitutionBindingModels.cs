@@ -90,4 +90,15 @@ namespace Budget.API.Models
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
     }
+
+    public class FinancialInstitutionUpdateLoginBindingModelHashed
+    {
+        [Required]
+        [Display(Name = "Username")]
+        public string Username { get; set; }
+
+        [Required]
+        [Display(Name = "Password")]
+        public byte[] PasswordHash { get; set; }
+    }
 }
