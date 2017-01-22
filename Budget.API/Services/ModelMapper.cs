@@ -7,6 +7,8 @@ using Budget.API.Services.OFXClient;
 using System;
 using System.Collections.Generic;
 using Budget.DAL;
+using System.Reflection;
+using System.Runtime.Remoting;
 
 namespace Budget.API.Services
 {
@@ -31,7 +33,6 @@ namespace Budget.API.Services
         {
             return new AccountModel
             {
-                UserId = user.Identity.GetUserId(),
                 FinancialInstitutionId = model.FinancialInstitutionId,
                 RoutingNumber = model.RoutingNumber,
                 Number = model.Number,
@@ -47,7 +48,6 @@ namespace Budget.API.Services
         {
             return new AccountModel
             {
-                UserId = fiModel.UserId,
                 FinancialInstitutionId = fiModel.Id,
                 RoutingNumber = model.RoutingNumber,
                 Number = model.Number,
@@ -59,8 +59,10 @@ namespace Budget.API.Services
             };
         }
 
-        public static AccountViewModel EntityToView(AccountModel model)
+        public static AccountViewModel EntityToView(AccountModel model, IApplicationDbContext dbContext)
         {
+            BalanceModel bal = model.BalanceHistory.OrderByDescending(x => x.AsOfDate).FirstOrDefault();
+
             return new AccountViewModel
             {
                 Id = model.Id,
@@ -70,8 +72,24 @@ namespace Budget.API.Services
                 Name = model.Name,
                 Type = model.Type,
                 Description = model.Description,
-                Transactions = model.Transactions,
-                Balance = model.BalanceHistory?.OrderByDescending(x => x.AsOfDate).FirstOrDefault()
+                Balance = (bal != null) ? ModelMapper.EntityToView(bal) : null
+            };
+        }
+
+        public static AccountViewModel EntityToView(AccountModel model)
+        {
+            BalanceModel bal = model.BalanceHistory.OrderByDescending(x => x.AsOfDate).FirstOrDefault();
+
+            return new AccountViewModel
+            {
+                Id = model.Id,
+                FinancialInstitutionId = model.FinancialInstitutionId,
+                RoutingNumber = model.RoutingNumber,
+                Number = model.Number,
+                Name = model.Name,
+                Type = model.Type,
+                Description = model.Description,
+                Balance = (bal != null) ? ModelMapper.EntityToView(bal) : null
             };
         }
 
@@ -117,9 +135,10 @@ namespace Budget.API.Services
             }
         }
 
-        public static string GetUserId(AccountModel model, IApplicationDbContext dbContext=null)
+        public static string GetUserId(AccountModel model, IApplicationDbContext dbContext)
         {
-            return model.UserId;
+            FinancialInstitutionModel fi = dbContext.FinancialInstitutions.Find(model.FinancialInstitutionId);
+            return fi.UserId;
         }
         #endregion
 
@@ -135,10 +154,10 @@ namespace Budget.API.Services
             };
         }
 
-        public static string GetUserId(BalanceModel model, IApplicationDbContext dbContext = null)
+        public static string GetUserId(BalanceModel model, IApplicationDbContext dbContext)
         {
             AccountModel account = dbContext.Accounts.Find(model.AccountId);
-            return account.UserId;
+            return GetUserId(account, dbContext);
         }
         #endregion
 
@@ -189,13 +208,13 @@ namespace Budget.API.Services
             };
         }
 
-        public static TransactionViewModel EntityToView(TransactionModel model)
+        public static TransactionViewModel EntityToView(TransactionModel model, IApplicationDbContext dbContext)
         {
             // get top fields
             TopFields topFields = new TopFields(model);
 
             // map details
-            List<TransactionDetailViewModel> details = model.Details.Select(d => ModelMapper.EntityToView(d)).ToList();
+            List<TransactionDetailViewModel> details = model.Details?.Select(d => ModelMapper.EntityToView(d, dbContext)).ToList();
 
             return new TransactionViewModel
             {
@@ -224,7 +243,7 @@ namespace Budget.API.Services
         public static string GetUserId(TransactionModel model, IApplicationDbContext dbContext = null)
         {
             AccountModel account = dbContext.Accounts.Find(model.AccountId);
-            return account.UserId;
+            return GetUserId(account, dbContext);
         }
 
         #region Top Field Helpers
@@ -337,22 +356,38 @@ namespace Budget.API.Services
                 SubCategoryId = model.SubCategoryId,
                 Amount = model.Amount,
                 TransferTransactionId = model.TransferTransactionId,
-                Memo = model.Memo
+                Memo = model.Memo,
+                LastEditDate = DateTime.Today
             };
         }
 
-        public static TransactionDetailViewModel EntityToView(TransactionDetailModel model)
+        public static TransactionDetailModel BindingToEntity(TransactionDetailBindingModel model, TransactionModel principal)
+        {
+            return new TransactionDetailModel
+            {
+                TransactionId = principal.Id,
+                PayeeId = model.PayeeId,
+                CategoryId = model.CategoryId,
+                SubCategoryId = model.SubCategoryId,
+                Amount = model.Amount,
+                TransferTransactionId = model.TransferTransactionId,
+                Memo = model.Memo,
+                LastEditDate = DateTime.Today
+            };
+        }
+
+        public static TransactionDetailViewModel EntityToView(TransactionDetailModel model, IApplicationDbContext dbContext)
         {
             return new TransactionDetailViewModel
             {
-                //Id = model.Id,
-                //TransactionId = model.TransactionId,
+                Id = model.Id,
+                TransactionId = model.TransactionId,
                 PayeeId = model.PayeeId,
-                PayeeName = model.Payee?.Name,
+                PayeeName = dbContext.Payees.Find(model.PayeeId).Name,
                 CategoryId = model.CategoryId,
-                CategoryName = model.Category?.Name,
+                CategoryName = dbContext.Categories.Find(model.CategoryId).Name,
                 SubCategoryId = model.SubCategoryId,
-                SubCategoryName = model.SubCategory?.Name,
+                SubCategoryName = dbContext.SubCategories.Find(model.SubCategoryId).Name,
                 Amount = model.Amount,
                 TransferTransactionId = model.TransactionId,
                 Memo = model.Memo,
@@ -404,6 +439,15 @@ namespace Budget.API.Services
         #endregion
 
         #region SubCategory
+        public static SubCategoryModel BindingToEntity(SubCategoryBindingModel model, CategoryModel principal)
+        {
+            return new SubCategoryModel()
+            {
+                CategoryId = principal.Id,
+                Name = model.Name,
+            };
+        }
+
         public static SubCategoryModel BindingToEntity(SubCategoryBindingModel model)
         {
             return new SubCategoryModel()
@@ -463,9 +507,30 @@ namespace Budget.API.Services
             return GetUserId(model, dbContext);
         }
 
-        public static dynamic EntityToView(dynamic model)
+        public static dynamic EntityToView(dynamic model, IApplicationDbContext dbContext)
         {
-            return EntityToView(model);
+            string modelType = model.GetType().Name;
+            
+            IEnumerable<MethodInfo> methods = typeof(ModelMapper)
+                .GetMethods().Where(m => m.Name == "EntityToView")
+                .Where(m => m.GetParameters().Length.Equals(2))
+                .Where(m => m.GetParameters()[1].ParameterType == typeof(IApplicationDbContext))
+                .Where(m => modelType.Contains(m.GetParameters()[0].ParameterType.Name));
+                /*
+            var s0 = typeof(ModelMapper);
+            var s1 = s0.GetMethods().Where(m => m.Name == "EntityToView");
+            var s2 = s1.Where(m => m.GetParameters().Length.Equals(2));
+            var s3 = s2.Where(m => m.GetParameters()[1].ParameterType == typeof(IApplicationDbContext));
+            IEnumerable<MethodInfo> methods = s3.Where(m => modelType.Contains(m.GetParameters()[0].ParameterType.Name));
+            */
+            if (methods.Count() > 0)
+            {
+                return EntityToView(model, dbContext);
+            }
+            else
+            {
+                return EntityToView(model);
+            }
         }
 
         public static dynamic BindingToEntity(dynamic model)
