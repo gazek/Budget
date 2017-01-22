@@ -61,27 +61,13 @@ namespace Budget.API.Controllers
         {
             List<Expression<Func<Tr, bool>>> filter = new List<Expression<Func<Tr, bool>>>();
             filter.Add(BuildFilterExpression<Tr, int>(typeof(Tr).GetProperty("Id"), id));
-
-            var response =  Get<Tr>(filter);
-            if (response.GetType() == typeof(OkNegotiatedContentResult<ICollection<object>>))
-            {
-                OkNegotiatedContentResult<ICollection<object>> responseTyped = response as OkNegotiatedContentResult<ICollection<object>>;
-                var result = responseTyped.Content.FirstOrDefault();
-                if (result == null)
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    return Ok(result);
-                }
-            }
-            else
-            {
-                return response;
-            }
+            return Get<Tr>(filter);
         }
-
+        /*
+         * Tr - type of record requested and type of authorization record
+         * where - lambda expressions which filter DbSet to the requested/authorization record
+         * include - lambda expressions used to load related entities
+         */
         public virtual IHttpActionResult Get<Tr>(ICollection<Expression<Func<Tr, bool>>> where, ICollection<Expression<Func<Tr, object>>> include = null) where Tr : class
         {
             // look for record
@@ -90,14 +76,7 @@ namespace Budget.API.Controllers
             GetRecordAndIsAuthorized<Tr>(where, include);
             
             // return response
-            if (_requestIsOk)
-            {
-                return Ok(ModelMapper.EntityToView(_record));
-            }
-            else
-            {
-                return _errorResponse;
-            }
+            return _requestIsOk ? Ok(ModelMapper.EntityToView(_record, _dbContext)) : _errorResponse;
         }
         #endregion
 
@@ -107,25 +86,32 @@ namespace Budget.API.Controllers
             return GetAll<T>();
         }
 
-        public virtual IHttpActionResult GetAll<TEntity>() where TEntity : class
+        public virtual IHttpActionResult GetAll<Tr>() where Tr : class
         {
             string userId = User.Identity.GetUserId();
-            List<Expression<Func<TEntity, bool>>> filter = new List<Expression<Func<TEntity, bool>>>();
-            filter.Add(BuildFilterExpression<TEntity, string>(typeof(TEntity).GetProperty("UserId"), userId));
-            return GetAll<TEntity, object>(filter);
+            List<Expression<Func<Tr, bool>>> filter = new List<Expression<Func<Tr, bool>>>();
+            filter.Add(BuildFilterExpression<Tr, string>(typeof(Tr).GetProperty("UserId"), userId));
+            return GetAll<Tr, object>(filter);
         }
-
-        public virtual IHttpActionResult GetAll<TEntity, TSort>(ICollection<Expression<Func<TEntity, bool>>> where,
+        /*
+         * Tr - type of record requested
+         * TSort - Sort by type
+         * where - filtering lambda expressions to create the return set from DbSet
+         * include - lambda expressions used to load related entities
+         * orderby - lambda expression to sort the return set
+         * orderByOrderByDescending - set ascending/descending sort order
+         */
+        public virtual IHttpActionResult GetAll<Tr, TSort>(ICollection<Expression<Func<Tr, bool>>> where,
             ICollection<string> include = null,
-            Expression<Func<TEntity, TSort>> orderby = null,
-            bool orderByOrderByDescending = false) where TEntity : class
+            Expression<Func<Tr, TSort>> orderby = null,
+            bool orderByOrderByDescending = false) where Tr : class
         {
             // get dbset
-            DbSet<TEntity> dbSet = GetDbSet<TEntity>();
+            DbSet<Tr> dbSet = GetDbSet<Tr>();
             // variable to store intermidiate query
-            IQueryable<TEntity> queriable = dbSet;
+            IQueryable<Tr> queriable = dbSet;
             // filter
-            foreach (Expression<Func<TEntity, bool>> e in where)
+            foreach (Expression<Func<Tr, bool>> e in where)
             {
                 queriable = queriable.Where(e);
             }
@@ -152,13 +138,16 @@ namespace Budget.API.Controllers
             // convert to list
             var entities = queriable.ToList();
             // map to view model
-            var result = entities.Select(x => ModelMapper.EntityToView(x)).ToList();
+            var result = entities.Select(x => ModelMapper.EntityToView(x, _dbContext)).ToList();
             // return result
             return Ok(result);
         }
         #endregion
 
         #region Update
+        /*
+         * Tb - type of binding model
+         */
         public virtual IHttpActionResult Update<Tb>(int id, Tb model)
         {
             // look for record
@@ -176,14 +165,7 @@ namespace Budget.API.Controllers
             CommitChanges();
 
             // return response
-            if (_requestIsOk)
-            {
-                return Ok();
-            }
-            else
-            {
-                return _errorResponse;
-            }
+            return _requestIsOk ? Ok() : _errorResponse;
         }
         #endregion
 
@@ -201,7 +183,17 @@ namespace Budget.API.Controllers
         {
             return Create<Tb, TAuth, TAuth> (model, authId, null, locationFunc);
         }
-
+        /*
+         * Tb - type of binding model
+         * TAuth - type of record used to verify authorization to create
+         * TPrincipal - type of record which 'owns' the type being created
+         * 
+         * TAuth & TPrincipal are usually the same type
+         * 
+         * Examples
+         *      - Tb = TransactionModel, Tprincipal = AccountModel, TAuth = AccountModel
+         *      - Tb = CategoryModel, TAuth
+         */
         private IHttpActionResult Create<Tb, TAuth, TPrincipal>(Tb model, int authId, TPrincipal principal, Func<int, string> locationFunc = null)
             where Tb : class
             where TAuth : class
@@ -232,7 +224,7 @@ namespace Budget.API.Controllers
             if (_requestIsOk)
             {
                 // convert new record to view model
-                var result = ModelMapper.EntityToView(newRecord);
+                var result = ModelMapper.EntityToView(newRecord, _dbContext);
 
                 // set location
                 string location = "";
@@ -251,7 +243,7 @@ namespace Budget.API.Controllers
         #endregion
 
         #region Delete
-        public virtual IHttpActionResult BaseDelete(int id, ICollection<Expression> authExpressions)
+        public virtual IHttpActionResult Delete(int id)
         {
             // look for record
             // check record exists
@@ -334,7 +326,7 @@ namespace Budget.API.Controllers
 
         protected void UpdateRecord<Tb>(T existingRecord, Tb update)
         {
-            if (existingRecord == null)
+            if (!_requestIsOk || existingRecord == null)
             {
                 return;
             }
@@ -364,25 +356,32 @@ namespace Budget.API.Controllers
 
         protected T AddEntityToContext(T entity)
         {
-            DbSet<T> dbset = GetDbSet<T>();
-            return dbset.Add(entity);
+            if (_requestIsOk)
+            {
+                DbSet<T> dbset = GetDbSet<T>();
+                return dbset.Add(entity);
+            }
+            return null;
         }
 
         protected void DeleteEntityFromContext(int id)
         {
-            DbSet<T> dbset = GetDbSet<T>();
-            var entity = dbset.Find(id);
-            dbset.Remove(entity);
+            if (_requestIsOk)
+            {
+                DbSet<T> dbset = GetDbSet<T>();
+                var entity = dbset.Find(id);
+                dbset.Remove(entity);
+            }
         }
 
-        private DbSet<TEntity> GetDbSet<TEntity>() where TEntity : class
+        private DbSet<Tr> GetDbSet<Tr>() where Tr : class
         {
             var properties = _dbContext.GetType().GetProperties();
             foreach (var p in properties)
             {
-                if (p.PropertyType == typeof(DbSet<TEntity>))
+                if (p.PropertyType == typeof(DbSet<Tr>))
                 {
-                    return p.GetValue(_dbContext, null) as DbSet<TEntity>;
+                    return p.GetValue(_dbContext, null) as DbSet<Tr>;
                 }
             }
             return null;
@@ -433,14 +432,17 @@ namespace Budget.API.Controllers
 
         protected void CommitChanges()
         {
-            try
+            if (_requestIsOk)
             {
-                // commit changes
-                _commitResult = _dbContext.SaveChanges();
-            }
-            catch (DbUpdateException ex)
-            {
-                SetErrorResponse(GetErrorResult(ex));
+                try
+                {
+                    // commit changes
+                    _commitResult = _dbContext.SaveChanges();
+                }
+                catch (DbUpdateException ex)
+                {
+                    SetErrorResponse(GetErrorResult(ex));
+                }
             }
         }
 
@@ -484,14 +486,13 @@ namespace Budget.API.Controllers
             return BadRequest(exception.Message);
         }
 
-        protected IHttpActionResult ParseDateRange(string begin, string end, out DateTime beginDate, out DateTime endDate)
+        protected void ParseDateRange(string begin, string end, out DateTime beginDate, out DateTime endDate)
         {
             // set to full range
             if (begin == "" && end == "")
             {
                 beginDate = DateTime.MinValue;
                 endDate = DateTime.Today;
-                return null;
             }
 
             // parse begin date
@@ -509,20 +510,18 @@ namespace Budget.API.Controllers
 
             if (beginDate == DateTime.MinValue && endDate != DateTime.MinValue)
             {
-                return BadRequest("Invalid begin date");
+                SetErrorResponse(BadRequest("Invalid begin date"));
             }
 
             if (endDate == DateTime.MinValue && beginDate != DateTime.MinValue)
             {
-                return BadRequest("Invalid end date");
+                SetErrorResponse(BadRequest("Invalid end date"));
             }
 
             if (endDate == DateTime.MinValue && beginDate == DateTime.MinValue)
             {
-                return BadRequest("Invalid begin and end dates");
+                SetErrorResponse(BadRequest("Invalid begin and end dates"));
             }
-
-            return null;
         }
 
         protected void SetErrorResponse(IHttpActionResult response)
@@ -543,5 +542,6 @@ namespace Budget.API.Controllers
                 Expression.Constant(value));
             return Expression.Lambda<Func<TItem, bool>>(body, param);
         }
+        
     }
 }
