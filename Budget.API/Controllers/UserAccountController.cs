@@ -6,6 +6,9 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Budget.API.Models;
 using Budget.DAL.Models;
+using Budget.DAL;
+using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
 
 namespace Budget.API.Controllers
 {
@@ -50,7 +53,9 @@ namespace Budget.API.Controllers
                 return GetErrorResult(result);
             }
 
-            return Ok();
+            IHttpActionResult response = AddDefaultPayeeAndCategories(user);
+
+            return response ?? Ok();
         }
 
         // GET api/UserAccount/UserInfo
@@ -162,5 +167,41 @@ namespace Budget.API.Controllers
         }
 
         #endregion
+
+        private IHttpActionResult AddDefaultPayeeAndCategories(ApplicationUser user)
+        {
+            // create default category and payee
+            PayeeModel unAssigned = new PayeeModel()
+            {
+                Name = "Unassigned",
+                UserId = user.Id
+            };
+            CategoryModel uncat = new CategoryModel()
+            {
+                Name = "Uncategorized",
+                SubCategories = new List<SubCategoryModel>()
+                {
+                    new SubCategoryModel()
+                    {
+                        Name = "Uncategorized"
+                    }
+                },
+                UserId = user.Id
+            };
+            using (ApplicationDbContext dbContext = new ApplicationDbContext())
+            {
+                dbContext.Payees.Add(unAssigned);
+                dbContext.Categories.Add(uncat);
+                try
+                {
+                    dbContext.SaveChanges();
+                }
+                catch
+                {
+                    return BadRequest("Failed to create default payee and categories");
+                }
+            }
+            return null;
+        }
     }
 }
