@@ -29,21 +29,6 @@ namespace Budget.API.Services
     public static class ModelMapper
     {
         #region Account
-        public static AccountModel BindingToEntity(AccountBindingModel model, IPrincipal user)
-        {
-            return new AccountModel
-            {
-                FinancialInstitutionId = model.FinancialInstitutionId,
-                RoutingNumber = model.RoutingNumber,
-                Number = model.Number,
-                Name = model.Name,
-                Type = model.Type,
-                Description = model.Description ?? model.Name,
-                Transactions = new List<TransactionModel>(),
-                BalanceHistory = new List<BalanceModel>()
-            };
-        }
-
         public static AccountModel BindingToEntity(AccountBindingModel model, FinancialInstitutionModel fiModel)
         {
             return new AccountModel
@@ -51,7 +36,7 @@ namespace Budget.API.Services
                 FinancialInstitutionId = fiModel.Id,
                 RoutingNumber = model.RoutingNumber,
                 Number = model.Number,
-                Name = model.Name,
+                Name = string.Join(" ", model.Name.Split(' ')).ToLower(),
                 Type = model.Type,
                 Description = model.Description ?? model.Name,
                 Transactions = new List<TransactionModel>(),
@@ -167,7 +152,8 @@ namespace Budget.API.Services
             byte[] hash = AesService.EncryptStringToBytes(model.Password);
             return new FinancialInstitutionModel
             {
-                Name = model.Name,
+                Name = string.Join(" ", model.Name.Split(' ')).ToLower(),
+                NameStylized = string.Join(" ", model.Name.Split(' ')),
                 OfxFid = model.OfxFid,
                 OfxUrl = model.OfxUrl,
                 OfxOrg = model.OfxOrg,
@@ -183,7 +169,7 @@ namespace Budget.API.Services
             return new FinancialInstitutionViewModel
             {
                 Id = model.Id,
-                Name = model.Name,
+                Name = model.NameStylized,
                 OfxFid = model.OfxFid,
                 OfxUrl = model.OfxUrl,
                 OfxOrg = model.OfxOrg,
@@ -282,7 +268,7 @@ namespace Budget.API.Services
                 if (idSet.Count == 1)
                 {
                     PayeeId = idSet.First();
-                    PayeeName = details.First().Payee?.Name;
+                    PayeeName = details.First().Payee?.NameStylized;
                 }
                 // more than 1 payee
                 if (idSet.Count > 1)
@@ -298,7 +284,7 @@ namespace Budget.API.Services
                 if (idSet.Count == 1)
                 {
                     CategoryId = idSet.First();
-                    CategoryName = details.First().Category?.Name;
+                    CategoryName = details.First().Category?.NameStylized;
                 }
                 // more than 1 category
                 if (idSet.Count > 1)
@@ -314,7 +300,7 @@ namespace Budget.API.Services
                 if (idSet.Count == 1)
                 {
                     SubCategoryId = idSet.First();
-                    SubCategoryName = details.First().SubCategory?.Name;
+                    SubCategoryName = details.First().SubCategory?.NameStylized;
                 }
                 // more than 1 Subcategory
                 if (idSet.Count > 1)
@@ -355,7 +341,7 @@ namespace Budget.API.Services
                 CategoryId = model.CategoryId,
                 SubCategoryId = model.SubCategoryId,
                 Amount = model.Amount,
-                TransferTransactionId = model.TransferTransactionId,
+                TransferMatchId = model.TransferTransactionId,
                 Memo = model.Memo,
                 LastEditDate = DateTime.Today
             };
@@ -370,7 +356,7 @@ namespace Budget.API.Services
                 CategoryId = model.CategoryId,
                 SubCategoryId = model.SubCategoryId,
                 Amount = model.Amount,
-                TransferTransactionId = model.TransferTransactionId,
+                TransferMatchId = model.TransferTransactionId,
                 Memo = model.Memo,
                 LastEditDate = DateTime.Today
             };
@@ -383,11 +369,11 @@ namespace Budget.API.Services
                 Id = model.Id,
                 TransactionId = model.TransactionId,
                 PayeeId = model.PayeeId,
-                PayeeName = dbContext.Payees.Find(model.PayeeId).Name,
+                PayeeName = dbContext.Payees.Find(model.PayeeId).NameStylized,
                 CategoryId = model.CategoryId,
-                CategoryName = dbContext.Categories.Find(model.CategoryId).Name,
+                CategoryName = dbContext.Categories.Find(model.CategoryId).NameStylized,
                 SubCategoryId = model.SubCategoryId,
-                SubCategoryName = dbContext.SubCategories.Find(model.SubCategoryId).Name,
+                SubCategoryName = dbContext.SubCategories.Find(model.SubCategoryId).NameStylized,
                 Amount = model.Amount,
                 TransferTransactionId = model.TransactionId,
                 Memo = model.Memo,
@@ -408,7 +394,8 @@ namespace Budget.API.Services
             return new CategoryModel()
             {
                 UserId = user.Identity.GetUserId(),
-                Name = model.Name,
+                Name = string.Join(" ", model.Name.Split(' ')).ToLower(),
+                NameStylized = string.Join(" ", model.Name.Split(' ')),
             };
         }
 
@@ -427,7 +414,7 @@ namespace Budget.API.Services
             return new CategoryViewModel
             {
                 Id = model.Id,
-                Name = model.Name,
+                Name = model.NameStylized,
                 SubCategories = subcats
             };
         }
@@ -444,7 +431,8 @@ namespace Budget.API.Services
             return new SubCategoryModel()
             {
                 CategoryId = principal.Id,
-                Name = model.Name,
+                Name = string.Join(" ", model.Name.Split(' ')).ToLower(),
+                NameStylized = string.Join(" ", model.Name.Split(' ')),
             };
         }
 
@@ -453,7 +441,8 @@ namespace Budget.API.Services
             return new SubCategoryModel()
             {
                 CategoryId = model.CategoryId,
-                Name = model.Name
+                Name = string.Join(" ", model.Name.Split(' ')).ToLower(),
+                NameStylized = string.Join(" ", model.Name.Split(' ')),
             };
         }
 
@@ -463,7 +452,7 @@ namespace Budget.API.Services
             {
                 Id = model.Id,
                 CategoryId = model.CategoryId,
-                Name = model.Name
+                Name = model.NameStylized
             };
         }
 
@@ -480,23 +469,92 @@ namespace Budget.API.Services
         {
             return model.UserId;
         }
+
+        public static PayeeModel BindingToEntity(PayeeBindingModel model, IPrincipal principal)
+        {
+            return new PayeeModel()
+            {
+                Name = string.Join(" ", model.Name.Split(' ')).ToLower(),
+                NameStylized = string.Join(" ", model.Name.Split(' ')),
+                UserId = principal.Identity.GetUserId()
+            };
+        }
+
+        public static PayeeViewModel EntityToView(PayeeModel model, IApplicationDbContext dbContext = null)
+        {
+            var defaultDetails = dbContext.PayeeDefaultDetails.Where(d => d.PayeeId == model.Id).ToList();
+            var importNames = dbContext.PayeeImportNames.Where(d => d.PayeeId == model.Id).ToList();
+            return new PayeeViewModel
+            {
+                Id = model.Id,
+                Name = model.NameStylized,
+                DefaultDetails = defaultDetails.Select(d => ModelMapper.EntityToView(d, dbContext)).ToList(),
+                ImportNames = importNames.Select(i => ModelMapper.EntityToView(i, dbContext)).ToList()
+            };
+        }
         #endregion
 
         #region Payee Default Detail
 
-        public static string GetUserId(PayeeDefaultDetailsModel model, IApplicationDbContext dbContext = null)
+        public static string GetUserId(PayeeDefaultDetailModel model, IApplicationDbContext dbContext = null)
         {
             PayeeModel payee = dbContext.Payees.Find(model.PayeeId);
             return GetUserId(payee);
+        }
+
+        public static PayeeDefaultDetailViewModel EntityToView(PayeeDefaultDetailModel model, IApplicationDbContext dbContext = null)
+        {
+            return new PayeeDefaultDetailViewModel
+            {
+                Id = model.Id,
+                Allocation = model.Allocation,
+                PayeeId = model.PayeeId,
+                PayeeName = dbContext.Payees.Find(model.PayeeId).NameStylized,
+                CategoryId = model.CategoryId,
+                CategoryName = dbContext.Categories.Find(model.CategoryId).NameStylized,
+                SubCategoryId = model.SubCategoryId,
+                SubCategoryName = dbContext.SubCategories.Find(model.SubCategoryId).NameStylized
+            };
+        }
+
+        public static PayeeDefaultDetailModel BindingToEntity(PayeeDefaultDetailBindingModel model, PayeeModel principal)
+        {
+            return new PayeeDefaultDetailModel
+            {
+                Allocation = model.Allocation,
+                PayeeId = principal.Id,
+                CategoryId = model.CategoryId,
+                SubCategoryId = model.SubCategoryId,
+            };
         }
         #endregion
 
         #region Payee Import Name
 
-        public static string GetUserId(ImportNameToPayeeModel model, IApplicationDbContext dbContext = null)
+        public static string GetUserId(PayeeImportNameModel model, IApplicationDbContext dbContext = null)
         {
             PayeeModel payee = dbContext.Payees.Find(model.PayeeId);
             return GetUserId(payee);
+        }
+
+        public static PayeeImportNameViewModel EntityToView(PayeeImportNameModel model, IApplicationDbContext dbContext = null)
+        {
+            return new PayeeImportNameViewModel
+            {
+                Id = model.Id,
+                PayeeId = model.PayeeId,
+                PayeeName = dbContext.Payees.Find(model.PayeeId).NameStylized,
+                ImportName = model.ImportName
+            };
+        }
+        
+        public static PayeeImportNameModel BindingToEntity(PayeeImportNameBindingModel model, PayeeModel principal)
+        {
+            return new PayeeImportNameModel
+            {
+                PayeeId = principal.Id,
+                ImportName = model.ImportName
+            };
         }
         #endregion
 
@@ -516,13 +574,6 @@ namespace Budget.API.Services
                 .Where(m => m.GetParameters().Length.Equals(2))
                 .Where(m => m.GetParameters()[1].ParameterType == typeof(IApplicationDbContext))
                 .Where(m => modelType.Contains(m.GetParameters()[0].ParameterType.Name));
-                /*
-            var s0 = typeof(ModelMapper);
-            var s1 = s0.GetMethods().Where(m => m.Name == "EntityToView");
-            var s2 = s1.Where(m => m.GetParameters().Length.Equals(2));
-            var s3 = s2.Where(m => m.GetParameters()[1].ParameterType == typeof(IApplicationDbContext));
-            IEnumerable<MethodInfo> methods = s3.Where(m => modelType.Contains(m.GetParameters()[0].ParameterType.Name));
-            */
             if (methods.Count() > 0)
             {
                 return EntityToView(model, dbContext);

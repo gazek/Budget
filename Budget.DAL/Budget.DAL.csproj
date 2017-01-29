@@ -63,16 +63,16 @@
   <ItemGroup>
     <Compile Include="Context\ApplicationDbContext.cs" />
     <Compile Include="Context\IApplicationDbContext.cs" />
-    <Compile Include="Migrations\201701200520057_initial.cs" />
-    <Compile Include="Migrations\201701200520057_initial.Designer.cs">
-      <DependentUpon>201701200520057_initial.cs</DependentUpon>
+    <Compile Include="Migrations\201701290423116_initial.cs" />
+    <Compile Include="Migrations\201701290423116_initial.Designer.cs">
+      <DependentUpon>201701290423116_initial.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\Seed.cs" />
     <Compile Include="Models\AccountModel.cs" />
     <Compile Include="Models\BalanceModel.cs" />
-    <Compile Include="Models\PayeeDefaultDetailsModel.cs" />
-    <Compile Include="Models\ImportNameToPayeeModel.cs" />
+    <Compile Include="Models\PayeeDefaultDetailModel.cs" />
+    <Compile Include="Models\PayeeImportNameModel.cs" />
     <Compile Include="Models\CategoryModel.cs" />
     <Compile Include="Models\FinancialInstitutionModel.cs" />
     <Compile Include="Models\SubCategoryModel.cs" />
@@ -94,8 +94,8 @@
     <Folder Include="Attributes\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201701200520057_initial.resx">
-      <DependentUpon>201701200520057_initial.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201701290423116_initial.resx">
+      <DependentUpon>201701290423116_initial.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

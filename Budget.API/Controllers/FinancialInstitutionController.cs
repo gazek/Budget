@@ -59,7 +59,7 @@ namespace Budget.API.Controllers
         [Route("{id}", Name = "UpdateFI")]
         [HttpPut]
         [Authorize]
-        public override IHttpActionResult Update<FinancialInstitutionUpdateBindingModel>(int id, FinancialInstitutionUpdateBindingModel model)
+        public IHttpActionResult Update(int id, FinancialInstitutionUpdateBindingModel model)
         {
             return base.Update(id, model);
         }

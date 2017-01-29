@@ -260,18 +260,18 @@ namespace Budget.API.Tests.Services
             {
                 Id = 1,
                 Name = "This Thing",
-                ImportNames = new List<ImportNameToPayeeModel>()
+                ImportNames = new List<PayeeImportNameModel>()
                 {
-                    new ImportNameToPayeeModel()
+                    new PayeeImportNameModel()
                     {
                     Id = 1,
                     PayeeId = 1,
                     ImportName = "this"
                     }
                 },
-                DefaultDetails = new List<PayeeDefaultDetailsModel>()
+                DefaultDetails = new List<PayeeDefaultDetailModel>()
                 {
-                    new PayeeDefaultDetailsModel()
+                    new PayeeDefaultDetailModel()
                     {
                         Id = 1,
                         PayeeId = 1
@@ -283,23 +283,23 @@ namespace Budget.API.Tests.Services
             {
                 Id = 2,
                 Name = "That Thing",
-                ImportNames = new List<ImportNameToPayeeModel>()
+                ImportNames = new List<PayeeImportNameModel>()
                 {
-                    new ImportNameToPayeeModel()
+                    new PayeeImportNameModel()
                     {
                     Id = 2,
                     PayeeId = 2,
                     ImportName = "that"
                     }
                 },
-                DefaultDetails = new List<PayeeDefaultDetailsModel>()
+                DefaultDetails = new List<PayeeDefaultDetailModel>()
                 {
-                    new PayeeDefaultDetailsModel()
+                    new PayeeDefaultDetailModel()
                     {
                         Id = 2,
                         PayeeId = 2
                     },
-                    new PayeeDefaultDetailsModel()
+                    new PayeeDefaultDetailModel()
                     {
                         Id = 3,
                         PayeeId = 2

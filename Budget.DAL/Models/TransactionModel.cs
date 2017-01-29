@@ -11,18 +11,19 @@ namespace Budget.DAL.Models
         [Key]
         public int Id { get; set; }
 
-        [Index("IX_AccountIdReferenceValueAndDate", 1, IsUnique = true)]
+        [ForeignKey("Account")]
         [Required]
+        [Index("IX_AccountIdReferenceValueAndDate", 1, IsUnique = true)]
         public int AccountId { get; set; }
 
-        [Index("IX_AccountIdReferenceValueAndDate", 2, IsUnique = true)]
         [Required]
+        [Index("IX_AccountIdReferenceValueAndDate", 2, IsUnique = true)]
         [StringLength(100)]
         // Finncial institution provided transaction reference value/identifier
         public string ReferenceValue { get; set; }
 
-        [Index("IX_AccountIdReferenceValueAndDate", 3, IsUnique = true)]
         [Required]
+        [Index("IX_AccountIdReferenceValueAndDate", 3, IsUnique = true)]
         public DateTime Date { get; set; }
 
         [Required]
@@ -51,14 +52,17 @@ namespace Budget.DAL.Models
 
         public ICollection<TransactionDetailModel> Details { get; set; }
 
-        [ForeignKey("AccountId")]
         [JsonIgnore]
         public AccountModel Account { get; set; }
 
         public TransactionModel()
         {
+            OriginalMemo = string.Empty;
+            Status = TransactionStatus.New;
             LastEditDate = DateTime.Now;
             DateAdded = DateTime.Now;
+            Details = new List<TransactionDetailModel>();
+            CheckNum = -1;
         }
     }
 

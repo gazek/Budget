@@ -24,8 +24,11 @@ namespace Budget.API.Controllers
         [Route("api/Category/{catId}/SubCategory/{id}", Name = "DeleteSubCategory")]
         [HttpDelete]
         [Authorize]
-        public override IHttpActionResult Delete(int id)
+        public IHttpActionResult Delete(int id, int catId)
         {
+            // make sure record being deleted is not uncategorized
+            VerifyName(_dbContext.Categories.Find(catId)?.Name ?? "");
+
             return Delete(id);
         }
 
@@ -34,6 +37,8 @@ namespace Budget.API.Controllers
         [Authorize]
         public IHttpActionResult Create(SubCategoryBindingModel model, int catId)
         {
+            // make sure record being created is not uncategorized
+            VerifyName(_dbContext.Categories.Find(catId)?.Name ?? "");
             // Add CategoryId to model
             model.CategoryId = catId;
             // call base create
@@ -44,6 +49,8 @@ namespace Budget.API.Controllers
         [HttpPut]
         public IHttpActionResult Update(SubCategoryBindingModel model, int id, int catId)
         {
+            // make sure record being updated is not uncategorized
+            VerifyName(_dbContext.Categories.Find(catId)?.Name ?? "");
             // Add CategoryId to model
             model.CategoryId = catId;
             return Update(id, model);
@@ -55,6 +62,16 @@ namespace Budget.API.Controllers
         public override IHttpActionResult Get(int id)
         {
             return base.Get(id);
+        }
+
+        private void VerifyName(string name)
+        {
+            // make sure it is not uncategorized
+            if (name.ToLower().Contains("uncategorized"))
+            {
+                SetErrorResponse(BadRequest("Uncategorized category may not be added, modified or deleted"));
+
+            }
         }
     }
 }

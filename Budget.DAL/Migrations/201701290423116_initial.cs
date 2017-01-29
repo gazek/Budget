@@ -41,18 +41,19 @@ namespace Budget.DAL.Migrations
                 c => new
                     {
                         Id = c.Int(nullable: false, identity: true),
+                        UserId = c.String(nullable: false, maxLength: 128),
                         OfxFid = c.Int(nullable: false),
                         Name = c.String(nullable: false, maxLength: 100),
+                        NameStylized = c.String(nullable: false),
                         OfxUrl = c.String(nullable: false),
                         OfxOrg = c.String(nullable: false, maxLength: 50),
-                        UserId = c.String(nullable: false, maxLength: 128),
                         Username = c.String(nullable: false, maxLength: 50),
                         PasswordHash = c.Binary(nullable: false),
                         CLIENTUID = c.String(),
                     })
                 .PrimaryKey(t => t.Id)
                 .ForeignKey("dbo.AspNetUsers", t => t.UserId, cascadeDelete: true)
-                .Index(t => new { t.OfxFid, t.Name, t.UserId }, unique: true, name: "IX_FIDFINameUserId");
+                .Index(t => new { t.UserId, t.OfxFid, t.Name }, unique: true, name: "IX_FIDFINameUserId");
             
             CreateTable(
                 "dbo.AspNetUsers",
@@ -142,18 +143,18 @@ namespace Budget.DAL.Migrations
                         CategoryId = c.Int(nullable: false),
                         SubCategoryId = c.Int(nullable: false),
                         Amount = c.Decimal(nullable: false, precision: 18, scale: 2),
-                        TransferTransactionId = c.Int(),
+                        TransferMatchId = c.Int(),
                         Memo = c.String(maxLength: 400),
                         LastEditDate = c.DateTime(nullable: false),
                     })
                 .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.CategoryModels", t => t.CategoryId, cascadeDelete: true)
-                .ForeignKey("dbo.PayeeModels", t => t.PayeeId, cascadeDelete: true)
-                .ForeignKey("dbo.SubCategoryModels", t => t.SubCategoryId, cascadeDelete: true)
+                .ForeignKey("dbo.CategoryModels", t => t.CategoryId)
+                .ForeignKey("dbo.PayeeModels", t => t.PayeeId)
+                .ForeignKey("dbo.SubCategoryModels", t => t.SubCategoryId)
                 .ForeignKey("dbo.TransactionModels", t => t.TransactionId, cascadeDelete: true)
-                .ForeignKey("dbo.TransactionModels", t => t.TransferTransactionId)
+                .ForeignKey("dbo.TransactionModels", t => t.TransferMatchId)
                 .Index(t => new { t.TransactionId, t.PayeeId, t.CategoryId, t.SubCategoryId }, unique: true, name: "IX_TransDetailTransPayeeCatSubUnique")
-                .Index(t => t.TransferTransactionId);
+                .Index(t => t.TransferMatchId);
             
             CreateTable(
                 "dbo.CategoryModels",
@@ -162,9 +163,10 @@ namespace Budget.DAL.Migrations
                         Id = c.Int(nullable: false, identity: true),
                         Name = c.String(nullable: false, maxLength: 100),
                         UserId = c.String(nullable: false, maxLength: 128),
+                        NameStylized = c.String(nullable: false),
                     })
                 .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.AspNetUsers", t => t.UserId)
+                .ForeignKey("dbo.AspNetUsers", t => t.UserId, cascadeDelete: true)
                 .Index(t => new { t.Name, t.UserId }, unique: true, name: "IX_NameUsderId");
             
             CreateTable(
@@ -174,9 +176,10 @@ namespace Budget.DAL.Migrations
                         Id = c.Int(nullable: false, identity: true),
                         CategoryId = c.Int(nullable: false),
                         Name = c.String(nullable: false, maxLength: 100),
+                        NameStylized = c.String(nullable: false),
                     })
                 .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.CategoryModels", t => t.CategoryId)
+                .ForeignKey("dbo.CategoryModels", t => t.CategoryId, cascadeDelete: true)
                 .Index(t => new { t.CategoryId, t.Name }, unique: true, name: "IX_CategoryIdName");
             
             CreateTable(
@@ -185,14 +188,15 @@ namespace Budget.DAL.Migrations
                     {
                         Id = c.Int(nullable: false, identity: true),
                         Name = c.String(nullable: false, maxLength: 100),
+                        NameStylized = c.String(nullable: false),
                         UserId = c.String(nullable: false, maxLength: 128),
                     })
                 .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.AspNetUsers", t => t.UserId)
+                .ForeignKey("dbo.AspNetUsers", t => t.UserId, cascadeDelete: true)
                 .Index(t => new { t.Name, t.UserId }, unique: true, name: "IX_NameUserId");
             
             CreateTable(
-                "dbo.PayeeDefaultDetailsModels",
+                "dbo.PayeeDefaultDetailModels",
                 c => new
                     {
                         Id = c.Int(nullable: false, identity: true),
@@ -202,13 +206,13 @@ namespace Budget.DAL.Migrations
                         Allocation = c.Decimal(nullable: false, precision: 18, scale: 2),
                     })
                 .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.CategoryModels", t => t.CategoryId, cascadeDelete: true)
+                .ForeignKey("dbo.CategoryModels", t => t.CategoryId)
                 .ForeignKey("dbo.PayeeModels", t => t.PayeeId, cascadeDelete: true)
-                .ForeignKey("dbo.SubCategoryModels", t => t.SubCategoryId, cascadeDelete: true)
+                .ForeignKey("dbo.SubCategoryModels", t => t.SubCategoryId)
                 .Index(t => new { t.PayeeId, t.CategoryId, t.SubCategoryId }, unique: true, name: "IX_PayeeCatSubCatIds");
             
             CreateTable(
-                "dbo.ImportNameToPayeeModels",
+                "dbo.PayeeImportNameModels",
                 c => new
                     {
                         Id = c.Int(nullable: false, identity: true),
@@ -234,15 +238,15 @@ namespace Budget.DAL.Migrations
         public override void Down()
         {
             DropForeignKey("dbo.AspNetUserRoles", "RoleId", "dbo.AspNetRoles");
-            DropForeignKey("dbo.TransactionDetailModels", "TransferTransactionId", "dbo.TransactionModels");
+            DropForeignKey("dbo.TransactionDetailModels", "TransferMatchId", "dbo.TransactionModels");
             DropForeignKey("dbo.TransactionDetailModels", "TransactionId", "dbo.TransactionModels");
             DropForeignKey("dbo.TransactionDetailModels", "SubCategoryId", "dbo.SubCategoryModels");
             DropForeignKey("dbo.TransactionDetailModels", "PayeeId", "dbo.PayeeModels");
             DropForeignKey("dbo.PayeeModels", "UserId", "dbo.AspNetUsers");
-            DropForeignKey("dbo.ImportNameToPayeeModels", "PayeeId", "dbo.PayeeModels");
-            DropForeignKey("dbo.PayeeDefaultDetailsModels", "SubCategoryId", "dbo.SubCategoryModels");
-            DropForeignKey("dbo.PayeeDefaultDetailsModels", "PayeeId", "dbo.PayeeModels");
-            DropForeignKey("dbo.PayeeDefaultDetailsModels", "CategoryId", "dbo.CategoryModels");
+            DropForeignKey("dbo.PayeeImportNameModels", "PayeeId", "dbo.PayeeModels");
+            DropForeignKey("dbo.PayeeDefaultDetailModels", "SubCategoryId", "dbo.SubCategoryModels");
+            DropForeignKey("dbo.PayeeDefaultDetailModels", "PayeeId", "dbo.PayeeModels");
+            DropForeignKey("dbo.PayeeDefaultDetailModels", "CategoryId", "dbo.CategoryModels");
             DropForeignKey("dbo.TransactionDetailModels", "CategoryId", "dbo.CategoryModels");
             DropForeignKey("dbo.CategoryModels", "UserId", "dbo.AspNetUsers");
             DropForeignKey("dbo.SubCategoryModels", "CategoryId", "dbo.CategoryModels");
@@ -254,12 +258,12 @@ namespace Budget.DAL.Migrations
             DropForeignKey("dbo.AspNetUserClaims", "UserId", "dbo.AspNetUsers");
             DropForeignKey("dbo.BalanceModels", "AccountId", "dbo.AccountModels");
             DropIndex("dbo.AspNetRoles", "RoleNameIndex");
-            DropIndex("dbo.ImportNameToPayeeModels", "IX_PayeeImportName");
-            DropIndex("dbo.PayeeDefaultDetailsModels", "IX_PayeeCatSubCatIds");
+            DropIndex("dbo.PayeeImportNameModels", "IX_PayeeImportName");
+            DropIndex("dbo.PayeeDefaultDetailModels", "IX_PayeeCatSubCatIds");
             DropIndex("dbo.PayeeModels", "IX_NameUserId");
             DropIndex("dbo.SubCategoryModels", "IX_CategoryIdName");
             DropIndex("dbo.CategoryModels", "IX_NameUsderId");
-            DropIndex("dbo.TransactionDetailModels", new[] { "TransferTransactionId" });
+            DropIndex("dbo.TransactionDetailModels", new[] { "TransferMatchId" });
             DropIndex("dbo.TransactionDetailModels", "IX_TransDetailTransPayeeCatSubUnique");
             DropIndex("dbo.TransactionModels", "IX_AccountIdReferenceValueAndDate");
             DropIndex("dbo.AspNetUserRoles", new[] { "RoleId" });
@@ -271,8 +275,8 @@ namespace Budget.DAL.Migrations
             DropIndex("dbo.BalanceModels", "IX_AccountIdAsOfDate");
             DropIndex("dbo.AccountModels", "IX_UserFinancialInstitutionAccountNumber");
             DropTable("dbo.AspNetRoles");
-            DropTable("dbo.ImportNameToPayeeModels");
-            DropTable("dbo.PayeeDefaultDetailsModels");
+            DropTable("dbo.PayeeImportNameModels");
+            DropTable("dbo.PayeeDefaultDetailModels");
             DropTable("dbo.PayeeModels");
             DropTable("dbo.SubCategoryModels");
             DropTable("dbo.CategoryModels");

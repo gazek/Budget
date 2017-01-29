@@ -354,8 +354,8 @@ namespace Budget.API.Tests.Controllers
                 Id = 99,
                 UserId = user.Identity.GetUserId(),
                 Name = "Unassigned",
-                ImportNames = new List<ImportNameToPayeeModel>(),
-                DefaultDetails = new List<PayeeDefaultDetailsModel>()
+                ImportNames = new List<PayeeImportNameModel>(),
+                DefaultDetails = new List<PayeeDefaultDetailModel>()
             };
             var unCat = new CategoryModel()
             {

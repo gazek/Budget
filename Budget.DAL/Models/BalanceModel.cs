@@ -11,6 +11,7 @@ namespace Budget.DAL.Models
         [Display(Name = "Balance ID")]
         public int Id { get; set; }
 
+        [ForeignKey("Account")]
         [Required]
         [Index("IX_AccountIdAsOfDate", 1, IsUnique = true)]
         public int AccountId { get; set; }
@@ -23,7 +24,6 @@ namespace Budget.DAL.Models
         [Required]
         public decimal Amount { get; set; }
 
-        [ForeignKey("AccountId")]
         [JsonIgnore]
         public virtual AccountModel Account { get; set; }
 

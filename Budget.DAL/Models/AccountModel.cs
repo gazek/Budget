@@ -10,6 +10,7 @@ namespace Budget.DAL.Models
         [Key]
         public int Id { get; set; }
 
+        [ForeignKey("FinancialInstitution")]
         [Required]
         [Index("IX_UserFinancialInstitutionAccountNumber", 2, IsUnique = true)]
         [Display(Name = "Financial Institution ID")]
@@ -41,9 +42,16 @@ namespace Budget.DAL.Models
 
         public ICollection<BalanceModel> BalanceHistory { get; set; }
 
-        [ForeignKey("FinancialInstitutionId")]
         [JsonIgnore]
         public virtual FinancialInstitutionModel FinancialInstitution { get; set; }
+
+        public AccountModel()
+        {
+            Transactions = new List<TransactionModel>();
+            BalanceHistory = new List<BalanceModel>();
+            RoutingNumber = 0;
+            Name = string.Empty;
+        }
     }
 
     public enum AccountType

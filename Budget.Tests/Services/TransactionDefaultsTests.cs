@@ -261,28 +261,28 @@ namespace Budget.API.Tests.Services
 
         private Mock<IApplicationDbContext> MakeContext(IPrincipal user)
         {
-            var detail1 = new PayeeDefaultDetailsModel()
+            var detail1 = new PayeeDefaultDetailModel()
             {
                 PayeeId = 1,
                 CategoryId = 11,
                 SubCategoryId = 10,
                 Allocation = 100
             };
-            var detail2 = new PayeeDefaultDetailsModel()
+            var detail2 = new PayeeDefaultDetailModel()
             {
                 PayeeId = 2,
                 CategoryId = 22,
                 SubCategoryId = 20,
                 Allocation = 100
             };
-            var detail41 = new PayeeDefaultDetailsModel()
+            var detail41 = new PayeeDefaultDetailModel()
             {
                 PayeeId = 4,
                 CategoryId = 44,
                 SubCategoryId = 40,
                 Allocation = 75
             };
-            var detail42 = new PayeeDefaultDetailsModel()
+            var detail42 = new PayeeDefaultDetailModel()
             {
                 PayeeId = 4,
                 CategoryId = 44,
@@ -294,54 +294,54 @@ namespace Budget.API.Tests.Services
                 Id = 1,
                 UserId = user.Identity.GetUserId(),
                 Name = "Foo Bar",
-                ImportNames = new List<ImportNameToPayeeModel>()
+                ImportNames = new List<PayeeImportNameModel>()
                 {
-                    new ImportNameToPayeeModel()
+                    new PayeeImportNameModel()
                     {
                         PayeeId = 1,
                         ImportName = "FooBar"
                     },
-                    new ImportNameToPayeeModel()
+                    new PayeeImportNameModel()
                     {
                         PayeeId = 1,
                         ImportName = "Foo Bar"
                     }
                 },
-                DefaultDetails = new List<PayeeDefaultDetailsModel>() { detail1 }
+                DefaultDetails = new List<PayeeDefaultDetailModel>() { detail1 }
             };
             var payee2 = new PayeeModel()
             {
                 Id = 2,
                 UserId = user.Identity.GetUserId(),
                 Name = "otherone",
-                ImportNames = new List<ImportNameToPayeeModel>()
+                ImportNames = new List<PayeeImportNameModel>()
                 {
-                    new ImportNameToPayeeModel()
+                    new PayeeImportNameModel()
                     {
                         PayeeId = 1,
                         ImportName = "other payee"
                     },
-                    new ImportNameToPayeeModel()
+                    new PayeeImportNameModel()
                     {
                         PayeeId = 1,
                         ImportName = "other1"
                     }
                 },
-                DefaultDetails = new List<PayeeDefaultDetailsModel>() { detail2 }
+                DefaultDetails = new List<PayeeDefaultDetailModel>() { detail2 }
             };
             var payee3 = new PayeeModel()
             {
                 Id = 3,
                 UserId = Guid.NewGuid().ToString(),
                 Name = "Foo Bar",
-                ImportNames = new List<ImportNameToPayeeModel>()
+                ImportNames = new List<PayeeImportNameModel>()
                 {
-                    new ImportNameToPayeeModel()
+                    new PayeeImportNameModel()
                     {
                         PayeeId = 1,
                         ImportName = "FooBar"
                     },
-                    new ImportNameToPayeeModel()
+                    new PayeeImportNameModel()
                     {
                         PayeeId = 1,
                         ImportName = "Foo Bar"
@@ -353,38 +353,38 @@ namespace Budget.API.Tests.Services
                 Id = 3,
                 UserId = user.Identity.GetUserId(),
                 Name = "FooBar2",
-                ImportNames = new List<ImportNameToPayeeModel>()
+                ImportNames = new List<PayeeImportNameModel>()
                 {
-                    new ImportNameToPayeeModel()
+                    new PayeeImportNameModel()
                     {
                         PayeeId = 1,
                         ImportName = "Foobar2"
                     }
                 },
-                DefaultDetails = new List<PayeeDefaultDetailsModel>() { detail41, detail42 }
+                DefaultDetails = new List<PayeeDefaultDetailModel>() { detail41, detail42 }
             };
             var payee5 = new PayeeModel()
             {
                 Id = 3,
                 UserId = user.Identity.GetUserId(),
                 Name = "no details",
-                ImportNames = new List<ImportNameToPayeeModel>()
+                ImportNames = new List<PayeeImportNameModel>()
                 {
-                    new ImportNameToPayeeModel()
+                    new PayeeImportNameModel()
                     {
                         PayeeId = 1,
                         ImportName = "no details"
                     }
                 },
-                DefaultDetails = new List<PayeeDefaultDetailsModel>()
+                DefaultDetails = new List<PayeeDefaultDetailModel>()
             };
             var unPayee = new PayeeModel()
             {
                 Id = 99,
                 UserId = user.Identity.GetUserId(),
                 Name = "Unassigned",
-                ImportNames = new List<ImportNameToPayeeModel>(),
-                DefaultDetails = new List<PayeeDefaultDetailsModel>()
+                ImportNames = new List<PayeeImportNameModel>(),
+                DefaultDetails = new List<PayeeDefaultDetailModel>()
             };
             var unCat = new CategoryModel()
             {

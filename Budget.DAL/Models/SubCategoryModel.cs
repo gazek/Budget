@@ -10,6 +10,7 @@ namespace Budget.DAL.Models
         [Display(Name = "Subcategory ID")]
         public int Id { get; set; }
 
+        [ForeignKey("Category")]
         [Required]
         [Index("IX_CategoryIdName", 1, IsUnique = true)]
         public int CategoryId { get; set; }
@@ -19,7 +20,9 @@ namespace Budget.DAL.Models
         [StringLength(100)]
         public string Name { get; set; }
 
-        [ForeignKey("CategoryId")]
+        [Required]
+        public string NameStylized { get; set; }
+
         [JsonIgnore]
         public virtual CategoryModel Category { get; set; }
     }

@@ -149,7 +149,10 @@ namespace Budget.API.Controllers
                 try
                 {
                     int count = importer.Commit();
-                    return Ok(importer.Transactions.OrderBy(t => t.Date).ToList());
+                    return Ok(importer.Transactions
+                        .Select(t => ModelMapper.EntityToView(t, _dbContext))
+                        .OrderBy(t => t.Date)
+                        .ToList());
                 }
                 catch (DbUpdateException ex)
                 {

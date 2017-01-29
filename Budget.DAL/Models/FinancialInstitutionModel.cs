@@ -13,16 +13,25 @@ namespace Budget.DAL.Models
         [Display(Name = "Financial Institution ID")]
         public int Id { get; set; }
 
+        [ForeignKey("User")]
         [Required]
         [Index("IX_FIDFINameUserId", 1, IsUnique = true)]
+        [Display(Name = "User ID")]
+        public string UserId { get; set; }
+
+        [Required]
+        [Index("IX_FIDFINameUserId", 2, IsUnique = true)]
         [Display(Name = "OFX FID Attribute")]
         public int OfxFid { get; set; }
 
         [Required]
-        [Index("IX_FIDFINameUserId", 2, IsUnique = true)]
+        [Index("IX_FIDFINameUserId", 3, IsUnique = true)]
         [Display(Name = "Financial Institution Name")]
         [StringLength(100)]
         public string Name { get; set; }
+
+        [Required]
+        public string NameStylized { get; set; }
 
         [Required]
         [Display(Name = "OFX URL")]
@@ -35,11 +44,6 @@ namespace Budget.DAL.Models
         public string OfxOrg { get; set; }
 
         [Required]
-        [Index("IX_FIDFINameUserId", 3, IsUnique = true)]
-        [Display(Name = "User ID")]
-        public string UserId { get; set; }
-
-        [Required]
         [Display(Name = "Financial Institution Login Username")]
         [StringLength(50)]
         public string Username { get; set; }
@@ -49,12 +53,17 @@ namespace Budget.DAL.Models
 
         public ICollection<AccountModel> Accounts {get; set;}
 
-        [ForeignKey("UserId")]
         [JsonIgnore]
         public virtual ApplicationUser User { get; set; }
 
         // User override of default value or forced inclusion of OFX Fields
         // null or empty string will cause default value to be used
         public string CLIENTUID { get; set; }
+
+        public FinancialInstitutionModel()
+        {
+            Accounts = new List<AccountModel>();
+            CLIENTUID = string.Empty;
+        }
     }
 }

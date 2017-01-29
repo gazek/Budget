@@ -16,15 +16,13 @@ namespace Budget.Tests.Services
                 RequestType = OFXRequestConfigRequestType.Statement,
                 Username = "fakeuser",
                 Password = "fakepass",
-                OfxOrg = "First Tech Federal Credit Union",
-                OfxFid = 3169,
-                RoutingNumber = 321180379,
+                URL = new Uri("https://ofx.chase.com"),
+                OfxOrg = "B1",
+                OfxFid = 10898,
                 AccountNumber = "1234567890",
                 AccountType = OFXRequestConfigAccountType.SAVINGS,
                 StartDate = new DateTime(2016, 9, 1),
                 EndDate = new DateTime(2016, 9, 30),
-                URL = new Uri("https://ofx.firsttechfed.com"),
-                //ClientUID = new Guid("94f92863-15c1-4874-9fe5-0c84351ac0c2")
             };
             OFXRequestBuilder requestBuilder = new OFXRequestBuilder(config);
             OFXRequestor request = new OFXRequestor(requestBuilder);

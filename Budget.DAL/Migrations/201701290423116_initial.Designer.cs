@@ -13,7 +13,7 @@ namespace Budget.DAL.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201701200520057_initial"; }
+            get { return "201701290423116_initial"; }
         }
         
         string IMigrationMetadata.Source

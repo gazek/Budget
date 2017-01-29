@@ -27,22 +27,10 @@ namespace Budget.API.Controllers
         [Authorize]
         public override IHttpActionResult Delete(int id)
         {
-            // look for record
-            // check record exists
-            // verify user is authorized to access record
-            GetRecordAndIsAuthorized(id);
+            // make sure record being deleted is not uncategorized
+            VerifyName(_dbContext.Categories.Find(id)?.Name ?? "");
 
-            // make sure it is not uncategorized
-            VerifyName(_record?.Name ?? "");
-
-            // delete record if not referenced in other tables
-            DeleteEntityFromContext(id);
-
-            // commit changes and check result
-            CommitChanges();
-
-            // return response
-            return _requestIsOk ? Ok() : _errorResponse;
+            return Delete(id);
         }
 
         [Route("", Name = "CreateCategory")]
@@ -59,8 +47,11 @@ namespace Budget.API.Controllers
         [HttpPut]
         public IHttpActionResult Update(int id, CategoryBindingModel model)
         {
-            // make sure it is not uncategorized
+            // make sure new name is not uncategorized
             VerifyName(model?.Name ?? "");
+            // make sure record being updated is not uncategorized
+            VerifyName(_dbContext.Categories.Find(id).Name ?? "");
+
             return Update<CategoryBindingModel>(id, model);
         }
 

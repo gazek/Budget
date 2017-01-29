@@ -74,7 +74,7 @@ namespace Budget.API.Services
             // all the payee's rename defintions looking for a match
             foreach (PayeeModel p in allPayees)
             {
-                foreach (ImportNameToPayeeModel i in p.ImportNames)
+                foreach (PayeeImportNameModel i in p.ImportNames)
                 {
                     if (Regex.IsMatch(originalPayeeName, i.ImportName, RegexOptions.IgnoreCase))
                     {
@@ -94,7 +94,7 @@ namespace Budget.API.Services
             List<TransactionDetailModel> result = new List<TransactionDetailModel>();
 
             // walk across all payee's default details
-            foreach (PayeeDefaultDetailsModel d in payee.DefaultDetails)
+            foreach (PayeeDefaultDetailModel d in payee.DefaultDetails)
             {
                 // add fields which do not require specific transaction info
                 TransactionDetailModel detail = new TransactionDetailModel()

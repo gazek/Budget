@@ -16,14 +16,24 @@ namespace Budget.DAL.Models
         [StringLength(100)]
         public string Name { get; set; }
 
+        [ForeignKey("User")]
         [Required]
         [Index("IX_NameUsderId", 2, IsUnique = true)]
         public string UserId { get; set; }
 
+        [Required]
+        public string NameStylized { get; set; }
+
         public ICollection<SubCategoryModel> SubCategories { get; set; }
 
-        [ForeignKey("UserId")]
         [JsonIgnore]
         public virtual ApplicationUser User { get; set; }
+
+        public CategoryModel()
+        {
+            SubCategories = new List<SubCategoryModel>();
+        }
     }
+
+    
 }

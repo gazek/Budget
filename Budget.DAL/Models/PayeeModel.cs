@@ -18,16 +18,25 @@ namespace Budget.DAL.Models
         public string Name { get; set; }
 
         [Required]
+        public string NameStylized { get; set; }
+
+        [ForeignKey("User")]
+        [Required]
         [Index("IX_NameUserId", 2, IsUnique = true)]
         [Display(Name = "User ID")]
         public string UserId { get; set; }
 
-        public ICollection<PayeeDefaultDetailsModel> DefaultDetails { get; set; }
+        public ICollection<PayeeDefaultDetailModel> DefaultDetails { get; set; }
 
-        public ICollection<ImportNameToPayeeModel> ImportNames { get; set; }
+        public ICollection<PayeeImportNameModel> ImportNames { get; set; }
 
-        [ForeignKey("UserId")]
         [JsonIgnore]
         public virtual ApplicationUser User { get; set; }
+
+        public PayeeModel()
+        {
+            DefaultDetails = new List<PayeeDefaultDetailModel>();
+            ImportNames = new List<PayeeImportNameModel>();
+        }
     }
 }

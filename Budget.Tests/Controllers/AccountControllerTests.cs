@@ -272,35 +272,22 @@ namespace Budget.API.Tests.Controllers
                 user = UserBuilder.CreateUser();
             }
 
+            // create financial institutions
+            var fi1 = new FinancialInstitutionModel() { Id = 1, UserId = user.Identity.GetUserId() };
+            var fi2 = new FinancialInstitutionModel() { Id = 2, UserId = "id2" };
+            var fi3 = new FinancialInstitutionModel() { Id = 3, UserId = "id3" };
+            var fiData = new List<FinancialInstitutionModel>() { fi1, fi2, fi3 };
+
             // create data set
-            var entityWithId1 = ModelMapper.BindingToEntity(GetValidBindingModel(), user);
+            var entityWithId1 = ModelMapper.BindingToEntity(GetValidBindingModel(), fi1);
             entityWithId1.Id = 1;
-            var entityWithId2 = ModelMapper.BindingToEntity(GetValidBindingModel(), user);
+            var entityWithId2 = ModelMapper.BindingToEntity(GetValidBindingModel(), fi1);
             entityWithId2.Id = 2;
-            var entityWithId3 = ModelMapper.BindingToEntity(GetValidBindingModel(), user);
+            var entityWithId3 = ModelMapper.BindingToEntity(GetValidBindingModel(), fi1);
             entityWithId2.Id = 3;
             var data = new List<AccountModel>
             {
                 entityWithId1, entityWithId2, entityWithId3
-            };
-
-            var fiData = new List<FinancialInstitutionModel>()
-            {
-                new FinancialInstitutionModel()
-                {
-                    Id = 1,
-                    UserId = user.Identity.GetUserId()
-                },
-                new FinancialInstitutionModel()
-                {
-                    Id = 2,
-                    UserId = "id2"
-                },
-                new FinancialInstitutionModel()
-                {
-                    Id = 3,
-                    UserId = "id3"
-                }
             };
 
             // mock context
