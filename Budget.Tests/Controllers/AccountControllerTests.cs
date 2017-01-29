@@ -140,7 +140,7 @@ namespace Budget.API.Tests.Controllers
             controller.User = user;
 
             // Act
-            IHttpActionResult result = controller.GetAll();
+            IHttpActionResult result = controller.GetAllByUser();
             var castResult = (OkNegotiatedContentResult<List<object>>)result;
 
             // Assert
@@ -159,7 +159,7 @@ namespace Budget.API.Tests.Controllers
             controller.User = user;
 
             // Act
-            IHttpActionResult result = controller.GetAll();
+            IHttpActionResult result = controller.GetAllByUser();
             var castResult = (OkNegotiatedContentResult<List<object>>)result;
 
             // Assert
@@ -293,6 +293,9 @@ namespace Budget.API.Tests.Controllers
             // mock context
             var contextMockBuilder = new MockDbContext()
                 .WithData(fiData)
+                .SetupFind(1, fi1)
+                .SetupFind(2, fi2)
+                .SetupFind(3, fi3)
                 .WithData(data)
                 .SetupAdd(entityWithId1, entityWithId1)
                 .SetupFind(1, entityWithId1)

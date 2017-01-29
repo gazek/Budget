@@ -488,15 +488,15 @@ namespace Budget.API.Controllers
 
         protected void ParseDateRange(string begin, string end, out DateTime beginDate, out DateTime endDate)
         {
-            // set to full range
-            if (begin == "" && end == "")
-            {
-                beginDate = DateTime.MinValue;
-                endDate = DateTime.Today;
-            }
-
             // parse begin date
-            DateTime.TryParse(begin, out beginDate);
+            if (begin == "")
+            {
+                beginDate = DateTime.Parse("01-01-2000");
+            }
+            else
+            {
+                DateTime.TryParse(begin, out beginDate);
+            }
 
             // parse end date
             if (end == "")
@@ -521,6 +521,11 @@ namespace Budget.API.Controllers
             if (endDate == DateTime.MinValue && beginDate == DateTime.MinValue)
             {
                 SetErrorResponse(BadRequest("Invalid begin and end dates"));
+            }
+
+            if (endDate < beginDate)
+            {
+                SetErrorResponse(BadRequest("End date must be later than begin date"));
             }
         }
 

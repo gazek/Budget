@@ -14,6 +14,7 @@ namespace Budget.API.Tests.FakesAndMocks
         public Mock<DbSet<AccountModel>> Accounts { get; set; }
         public Mock<DbSet<BalanceModel>> Balances { get; set; }
         public Mock<DbSet<CategoryModel>> Categories { get; set; }
+        public Mock<DbSet<SubCategoryModel>> SubCategories { get; set; }
         public Mock<DbSet<FinancialInstitutionModel>> FinancialInstitutions { get; set; }
         public Mock<DbSet<PayeeModel>> Payees { get; set; }
         public Mock<DbSet<TransactionModel>> Transactions { get; set; }
@@ -37,6 +38,7 @@ namespace Budget.API.Tests.FakesAndMocks
             Context.SetupGet(x => x.Accounts).Returns(Accounts?.Object);
             Context.SetupGet(x => x.Balances).Returns(Balances?.Object);
             Context.SetupGet(x => x.Categories).Returns(Categories?.Object);
+            Context.SetupGet(x => x.SubCategories).Returns(SubCategories?.Object);
             Context.SetupGet(x => x.FinancialInstitutions).Returns(FinancialInstitutions?.Object);
             Context.SetupGet(x => x.Payees).Returns(Payees?.Object);
             Context.SetupGet(x => x.Transactions).Returns(Transactions?.Object);
@@ -96,6 +98,14 @@ namespace Budget.API.Tests.FakesAndMocks
             return this;
         }
 
+        public MockDbContext WithData(List<SubCategoryModel> data)
+        {
+            SubCategories = new MockDbSet<SubCategoryModel>()
+                .UsingDataSet(data.AsQueryable())
+                .Mock();
+            return this;
+        }
+
         public MockDbContext SetupAdd(FinancialInstitutionModel add, FinancialInstitutionModel returns)
         {
             FinancialInstitutions.Setup(x => x.Add(It.Is<FinancialInstitutionModel>(fi => fi.OfxFid == add.OfxFid))).Returns(returns);
@@ -117,6 +127,18 @@ namespace Budget.API.Tests.FakesAndMocks
         public MockDbContext SetupFind(int id, AccountModel returns)
         {
             Accounts.Setup(x => x.Find(id)).Returns(returns);
+            return this;
+        }
+
+        public MockDbContext SetupFind(int id, CategoryModel returns)
+        {
+            Categories.Setup(x => x.Find(id)).Returns(returns);
+            return this;
+        }
+
+        public MockDbContext SetupFind(int id, SubCategoryModel returns)
+        {
+            SubCategories.Setup(x => x.Find(id)).Returns(returns);
             return this;
         }
 

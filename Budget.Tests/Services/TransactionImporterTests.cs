@@ -225,8 +225,10 @@ namespace Budget.API.Tests.Services
             {
                 Id = 13,
                 Transactions = trans,
+                FinancialInstitutionId = 99,
                 FinancialInstitution = new FinancialInstitutionModel()
                 {
+                    Id = 99,
                     UserId = user.Id
                 }
             };
@@ -246,6 +248,8 @@ namespace Budget.API.Tests.Services
             var contextMockBuilder = new MockDbContext()
                 .WithData(trans)
                 .SetupFind(1, trans1)
+                .WithData(new List<FinancialInstitutionModel>() { account.FinancialInstitution })
+                .SetupFind(99, account.FinancialInstitution)
                 .WithData(new List<AccountModel>() { account })
                 .SetupFind(13, account)
                 .WithData(new List<PayeeModel>())

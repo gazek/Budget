@@ -139,6 +139,8 @@ namespace Budget.API.Tests.Controllers
 
             // mock context
             var contextMockBuilder = new MockDbContext()
+                .WithData(fiData)
+                .SetupFind(1, fi1)
                 .WithData(data)
                 .WithData(GetBalanceList())
                 .SetupAdd(entityWithId1, entityWithId1)

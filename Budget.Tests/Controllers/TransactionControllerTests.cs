@@ -351,22 +351,30 @@ namespace Budget.API.Tests.Controllers
 
             var unPayee = new PayeeModel()
             {
-                Id = 99,
+                Id = 1,
                 UserId = user.Identity.GetUserId(),
                 Name = "Unassigned",
+                NameStylized = "Unassigned",
                 ImportNames = new List<PayeeImportNameModel>(),
                 DefaultDetails = new List<PayeeDefaultDetailModel>()
             };
+            
+            var unCatSub = new SubCategoryModel()
+            {
+                Id = 1,
+                Name = "Uncategorized",
+                CategoryId = 1,
+                NameStylized = "Uncategorized"
+            };
             var unCat = new CategoryModel()
             {
+                Id = 1,
                 Name = "Uncategorized",
+                NameStylized = "Uncategorized",
                 UserId = user.Identity.GetUserId(),
                 SubCategories = new List<SubCategoryModel>()
                 {
-                    new SubCategoryModel()
-                    {
-                        Name = "Uncategorized"
-                    }
+                    unCatSub
                 }
             };
 
@@ -374,13 +382,21 @@ namespace Budget.API.Tests.Controllers
             var contextMockBuilder = new MockDbContext()
                 .WithData(new List<PayeeModel>() { unPayee })
                 .WithData(new List<CategoryModel>() { unCat })
+                .WithData(new List<SubCategoryModel>() { unCatSub })
                 .WithData(new List<TransactionModel>() { trans1, trans2, trans3 })
                 .WithData(new List<AccountModel>() { account1, account2 })
+                .WithData(new List<FinancialInstitutionModel>() { fi1, fi2, fi3 })
                 .SetupFind(1, account1)
                 .SetupFind(2, account2)
                 .SetupFind(1, trans1)
                 .SetupFind(2, trans2)
                 .SetupFind(3, trans3)
+                .SetupFind(1, fi1)
+                .SetupFind(2, fi2)
+                .SetupFind(3, fi3)
+                .SetupFind(1, unCat)
+                .SetupFind(1, unCatSub)
+                .SetupFind(1, unPayee)
                 .Finalize();
 
             return contextMockBuilder.Context;

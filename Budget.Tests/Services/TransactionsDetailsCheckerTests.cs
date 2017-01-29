@@ -79,6 +79,20 @@ namespace Budget.API.Tests.Services
             Assert.IsFalse(checker.DetailsKeysAreUnique);
         }
 
+        private AccountModel CreateAccount(string userId)
+        {
+            return new AccountModel()
+            {
+                Id = 11,
+                FinancialInstitutionId = 99,
+                FinancialInstitution = new FinancialInstitutionModel()
+                {
+                    Id = 99,
+                    UserId = userId
+                }
+            };
+        }
+
         private TransactionModel GetTransactionDetailsOk(string userId)
         {
             var detail1 = new TransactionDetailModel()
@@ -99,15 +113,10 @@ namespace Budget.API.Tests.Services
 
             var trans = new TransactionModel()
             {
+                AccountId = CreateAccount(userId).Id,
                 Amount = 12.34m,
                 Details = details,
-                Account = new AccountModel()
-                {
-                    FinancialInstitution = new FinancialInstitutionModel()
-                    {
-                        UserId = userId
-                    }
-                }
+                Account = CreateAccount(userId)
             };
 
             return trans;
@@ -144,10 +153,16 @@ namespace Budget.API.Tests.Services
                 }
             };
 
+            var account = CreateAccount(user.Identity.GetUserId());
+            var financialInstitution = account.FinancialInstitution;
             // mock context
             var contextMockBuilder = new MockDbContext()
+                .WithData(new List<AccountModel>() { account })
+                .WithData(new List<FinancialInstitutionModel>() { financialInstitution })
                 .WithData(new List<PayeeModel>() { unPayee })
                 .WithData(new List<CategoryModel>() { unCat })
+                .SetupFind(account.Id, account)
+                .SetupFind(financialInstitution.Id, financialInstitution)
                 .Finalize();
 
             return contextMockBuilder.Context;

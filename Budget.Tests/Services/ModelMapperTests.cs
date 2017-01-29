@@ -43,7 +43,7 @@ namespace Budget.Tests.Services
             // Assert
             Assert.IsInstanceOfType(result, typeof(FinancialInstitutionModel));
             Assert.AreEqual(0, result.Id);
-            Assert.AreEqual(model.Name, result.Name);
+            Assert.AreEqual(model.Name, result.NameStylized);
             Assert.AreEqual(model.OfxFid, result.OfxFid);
             Assert.AreEqual(model.OfxUrl, result.OfxUrl);
             Assert.AreEqual(model.OfxOrg, result.OfxOrg);
@@ -76,7 +76,7 @@ namespace Budget.Tests.Services
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(FinancialInstitutionModel));
-            Assert.AreEqual(model.Name, result.Name);
+            Assert.AreEqual(model.Name, result.NameStylized);
             Assert.AreEqual(model.OfxFid, result.OfxFid);
             Assert.AreEqual(model.OfxUrl, result.OfxUrl);
             Assert.AreEqual(model.OfxOrg, result.OfxOrg);
@@ -110,12 +110,12 @@ namespace Budget.Tests.Services
             // Assert
             Assert.IsInstanceOfType(result, typeof(FinancialInstitutionViewModel));
             Assert.AreEqual(model.Id, result.Id);
-            Assert.AreEqual(model.Name, result.Name);
+            Assert.AreEqual(model.NameStylized, result.Name);
             Assert.AreEqual(model.OfxFid, result.OfxFid);
             Assert.AreEqual(model.OfxUrl, result.OfxUrl);
             Assert.AreEqual(model.OfxOrg, result.OfxOrg);
             Assert.AreEqual(model.Username, result.Username);
-            Assert.IsNull(result.CLIENTUID);
+            Assert.AreEqual(string.Empty, result.CLIENTUID);
         }
 
         [TestMethod]
@@ -141,7 +141,7 @@ namespace Budget.Tests.Services
             // Assert
             Assert.IsInstanceOfType(result, typeof(FinancialInstitutionViewModel));
             Assert.AreEqual(model.Id, result.Id);
-            Assert.AreEqual(model.Name, result.Name);
+            Assert.AreEqual(model.NameStylized, result.Name);
             Assert.AreEqual(model.OfxFid, result.OfxFid);
             Assert.AreEqual(model.OfxUrl, result.OfxUrl);
             Assert.AreEqual(model.OfxOrg, result.OfxOrg);
