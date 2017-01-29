@@ -188,6 +188,9 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\BalanceController.cs" />
+    <Compile Include="Controllers\PayeeController.cs" />
+    <Compile Include="Controllers\PayeeDefaultDetailController.cs" />
+    <Compile Include="Controllers\PayeeImportNameController.cs" />
     <Compile Include="Controllers\SubCategoryController.cs" />
     <Compile Include="Controllers\CategoryController.cs" />
     <Compile Include="Controllers\ControllerBase.cs" />
@@ -202,6 +205,12 @@
     <Compile Include="Models\CategoryViewModels.cs" />
     <Compile Include="Models\FinancialInstitutionViewModels.cs" />
     <Compile Include="Models\FinancialInstitutionBindingModels.cs" />
+    <Compile Include="Models\PayeeBindingModels.cs" />
+    <Compile Include="Models\PayeeDefaultDetailBindingModels.cs" />
+    <Compile Include="Models\PayeeDefaultDetailViewModels.cs" />
+    <Compile Include="Models\PayeeImportNameBindingModels.cs" />
+    <Compile Include="Models\PayeeImportNameViewModels.cs" />
+    <Compile Include="Models\PayeeViewModels.cs" />
     <Compile Include="Models\SubCategoryBindingModels.cs" />
     <Compile Include="Models\SubCategoryViewModels.cs" />
     <Compile Include="Models\TransactionDetailBindingModels.cs" />
