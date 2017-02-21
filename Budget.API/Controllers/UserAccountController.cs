@@ -173,17 +173,20 @@ namespace Budget.API.Controllers
             // create default category and payee
             PayeeModel unAssigned = new PayeeModel()
             {
-                Name = "Unassigned",
+                Name = "unassigned",
+                NameStylized = "Unassigned",
                 UserId = user.Id
             };
             CategoryModel uncat = new CategoryModel()
             {
-                Name = "Uncategorized",
+                Name = "uncategorized",
+                NameStylized = "Uncategorized",
                 SubCategories = new List<SubCategoryModel>()
                 {
                     new SubCategoryModel()
                     {
-                        Name = "Uncategorized"
+                        Name = "uncategorized",
+                        NameStylized = "Uncategorized",
                     }
                 },
                 UserId = user.Id
