@@ -63,7 +63,7 @@ namespace Budget.API.Controllers
         }
 
         // get all accounts by Fi ID
-        [Route("FinancialInstitution/{fiId}/Account/", Name = "GetAllAccountsByFI")]
+        [Route("FinancialInstitution/{fiId}/Accounts/", Name = "GetAllAccountsByFI")]
         [HttpGet]
         [Authorize]
         public IHttpActionResult GetAllByFI(int fiId)
@@ -74,7 +74,7 @@ namespace Budget.API.Controllers
 
             // get related entities
             var include = new List<string>();
-            //include.Add("Transactions");
+            include.Add("BalanceHistory");
 
             // verify existence of account
             // and that user is authorized to access it
