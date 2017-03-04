@@ -215,6 +215,7 @@
     <Compile Include="Models\SubCategoryViewModels.cs" />
     <Compile Include="Models\TransactionDetailBindingModels.cs" />
     <Compile Include="Models\TransactionDetailViewModels.cs" />
+    <Compile Include="Models\TransactionSummaryViewModels.cs" />
     <Compile Include="Models\TransactionViewModels.cs" />
     <Compile Include="Models\UserAccountBindingModels.cs" />
     <Compile Include="Models\UserAccountViewModels.cs" />

@@ -48,6 +48,30 @@ namespace Budget.API.Services
         {
             BalanceModel bal = model.BalanceHistory.OrderByDescending(x => x.AsOfDate).FirstOrDefault();
 
+            var summary = new TransactionSummaryViewModel
+            {
+                NewCount = dbContext.Transactions
+                    .Where(x => x.AccountId == model.Id)
+                    .Where(x => x.Status == TransactionStatus.New)
+                    .Count(),
+                AttentionCount = dbContext.Transactions
+                    .Where(x => x.AccountId == model.Id)
+                    .Where(x => x.Status == TransactionStatus.Attention)
+                    .Count(),
+                AcceptedCount = dbContext.Transactions
+                    .Where(x => x.AccountId == model.Id)
+                    .Where(x => x.Status == TransactionStatus.Accepted)
+                    .Count(),
+                RejectedCount = dbContext.Transactions
+                    .Where(x => x.AccountId == model.Id)
+                    .Where(x => x.Status == TransactionStatus.Rejected)
+                    .Count(),
+                VoidCount = dbContext.Transactions
+                    .Where(x => x.AccountId == model.Id)
+                    .Where(x => x.Status == TransactionStatus.Void)
+                    .Count()
+            };
+
             return new AccountViewModel
             {
                 Id = model.Id,
@@ -57,7 +81,8 @@ namespace Budget.API.Services
                 Name = model.Name,
                 Type = model.Type,
                 Description = model.Description,
-                Balance = (bal != null) ? ModelMapper.EntityToView(bal) : null
+                Balance = (bal != null) ? ModelMapper.EntityToView(bal) : null,
+                TransactionSummary = summary
             };
         }
 

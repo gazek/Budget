@@ -13,6 +13,7 @@ namespace Budget.API.Models
         public AccountType Type { get; set; }
         public string Description { get; set; }
         public BalanceViewModel Balance { get; set; }
+        public TransactionSummaryViewModel TransactionSummary { get; set; }
     }
 
     public class AccountListViewModel
