@@ -205,6 +205,7 @@
     <Compile Include="Models\CategoryViewModels.cs" />
     <Compile Include="Models\FinancialInstitutionViewModels.cs" />
     <Compile Include="Models\FinancialInstitutionBindingModels.cs" />
+    <Compile Include="Models\OfxDumpViewModel.cs" />
     <Compile Include="Models\PayeeBindingModels.cs" />
     <Compile Include="Models\PayeeDefaultDetailBindingModels.cs" />
     <Compile Include="Models\PayeeDefaultDetailViewModels.cs" />

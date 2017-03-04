@@ -1,23 +1,22 @@
 ﻿using System.Collections.Generic;
-using System.Net.Http;
 using System.Web.Http;
 using Budget.API.Models;
 using Budget.DAL;
-using Microsoft.AspNet.Identity.Owin;
 using Budget.API.Services;
-using System.Data.SqlClient;
 using Budget.DAL.Models;
 using System.Linq;
 using Microsoft.AspNet.Identity;
-using System.Data.Entity.Infrastructure;
 using System;
 using Budget.API.Services.OFXClient;
 using System.Security.Principal;
 using System.Linq.Expressions;
+using System.Net;
+using System.IO;
+using System.Xml;
+using System.Text.RegularExpressions;
 
 namespace Budget.API.Controllers
 {
-    [Authorize]
     [RoutePrefix("api/FinancialInstitution")]
     public class FinancialInstitutionController : ControllerBase<FinancialInstitutionModel>
     {
@@ -130,6 +129,61 @@ namespace Budget.API.Controllers
             }
 
             return InternalServerError();
+        }
+
+        [Route("OfxDump", Name = "OfxDump")]
+        [HttpGet]
+        public IHttpActionResult OfxDump()
+        {
+            // need to pull listing of OFX  here because OFX Home API does
+            // not implement CORS
+            string xml = String.Empty;
+            string url = "http://www.ofxhome.com/api.php?dump=yes";
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+
+            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+            using (Stream stream = response.GetResponseStream())
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                xml = reader.ReadToEnd();
+            }
+
+            // xml response is malformed, it has multiple roots
+            // adding enclosing tag to xml
+            int index = xml.IndexOf('>');
+            string fixedXml = xml.Substring(0, index+2) + "<institutionlist>" + xml.Substring(index+1) + "</institutionlist>";
+
+            // further malformed
+            // has & instead of &amp;
+            string pattern = @"&(?!amp;)";
+            fixedXml = Regex.Replace(fixedXml, pattern, "&amp;");
+
+            // parse xml
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(fixedXml);
+            XmlNodeList fiNodes = doc.GetElementsByTagName("institution");
+            List<OfxDumpViewModel> fiList = new List<OfxDumpViewModel>();
+            foreach (XmlNode n in fiNodes)
+            {
+                int ofxId;
+                int.TryParse(n.SelectSingleNode("fid").InnerText, out ofxId);
+                OfxDumpViewModel fi = new OfxDumpViewModel
+                {
+                    Name = n.SelectSingleNode("name").InnerText,
+                    OfxId = ofxId,
+                    OfxOrg = n.SelectSingleNode("org").InnerText,
+                    OfxUrl = n.SelectSingleNode("url").InnerText
+                };
+                fiList.Add(fi);
+            }
+
+            // sort by name
+            fiList.Sort(delegate (OfxDumpViewModel x, OfxDumpViewModel y)
+            {
+                return x.Name.CompareTo(y.Name);
+            });
+
+            return Ok(fiList);
         }
 
     }
