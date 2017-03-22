@@ -30,6 +30,9 @@ namespace Budget.DAL.Models
         public string Name { get; set; }
 
         [Required]
+        public string NameStylized { get; set; }
+
+        [Required]
         [Display(Name = "Account Type")]
         public AccountType Type { get; set; }
 

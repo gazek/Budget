@@ -16,6 +16,7 @@ namespace Budget.DAL.Migrations
                         Number = c.String(nullable: false, maxLength: 100),
                         RoutingNumber = c.Int(nullable: false),
                         Name = c.String(maxLength: 150),
+                        NameStylized = c.String(nullable: false),
                         Type = c.Int(nullable: false),
                         Description = c.String(nullable: false, maxLength: 400),
                     })
