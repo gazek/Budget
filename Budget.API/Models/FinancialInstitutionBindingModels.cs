@@ -77,6 +77,9 @@ namespace Budget.API.Models
 
     public class FinancialInstitutionUpdateLoginBindingModel
     {
+        [Display(Name = "Financial Institution ID")]
+        public int Id { get; set; }
+
         [Required]
         [Display(Name = "Username")]
         public string Username { get; set; }

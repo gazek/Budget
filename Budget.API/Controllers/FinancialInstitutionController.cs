@@ -60,6 +60,7 @@ namespace Budget.API.Controllers
         [Authorize]
         public IHttpActionResult Update(int id, FinancialInstitutionUpdateBindingModel model)
         {
+            model.Id = id;
             return base.Update(id, model);
         }
 
@@ -68,15 +69,9 @@ namespace Budget.API.Controllers
         [Authorize]
         public IHttpActionResult UpdateLogin(int id, FinancialInstitutionUpdateLoginBindingModel model)
         {
+            model.Id = id;
             VerifyModel();
-
-            var hashedModel = new FinancialInstitutionUpdateLoginBindingModelHashed()
-            {
-                Username = model.Username,
-                PasswordHash = AesService.EncryptStringToBytes(model.Password)
-            };
-
-            return Update<FinancialInstitutionUpdateLoginBindingModelHashed>(id, hashedModel);
+            return Update<FinancialInstitutionUpdateLoginBindingModel>(id, model);
         }
 
         [Route("{id}/GetAccountList", Name = "GetAccountListFromBank")]

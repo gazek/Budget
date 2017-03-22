@@ -158,8 +158,11 @@ namespace Budget.API.Controllers
             // verify model is valid
             VerifyModel();
 
+            // map to entity
+            T entity = ModelMapper.BindingToEntity(model, _dbContext);
+
             // make updates
-            UpdateRecord<Tb>(_record, model);
+            UpdateRecord<T>(_record, entity);
 
             // commit changes and check result
             CommitChanges();
@@ -333,7 +336,10 @@ namespace Budget.API.Controllers
 
             foreach (string key in update.GetType().GetProperties().Select(x => x.Name))
             {
-                existingRecord.GetType().GetProperty(key).SetValue(existingRecord, update.GetType().GetProperty(key).GetValue(update));
+                if (key != "Id")
+                {
+                    existingRecord.GetType().GetProperty(key).SetValue(existingRecord, update.GetType().GetProperty(key).GetValue(update));
+                }
             }
         }
 

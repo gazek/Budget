@@ -31,12 +31,14 @@ namespace Budget.API.Services
         #region Account
         public static AccountModel BindingToEntity(AccountBindingModel model, FinancialInstitutionModel fiModel)
         {
+            string name = model.Name ?? "";
             return new AccountModel
             {
                 FinancialInstitutionId = fiModel.Id,
                 RoutingNumber = model.RoutingNumber,
-                Number = model.Number,
-                Name = string.Join(" ", model.Name.Split(' ')).ToLower(),
+                Number = model.Number ?? "",
+                Name = string.Join(" ", name.Split(' ')).ToLower(),
+                NameStylized = string.Join(" ", name.Split(' ')),
                 Type = model.Type,
                 Description = model.Description ?? model.Name,
                 Transactions = new List<TransactionModel>(),
@@ -78,7 +80,7 @@ namespace Budget.API.Services
                 FinancialInstitutionId = model.FinancialInstitutionId,
                 RoutingNumber = model.RoutingNumber,
                 Number = model.Number,
-                Name = model.Name,
+                Name = model.NameStylized,
                 Type = model.Type,
                 Description = model.Description,
                 Balance = (bal != null) ? ModelMapper.EntityToView(bal) : null,
@@ -96,7 +98,7 @@ namespace Budget.API.Services
                 FinancialInstitutionId = model.FinancialInstitutionId,
                 RoutingNumber = model.RoutingNumber,
                 Number = model.Number,
-                Name = model.Name,
+                Name = model.NameStylized,
                 Type = model.Type,
                 Description = model.Description,
                 Balance = (bal != null) ? ModelMapper.EntityToView(bal) : null
@@ -186,6 +188,41 @@ namespace Budget.API.Services
                 PasswordHash = hash,
                 UserId = user.Identity.GetUserId(),
                 CLIENTUID = model.CLIENTUID
+            };
+        }
+
+        public static FinancialInstitutionModel BindingToEntity(FinancialInstitutionUpdateBindingModel model, IApplicationDbContext dbContext)
+        {
+            FinancialInstitutionModel record = dbContext.FinancialInstitutions.Find(model.Id);
+            return new FinancialInstitutionModel
+            {
+                Name = string.Join(" ", model.Name.Split(' ')).ToLower(),
+                NameStylized = string.Join(" ", model.Name.Split(' ')),
+                OfxFid = model.OfxFid,
+                OfxUrl = model.OfxUrl,
+                OfxOrg = model.OfxOrg,
+                Username = record.Username,
+                PasswordHash = record.PasswordHash,
+                UserId = record.UserId,
+                CLIENTUID = model.CLIENTUID
+            };
+        }
+
+        public static FinancialInstitutionModel BindingToEntity(FinancialInstitutionUpdateLoginBindingModel model, IApplicationDbContext dbContext)
+        {
+            FinancialInstitutionModel record = dbContext.FinancialInstitutions.Find(model.Id);
+            byte[] hash = model.Password.Length > 0 ? AesService.EncryptStringToBytes(model.Password) : new byte[1];
+            return new FinancialInstitutionModel
+            {
+                Name = record.Name,
+                NameStylized = record.NameStylized,
+                OfxFid = record.OfxFid,
+                OfxUrl = record.OfxUrl,
+                OfxOrg = record.OfxOrg,
+                Username = model.Username,
+                PasswordHash = hash,
+                UserId = record.UserId,
+                CLIENTUID = record.CLIENTUID
             };
         }
 
