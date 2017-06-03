@@ -5,6 +5,7 @@ using Microsoft.Owin;
 using Owin;
 using System.Web.Http;
 using Microsoft.Owin.Cors;
+using Budget.API.App_Start;
 
 [assembly: OwinStartup(typeof(Budget.API.Startup))]
 
@@ -20,6 +21,7 @@ namespace Budget.API
             app.UseWebApi(config);
             WebApiConfig.Register(config);
             UnityConfig.RegisterComponents(config);
+            JsonConfig.DateFormat(config);
         }
     }
 }

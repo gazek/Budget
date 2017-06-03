@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System;
 
 namespace Budget.DAL.Models
 {
@@ -36,11 +37,14 @@ namespace Budget.DAL.Models
         [Display(Name = "Account Type")]
         public AccountType Type { get; set; }
 
-        [Required]
         [StringLength(400)]
         [Display(Name = "Account Description")]
         public string Description { get; set; }
-
+        
+        [Required]
+        [Display(Name = "Account Start Date")]
+        public DateTime StartDate { get; set; }
+        
         public ICollection<TransactionModel> Transactions { get; set; }
 
         public ICollection<BalanceModel> BalanceHistory { get; set; }

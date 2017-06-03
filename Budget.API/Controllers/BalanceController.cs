@@ -4,6 +4,9 @@ using Budget.DAL.Models;
 using System.Collections.Generic;
 using System;
 using System.Linq.Expressions;
+using Budget.API.Models;
+using System.Linq;
+using System.Net.Http;
 
 namespace Budget.API.Controllers
 {
@@ -14,14 +17,37 @@ namespace Budget.API.Controllers
         public BalanceController(IApplicationDbContext dbContext) : base(dbContext)
         {
         }
-        
-        // GET - get balance history api/account/{id}/balance
-        [Route("Account/{id}/Balance/Date/{begin?}/{end?}", Name = "GetAccountBalanceHistory")]
+
+        // PUT - create or replace balance
+        [Route("Account/{AccountId}/Balance", Name = "createOrReplaceBalance")]
+        [HttpPut]
+        [Authorize]
+        public IHttpActionResult createOrReplaceBalance(BalanceBindingModel model, int accountId)
+        {
+            BalanceModel balance = _dbContext.Balances
+                .Where(b => b.AccountId == accountId)
+                .Where(b => b.AsOfDate == model.AsOfDate)
+                .FirstOrDefault();
+            if (balance != null)
+            {
+                return Update<BalanceBindingModel>(balance.Id, model);
+            }
+            else
+            {
+                return Create<BalanceBindingModel, AccountModel>(model, accountId);
+            }
+        }
+
+        // GET - get balance history api/account/{id}/balance?startDate=yyyy-mm-dd&endDate=yyyy-mm-dd
+        [Route("Account/{id}/Balance", Name = "GetAccountBalanceHistory")]
         [HttpGet]
         [Authorize]
-        public IHttpActionResult GetBalanceHistory(int id, string begin = "", string end = "")
+        public IHttpActionResult GetBalanceHistory(int id)
         {
             // Parse date range
+            var pairs = this.Request.GetQueryNameValuePairs();
+            string begin = pairs.Where(p => p.Key == "startDate").FirstOrDefault().Value ?? "";
+            string end = pairs.Where(p => p.Key == "endDate").FirstOrDefault().Value ?? "";
             DateTime beginDate, endDate;
             ParseDateRange(begin, end, out beginDate, out endDate);
 

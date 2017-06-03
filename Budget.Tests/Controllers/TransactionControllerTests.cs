@@ -156,7 +156,7 @@ namespace Budget.API.Tests.Controllers
             controller.User = user;
 
             // Act
-            var result = controller.GetTransactionsFromDb(1, startDate.ToShortDateString(), endDate.ToShortDateString());
+            var result = controller.GetTransactionsFromDb(1);
             var resultTyped = (OkNegotiatedContentResult<List<object>>)result;
 
             // Assert
@@ -180,7 +180,7 @@ namespace Budget.API.Tests.Controllers
             controller.User = user;
 
             // Act
-            var result = controller.GetTransactionsFromDb(1, startDate.ToShortDateString(), endDate.ToShortDateString());
+            var result = controller.GetTransactionsFromDb(1);
             var resultTyped = (OkNegotiatedContentResult<List<object>>)result;
 
             // Assert
@@ -200,7 +200,7 @@ namespace Budget.API.Tests.Controllers
             controller.User = user;
 
             // Act
-            var result = controller.GetTransactionsFromDb(5, startDate.ToShortDateString(), endDate.ToShortDateString());
+            var result = controller.GetTransactionsFromDb(5);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
@@ -218,7 +218,7 @@ namespace Budget.API.Tests.Controllers
             controller.User = user;
 
             // Act
-            var result = controller.GetTransactionsFromDb(2, startDate.ToShortDateString(), endDate.ToShortDateString());
+            var result = controller.GetTransactionsFromDb(2);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(UnauthorizedResult));

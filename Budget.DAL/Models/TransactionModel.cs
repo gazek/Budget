@@ -27,11 +27,13 @@ namespace Budget.DAL.Models
         public DateTime Date { get; set; }
 
         [Required]
+        [Index("IX_AccountIdReferenceValueAndDate", 4, IsUnique = true)]
         public decimal Amount { get; set; }
 
         // Finncial institution provided name of payee
         [Required]
         [StringLength(200)]
+        [Index("IX_AccountIdReferenceValueAndDate", 5, IsUnique = true)]
         public string OriginalPayeeName { get; set; }
 
         // Finncial institution provided memo
@@ -71,6 +73,7 @@ namespace Budget.DAL.Models
         New, // newly imported and not reviewed or not fully reviewed
         Attention,  // Partialy or fully reviewed and deemed to have non-routine Acceptance path or otherwise requiring further attention
         Accepted,  // Reviewed and promoted to Accepted register
+        Reconciled,  // Used in account balancing
         Rejected,  // Reviewed but not wanted in Accepted register, will stay in New register and be hidden unless user unhides rejects
         Void // Accepted transaction, lives in Accepted register but does not affect balance, budget or other financial metrics
     }

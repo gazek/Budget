@@ -183,6 +183,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\IdentityConfig.cs" />
+    <Compile Include="App_Start\JsonConfig.cs" />
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\UnityConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
@@ -200,12 +201,14 @@
     <Compile Include="Controllers\UserAccountController.cs" />
     <Compile Include="Models\AccountBindingModels.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
+    <Compile Include="Models\BalanceBindingModels.cs" />
     <Compile Include="Models\BalanceViewModels.cs" />
     <Compile Include="Models\CategoryBindingModels.cs" />
     <Compile Include="Models\CategoryViewModels.cs" />
     <Compile Include="Models\FinancialInstitutionViewModels.cs" />
     <Compile Include="Models\FinancialInstitutionBindingModels.cs" />
     <Compile Include="Models\OfxDumpViewModel.cs" />
+    <Compile Include="Models\OfxRequestViewModels.cs" />
     <Compile Include="Models\PayeeBindingModels.cs" />
     <Compile Include="Models\PayeeDefaultDetailBindingModels.cs" />
     <Compile Include="Models\PayeeDefaultDetailViewModels.cs" />

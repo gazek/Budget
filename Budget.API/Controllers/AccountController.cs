@@ -95,6 +95,7 @@ namespace Budget.API.Controllers
         public IHttpActionResult Update(int id, int fiId, AccountBindingModel model)
         {
             model.FinancialInstitutionId = fiId;
+            model.Id = id;
             return base.Update(id, model);
         }
 
@@ -105,6 +106,16 @@ namespace Budget.API.Controllers
         public override IHttpActionResult Delete(int id)
         {
             return base.Delete(id);
+        }
+
+        // delete account
+        [Route("Account/Types", Name = "GetAccountTypes")]
+        [HttpGet]
+        [Authorize]
+        public IHttpActionResult GetAccountTypes()
+        {
+            string[] types = Enum.GetNames(typeof(AccountType));
+            return Ok(types);
         }
     }
 }

@@ -18,7 +18,8 @@ namespace Budget.DAL.Migrations
                         Name = c.String(maxLength: 150),
                         NameStylized = c.String(nullable: false),
                         Type = c.Int(nullable: false),
-                        Description = c.String(nullable: false, maxLength: 400),
+                        Description = c.String(maxLength: 400),
+                        StartDate = c.DateTime(nullable: false),
                     })
                 .PrimaryKey(t => t.Id)
                 .ForeignKey("dbo.FinancialInstitutionModels", t => t.FinancialInstitutionId, cascadeDelete: true)
@@ -132,7 +133,7 @@ namespace Budget.DAL.Migrations
                     })
                 .PrimaryKey(t => t.Id)
                 .ForeignKey("dbo.AccountModels", t => t.AccountId, cascadeDelete: true)
-                .Index(t => new { t.AccountId, t.ReferenceValue, t.Date }, unique: true, name: "IX_AccountIdReferenceValueAndDate");
+                .Index(t => new { t.AccountId, t.ReferenceValue, t.Date, t.Amount, t.OriginalPayeeName }, unique: true, name: "IX_AccountIdReferenceValueAndDate");
             
             CreateTable(
                 "dbo.TransactionDetailModels",

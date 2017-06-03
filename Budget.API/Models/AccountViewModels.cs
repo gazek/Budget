@@ -1,5 +1,5 @@
 ﻿using Budget.DAL.Models;
-using System.Collections.Generic;
+using System;
 
 namespace Budget.API.Models
 {
@@ -10,8 +10,10 @@ namespace Budget.API.Models
         public int RoutingNumber { get; set; }
         public string Number { get; set; }
         public string Name { get; set; }
-        public AccountType Type { get; set; }
+        public string Type { get; set; }
         public string Description { get; set; }
+        public DateTime StartDate { get; set; }
+        public decimal StartBalance { get; set; }
         public BalanceViewModel Balance { get; set; }
         public TransactionSummaryViewModel TransactionSummary { get; set; }
     }

@@ -1,10 +1,14 @@
 ﻿using Budget.DAL.Models;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Budget.API.Models
 {
     public class AccountBindingModel
     {
+        [Required]
+        public int Id { get; set; }
+
         [Required]
         [Display(Name = "Financial Institution ID")]
         public int FinancialInstitutionId { get; set; }
@@ -28,5 +32,9 @@ namespace Budget.API.Models
         [StringLength(400)]
         [Display(Name = "Account Description")]
         public string Description { get; set; }
+
+        [Required]
+        [Display(Name = "Account Start Date")]
+        public DateTime StartDate { get; set; }
     }
 }

@@ -64,7 +64,17 @@ namespace Budget.API.Controllers
             // make sure record being updated is not unassigned
             VerifyName(_dbContext.Payees.Find(id)?.Name ?? "");
 
-            return base.Update(id, model);
+            // filters
+            List<Expression<Func<PayeeModel, bool>>> filters = new List<Expression<Func<PayeeModel, bool>>>();
+            filters.Add(p => p.Id == id);
+
+            // include related entities
+            List<Expression<Func<PayeeModel, object>>> include = new List<Expression<Func<PayeeModel, object>>>();
+            include.Add(p => p.DefaultDetails);
+            include.Add(p => p.ImportNames);
+
+            //return base.Update(id, model);
+            return base.Update<PayeeBindingModel, PayeeModel>(model, filters, include);
         }
 
         // delete payee

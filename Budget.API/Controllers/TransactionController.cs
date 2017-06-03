@@ -8,6 +8,9 @@ using System;
 using System.Data.Entity.Infrastructure;
 using Budget.API.Services.OFXClient;
 using System.Linq.Expressions;
+using Budget.API.Models;
+using System.Net;
+using System.Net.Http;
 
 namespace Budget.API.Controllers
 {
@@ -45,13 +48,16 @@ namespace Budget.API.Controllers
             return Update<TransactionBindingModel>(id, model);
         }
 
-        // Get - query transactions in DB by date range api/account/{id}/Transactions/Date/{end}/{begin}
-        [Route("Account/{id:int}/Transactions/Date/{begin}/{end?}", Name = "GetTransactionsByAccountAndDateRange")]
+        // Get - query transactions in DB by date range api/account/{id}/Transactions?startDate=yyyy-mm-dd&endDate=yyyy-mm-dd
+        [Route("Account/{id:int}/Transactions", Name = "GetTransactionsByAccountAndDateRange")]
         [HttpGet]
         [Authorize]
-        public IHttpActionResult GetTransactionsFromDb(int id, string begin = "", string end = "")
+        public IHttpActionResult GetTransactionsFromDb(int id)
         {
             // Parse date range
+            var pairs = this.Request.GetQueryNameValuePairs();
+            string begin = pairs.Where(p => p.Key == "startDate").FirstOrDefault().Value ?? "";
+            string end = pairs.Where(p => p.Key == "endDate").FirstOrDefault().Value ?? "";
             DateTime beginDate, endDate;
             ParseDateRange(begin, end, out beginDate, out endDate);
 
@@ -77,11 +83,11 @@ namespace Budget.API.Controllers
             return GetAll<TransactionModel, DateTime>(filters, include, t => t.Date);
         }
 
-        // Post - OFX request to pull latest transactions api/account/{id}/Transactions/Date/{end}/{begin}
-        [Route("Account/{id:int}/Transactions/Date/{begin}/{end?}", Name = "PullLatestTransactionsFromBank")]
+        // Post - OFX request to pull latest transactions api/account/{id}/Transactions?startDate=yyyy-mm-dd&endDate=yyyy-mm-dd
+        [Route("Account/{id:int}/Transactions", Name = "PullLatestTransactionsFromBank")]
         [HttpPost]
         [Authorize]
-        public IHttpActionResult GetTransactionsFromBank(int id, string begin = "", string end = "")
+        public IHttpActionResult ImportTransactionsFromBank(int id)
         {
             // verify existence of account
             // and that user is authorized to access it
@@ -93,8 +99,11 @@ namespace Budget.API.Controllers
             }
 
             AccountModel entity = _record;
-            
+
             // Parse date range
+            var pairs = this.Request.GetQueryNameValuePairs();
+            string begin = pairs.Where(p => p.Key == "startDate").FirstOrDefault().Value ?? "";
+            string end = pairs.Where(p => p.Key == "endDate").FirstOrDefault().Value ?? "";
             DateTime beginDate, endDate;
             ParseDateRange(begin, end, out beginDate, out endDate);
 
@@ -107,14 +116,42 @@ namespace Budget.API.Controllers
             // Make request
             OfxClient.ExecuteRequest();
 
+            // initialize response object
+            OfxTransactionRequestViewModel response = new OfxTransactionRequestViewModel();
+            response.Status = OfxClient.Requestor.Status;
+            response.Code = OfxClient.Requestor.StatusCode;
+            response.Response = OfxClient.Requestor.Response;
+            response.Description = OfxClient.Requestor.StatusDescription;
+            response.Message = OfxClient.Requestor.ErrorMessage;
+            response.OfxResponse = OfxClient.Requestor.OFX;
+            response.MsgSetRequestOfx = OfxClient.RequestBuilder.MsgSet;
+            response.SignOn = new OFXReqestResponseViewModel();
+            response.Statement = new OFXReqestResponseViewModel();
+            response.Balance = new OFXReqestResponseViewModel();
+
             // check request status
             if (OfxClient.Requestor.Status && OfxClient.Requestor.OFX != null)
             {
+                // parse response
                 OfxClient.ParseResponse();
+
+                // populate response object
+                response.SignOn.Status = OfxClient.Parser.SignOnRequest.Status;
+                response.SignOn.Code = OfxClient.Parser.SignOnRequest.Code;
+                response.SignOn.Severity = OfxClient.Parser.SignOnRequest.Severity;
+                response.SignOn.Message = OfxClient.Parser.SignOnRequest.Message;
+                response.Statement.Status = OfxClient.Parser.StatmentRequest.Status;
+                response.Statement.Code = OfxClient.Parser.StatmentRequest.Code;
+                response.Statement.Severity = OfxClient.Parser.StatmentRequest.Severity;
+                response.Statement.Message = OfxClient.Parser.StatmentRequest.Message;
+                response.Balance.Status = OfxClient.Parser.BalanceRequest.Status;
+                response.Balance.Code = OfxClient.Parser.BalanceRequest.Code;
+                response.Balance.Severity = OfxClient.Parser.BalanceRequest.Severity;
+                response.Balance.Message = OfxClient.Parser.BalanceRequest.Message;
 
                 if (!OfxClient.Parser.SignOnRequest.Status)
                 {
-                    return BadRequest(OfxClient.Parser.SignOnRequest.Code + ": " + OfxClient.Parser.SignOnRequest.Message);
+                    return Content(HttpStatusCode.BadRequest, response);
                 }
 
                 // Set transaction default field values
@@ -149,10 +186,14 @@ namespace Budget.API.Controllers
                 try
                 {
                     int count = importer.Commit();
-                    return Ok(importer.Transactions
+                    /*
+                    var transactions = importer.Transactions
                         .Select(t => ModelMapper.EntityToView(t, _dbContext))
                         .OrderBy(t => t.Date)
-                        .ToList());
+                        .ToList();
+                    return Ok(transactions);
+                    */
+                    return Content(HttpStatusCode.OK, response);
                 }
                 catch (DbUpdateException ex)
                 {
@@ -163,7 +204,7 @@ namespace Budget.API.Controllers
 
             if (!OfxClient.Requestor.Status)
             {
-                return BadRequest(OfxClient.Requestor.ErrorMessage);
+                return Content(HttpStatusCode.BadRequest, response);
             }
 
             return InternalServerError();
@@ -184,9 +225,6 @@ namespace Budget.API.Controllers
             }
             OfxClient.RequestConfig.AccountType = ModelMapper.Type(entity.Type);
             OfxClient.RequestConfig.URL = new Uri(entity.FinancialInstitution.OfxUrl);
-            // Need to add a last updated column to AccountModel
-            // Need to set a start date for the account for initial transaction pull
-            // for now, just request a month of transactions
             OfxClient.RequestConfig.StartDate = begin;
             OfxClient.RequestConfig.EndDate = end;
             Guid clientId;

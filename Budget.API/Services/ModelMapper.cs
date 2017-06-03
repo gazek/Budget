@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using Budget.DAL;
 using System.Reflection;
 using System.Runtime.Remoting;
+using System.Data.Entity;
 
 namespace Budget.API.Services
 {
@@ -35,12 +36,34 @@ namespace Budget.API.Services
             return new AccountModel
             {
                 FinancialInstitutionId = fiModel.Id,
+                FinancialInstitution = fiModel,
                 RoutingNumber = model.RoutingNumber,
                 Number = model.Number ?? "",
                 Name = string.Join(" ", name.Split(' ')).ToLower(),
                 NameStylized = string.Join(" ", name.Split(' ')),
                 Type = model.Type,
                 Description = model.Description ?? model.Name,
+                StartDate = model.StartDate,
+                Transactions = new List<TransactionModel>(),
+                BalanceHistory = new List<BalanceModel>()
+            };
+        }
+
+        public static AccountModel BindingToEntity(AccountBindingModel model, IApplicationDbContext dbContext)
+        {
+            string name = model.Name ?? "";
+            return new AccountModel
+            {
+                Id = model.Id,
+                FinancialInstitutionId = model.FinancialInstitutionId,
+                FinancialInstitution = dbContext.FinancialInstitutions.Find(model.FinancialInstitutionId),
+                RoutingNumber = model.RoutingNumber,
+                Number = model.Number ?? "",
+                Name = string.Join(" ", name.Split(' ')).ToLower(),
+                NameStylized = string.Join(" ", name.Split(' ')),
+                Type = model.Type,
+                Description = model.Description ?? model.Name,
+                StartDate = model.StartDate,
                 Transactions = new List<TransactionModel>(),
                 BalanceHistory = new List<BalanceModel>()
             };
@@ -50,27 +73,39 @@ namespace Budget.API.Services
         {
             BalanceModel bal = model.BalanceHistory.OrderByDescending(x => x.AsOfDate).FirstOrDefault();
 
+            BalanceModel startBal = model.BalanceHistory.Where(x => x.AsOfDate == model.StartDate).FirstOrDefault();
+            decimal startBalAmount = 0.00M;
+            if (startBal != null)
+            {
+                startBalAmount = startBal.Amount;
+            }
+
             var summary = new TransactionSummaryViewModel
             {
                 NewCount = dbContext.Transactions
                     .Where(x => x.AccountId == model.Id)
                     .Where(x => x.Status == TransactionStatus.New)
+                    .Where(x => x.Date >= model.StartDate)
                     .Count(),
                 AttentionCount = dbContext.Transactions
                     .Where(x => x.AccountId == model.Id)
                     .Where(x => x.Status == TransactionStatus.Attention)
+                    .Where(x => x.Date >= model.StartDate)
                     .Count(),
                 AcceptedCount = dbContext.Transactions
                     .Where(x => x.AccountId == model.Id)
                     .Where(x => x.Status == TransactionStatus.Accepted)
+                    .Where(x => x.Date >= model.StartDate)
                     .Count(),
                 RejectedCount = dbContext.Transactions
                     .Where(x => x.AccountId == model.Id)
                     .Where(x => x.Status == TransactionStatus.Rejected)
+                    .Where(x => x.Date >= model.StartDate)
                     .Count(),
                 VoidCount = dbContext.Transactions
                     .Where(x => x.AccountId == model.Id)
                     .Where(x => x.Status == TransactionStatus.Void)
+                    .Where(x => x.Date >= model.StartDate)
                     .Count()
             };
 
@@ -81,8 +116,10 @@ namespace Budget.API.Services
                 RoutingNumber = model.RoutingNumber,
                 Number = model.Number,
                 Name = model.NameStylized,
-                Type = model.Type,
+                Type = model.Type.ToString(),
                 Description = model.Description,
+                StartDate = model.StartDate,
+                StartBalance = startBalAmount,
                 Balance = (bal != null) ? ModelMapper.EntityToView(bal) : null,
                 TransactionSummary = summary
             };
@@ -99,8 +136,9 @@ namespace Budget.API.Services
                 RoutingNumber = model.RoutingNumber,
                 Number = model.Number,
                 Name = model.NameStylized,
-                Type = model.Type,
+                Type = model.Type.ToString(),
                 Description = model.Description,
+                StartDate = model.StartDate,
                 Balance = (bal != null) ? ModelMapper.EntityToView(bal) : null
             };
         }
@@ -155,6 +193,51 @@ namespace Budget.API.Services
         #endregion
 
         #region Balance
+        public static BalanceModel BindingToEntity(BalanceBindingModel model)
+        {
+            return new BalanceModel
+            {
+                AccountId = model.AccountId,
+                Amount = model.Amount,
+                AsOfDate = model.AsOfDate
+            };
+        }
+
+        public static BalanceModel BindingToEntity(BalanceBindingModel model, IApplicationDbContext dbContext)
+        {
+            BalanceModel existingBalance = dbContext.Balances
+                .Where(b => b.AsOfDate == model.AsOfDate)
+                .Where(b => b.AccountId == model.AccountId)
+                .Include(b => b.Account)
+                .FirstOrDefault();
+
+            BalanceModel newBalance = new BalanceModel
+            {
+                AccountId = model.AccountId,
+                Amount = model.Amount,
+                AsOfDate = model.AsOfDate
+            };
+
+            if (existingBalance != null)
+            {
+                newBalance.Id = existingBalance.Id;
+                newBalance.Account = existingBalance.Account;
+            }
+
+            return newBalance;
+        }
+
+        public static BalanceModel BindingToEntity(BalanceBindingModel model, AccountModel account)
+        {
+            return new BalanceModel
+            {
+                Account = account,
+                AccountId = model.AccountId,
+                Amount = model.Amount,
+                AsOfDate = model.AsOfDate
+            };
+        }
+
         public static BalanceViewModel EntityToView(BalanceModel model)
         {
             return new BalanceViewModel
@@ -453,12 +536,48 @@ namespace Budget.API.Services
         #region Category
         public static CategoryModel BindingToEntity(CategoryBindingModel model, IPrincipal user)
         {
-            return new CategoryModel()
+            CategoryModel newCat = new CategoryModel()
             {
+                Id = model.Id,
                 UserId = user.Identity.GetUserId(),
                 Name = string.Join(" ", model.Name.Split(' ')).ToLower(),
                 NameStylized = string.Join(" ", model.Name.Split(' ')),
             };
+            List<SubCategoryModel> subcats;
+            if (model.SubCategories == null)
+            {
+                subcats = new List<SubCategoryModel>();
+            }
+            else
+            {
+                subcats = new List<SubCategoryModel>(model.SubCategories.Select(s => BindingToEntity(s, newCat)));
+            }
+            newCat.SubCategories = subcats;
+            return newCat;
+        }
+
+        public static CategoryModel BindingToEntity(CategoryBindingModel model, IApplicationDbContext dbContext)
+        {
+            var user = dbContext.Categories.Find(model.Id).User;
+            var newCat = new CategoryModel()
+            {
+                Id = model.Id,
+                User = user,
+                UserId = user.Id,
+                Name = string.Join(" ", model.Name.Split(' ')).ToLower(),
+                NameStylized = string.Join(" ", model.Name.Split(' ')),
+            };
+            List<SubCategoryModel> subcats;
+            if (model.SubCategories == null)
+            {
+                subcats = new List<SubCategoryModel>();
+            }
+            else
+            {
+                subcats = new List<SubCategoryModel>(model.SubCategories.Select(s => BindingToEntity(s, dbContext)));
+            }
+            newCat.SubCategories = subcats;
+            return newCat;
         }
 
         public static CategoryViewModel EntityToView(CategoryModel model)
@@ -492,7 +611,22 @@ namespace Budget.API.Services
         {
             return new SubCategoryModel()
             {
+                Id = model.Id,
+                Category = principal,
                 CategoryId = principal.Id,
+                Name = string.Join(" ", model.Name.Split(' ')).ToLower(),
+                NameStylized = string.Join(" ", model.Name.Split(' ')),
+            };
+        }
+
+        public static SubCategoryModel BindingToEntity(SubCategoryBindingModel model, IApplicationDbContext dbContext)
+        {
+            CategoryModel category = dbContext.Categories.Find(model.CategoryId);
+            return new SubCategoryModel()
+            {
+                Id = model.Id,
+                Category = category,
+                CategoryId = category.Id,
                 Name = string.Join(" ", model.Name.Split(' ')).ToLower(),
                 NameStylized = string.Join(" ", model.Name.Split(' ')),
             };
@@ -502,6 +636,7 @@ namespace Budget.API.Services
         {
             return new SubCategoryModel()
             {
+                Id = model.Id,
                 CategoryId = model.CategoryId,
                 Name = string.Join(" ", model.Name.Split(' ')).ToLower(),
                 NameStylized = string.Join(" ", model.Name.Split(' ')),
@@ -539,6 +674,42 @@ namespace Budget.API.Services
                 Name = string.Join(" ", model.Name.Split(' ')).ToLower(),
                 NameStylized = string.Join(" ", model.Name.Split(' ')),
                 UserId = principal.Identity.GetUserId()
+            };
+        }
+
+        public static PayeeModel BindingToEntity(PayeeBindingModel model, IApplicationDbContext dbContext = null)
+        {
+            List<PayeeDefaultDetailModel> details;
+            if (model.DefaultDetails == null)
+            {
+                details = new List<PayeeDefaultDetailModel>();
+            }
+            else
+            {
+
+                details = new List<PayeeDefaultDetailModel>(model.DefaultDetails.Where(d => d != null).Select(d => BindingToEntity(d, dbContext)));
+            }
+
+            List<PayeeImportNameModel> importNames;
+            if (model.ImportNames == null)
+            {
+                importNames = new List<PayeeImportNameModel>();
+            }
+            else
+            {
+                importNames = new List<PayeeImportNameModel>(model.ImportNames.Where(d => d != null).Select(n => BindingToEntity(n, dbContext)));
+            }
+
+            var user = dbContext.Payees.Find(model.Id).User;
+            return new PayeeModel()
+            {
+                Id = model.Id,
+                Name = string.Join(" ", model.Name.Split(' ')).ToLower(),
+                NameStylized = string.Join(" ", model.Name.Split(' ')),
+                User = user,
+                UserId = user.Id,
+                DefaultDetails = details,
+                ImportNames = importNames
             };
         }
 
@@ -581,12 +752,40 @@ namespace Budget.API.Services
 
         public static PayeeDefaultDetailModel BindingToEntity(PayeeDefaultDetailBindingModel model, PayeeModel principal)
         {
+            if (model == null)
+            {
+                return null;
+            }
+            
             return new PayeeDefaultDetailModel
             {
                 Allocation = model.Allocation,
                 PayeeId = principal.Id,
                 CategoryId = model.CategoryId,
                 SubCategoryId = model.SubCategoryId,
+            };
+        }
+
+        public static PayeeDefaultDetailModel BindingToEntity(PayeeDefaultDetailBindingModel model, IApplicationDbContext dbContext)
+        {
+            if (model == null)
+            {
+                return null;
+            }
+
+            var payee = dbContext.Payees.Find(model.PayeeId);
+            var category = dbContext.Categories.Find(model.CategoryId);
+            var subcat = dbContext.SubCategories.Find(model.SubCategoryId);
+            return new PayeeDefaultDetailModel
+            {
+                Id = model.Id,
+                Allocation = model.Allocation,
+                PayeeId = model.PayeeId,
+                CategoryId = model.CategoryId,
+                SubCategoryId = model.SubCategoryId,
+                Payee = payee,
+                Category = category,
+                SubCategory = subcat
             };
         }
         #endregion
@@ -612,9 +811,32 @@ namespace Budget.API.Services
         
         public static PayeeImportNameModel BindingToEntity(PayeeImportNameBindingModel model, PayeeModel principal)
         {
+            if (model == null)
+            {
+                return null;
+            }
+
             return new PayeeImportNameModel
             {
+                Id = model.Id,
                 PayeeId = principal.Id,
+                ImportName = model.ImportName
+            };
+        }
+
+        public static PayeeImportNameModel BindingToEntity(PayeeImportNameBindingModel model, IApplicationDbContext dbContext)
+        {
+            if (model == null)
+            {
+                return null;
+            }
+
+            var payee = dbContext.Payees.Find(model.PayeeId);
+            return new PayeeImportNameModel
+            {
+                Id = model.Id,
+                PayeeId = model.PayeeId,
+                Payee = payee,
                 ImportName = model.ImportName
             };
         }

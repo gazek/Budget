@@ -4,6 +4,7 @@ using Budget.DAL;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
@@ -155,6 +156,25 @@ namespace Budget.API.Controllers
             // verify user is authorized to access record
             GetRecordAndIsAuthorized(id);
 
+            return _Update<Tb>(model);
+        }
+
+        public virtual IHttpActionResult Update<Tb,Te>(Tb model, ICollection<Expression<Func<Te, bool>>> where, ICollection<Expression<Func<Te, object>>> include = null) where Te : class
+        {
+            // look for record
+            // check record exists
+            // verify user is authorized to access record
+            // ** IMPORTANT **
+            //   if collections of related entities are included using the include argument,
+            //   the full collection must be included in the update model, any items in the DB
+            //   that are not included in the update binding model will be deleted aspart of the update
+            GetRecordAndIsAuthorized<Te>(where, include);
+
+            return _Update<Tb>(model);
+        }
+
+        public IHttpActionResult _Update<Tb>(Tb model)
+        {
             // verify model is valid
             VerifyModel();
 
@@ -162,7 +182,7 @@ namespace Budget.API.Controllers
             T entity = ModelMapper.BindingToEntity(model, _dbContext);
 
             // make updates
-            UpdateRecord<T>(_record, entity);
+            UpdateRecord<T, T>(_record, entity);
 
             // commit changes and check result
             CommitChanges();
@@ -327,7 +347,7 @@ namespace Budget.API.Controllers
         }
         #endregion
 
-        protected void UpdateRecord<Tb>(T existingRecord, Tb update)
+        protected void UpdateRecord<Tex, Tup>(Tex existingRecord, Tup update)
         {
             if (!_requestIsOk || existingRecord == null)
             {
@@ -338,7 +358,62 @@ namespace Budget.API.Controllers
             {
                 if (key != "Id")
                 {
-                    existingRecord.GetType().GetProperty(key).SetValue(existingRecord, update.GetType().GetProperty(key).GetValue(update));
+                    var value = update.GetType().GetProperty(key).GetValue(update);
+                    if (value is ICollection && !(value is Byte[]))
+                    {
+                        Type type = value.GetType().GetGenericArguments().Single();
+                        var prop = _dbContext.GetType()
+                            .GetProperties()
+                            .Where(x => x.PropertyType.FullName.Contains(type.Name))
+                            .FirstOrDefault();
+                        dynamic dbSet = prop.GetValue(_dbContext);
+                        
+                        // delete all records from context which are not in the collection
+                        var existingCollection = (ICollection)existingRecord.GetType().GetProperty(key).GetValue(existingRecord);
+                        List<int> idsToRemove = new List<int>();
+                        foreach (var x in existingCollection)
+                        {
+                            int id = (int)x.GetType().GetProperty("Id").GetValue(x);
+                            Predicate <object> myPred = i => (int)i.GetType().GetProperty("Id").GetValue(i) == id;
+                            var fromUpdate = value.GetType().GetMethod("Find").Invoke(value, new Object[] { myPred });
+
+                            if (fromUpdate == null)
+                            {
+                                idsToRemove.Add(id);
+                            }
+                        }
+
+                        foreach (int i in idsToRemove)
+                        {
+                            dbSet.Remove(dbSet.Find(i));
+                        }
+
+                        foreach (var x in (ICollection) value)
+                        {
+                            int id = (int)x.GetType().GetProperty("Id").GetValue(x);
+                            if ( id > 0)
+                            {
+                                var existing = dbSet.Find(id);
+                                this.GetType()
+                                    .GetMethod("UpdateRecord", BindingFlags.Instance | BindingFlags.NonPublic)
+                                    .MakeGenericMethod(type, type)
+                                    .Invoke(this, new object[] { existing, x });
+                            }
+                            else
+                            {
+                                //dbSet.Add(Convert.ChangeType(x, type));
+                                //AddEntityToContext(T entity)
+                                this.GetType()
+                                    .GetMethod("AddEntityToContext", BindingFlags.Instance | BindingFlags.NonPublic)
+                                    .MakeGenericMethod(type)
+                                    .Invoke(this, new object[] { x });
+                            }
+                        }
+                    }
+                    else
+                    {
+                        existingRecord.GetType().GetProperty(key).SetValue(existingRecord, value);
+                    }
                 }
             }
         }
@@ -360,11 +435,11 @@ namespace Budget.API.Controllers
             }
         }
 
-        protected T AddEntityToContext(T entity)
+        protected Te AddEntityToContext<Te>(Te entity) where Te : class
         {
             if (_requestIsOk)
             {
-                DbSet<T> dbset = GetDbSet<T>();
+                DbSet<Te> dbset = GetDbSet<Te>();
                 return dbset.Add(entity);
             }
             return null;
@@ -494,10 +569,13 @@ namespace Budget.API.Controllers
 
         protected void ParseDateRange(string begin, string end, out DateTime beginDate, out DateTime endDate)
         {
+
+            DateTime defaultStartDate = DateTime.Parse("01-01-2000");
+
             // parse begin date
             if (begin == "")
             {
-                beginDate = DateTime.Parse("01-01-2000");
+                beginDate = defaultStartDate;
             }
             else
             {

@@ -8,6 +8,8 @@ namespace Budget.API.Services.OFXClient
     {
         public string Header { get; private set; }
         public string Body { get; private set; }
+        public string SignOn { get; private set; }
+        public string MsgSet { get; private set; }
         public string Request { get; private set; }
         public OFXRequestConfig Config { get; private set; }
 
@@ -223,6 +225,10 @@ namespace Budget.API.Services.OFXClient
                     msgSRq = "";
                     break;
             }
+
+            // store for external access
+            SignOn = signon;
+            MsgSet = msgSRq;
 
             // set OFX request body contents
             List<List<string>> bodyList = new List<List<string>>();

@@ -102,7 +102,7 @@ namespace Budget.API.Tests.Controllers
             controller.User = user;
 
             // Act
-            IHttpActionResult result = controller.GetBalanceHistory(1, "01-01-2015", "2016-01-01");
+            IHttpActionResult result = controller.GetBalanceHistory(1);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(OkNegotiatedContentResult<List<object>>));

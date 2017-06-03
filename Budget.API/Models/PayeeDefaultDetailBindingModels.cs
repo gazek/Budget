@@ -4,6 +4,7 @@ namespace Budget.API.Models
 {
     public class PayeeDefaultDetailBindingModel
     {
+        public int Id { get; set; }
         [Required]
         public int PayeeId { get; set; }
         [Required]

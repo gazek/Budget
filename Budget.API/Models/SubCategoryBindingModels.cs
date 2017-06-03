@@ -4,6 +4,8 @@ namespace Budget.API.Models
 {
     public class SubCategoryBindingModel
     {
+        public int Id { get; set; }
+
         [Required]
         public int CategoryId { get; set; }
 

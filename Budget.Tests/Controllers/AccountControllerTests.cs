@@ -248,7 +248,8 @@ namespace Budget.API.Tests.Controllers
                 Number = "A123",
                 Name = "The account name",
                 Type = AccountType.Savings,
-                Description = "Some account description"
+                Description = "Some account description",
+                StartDate = new DateTime(2017, 1, 1)
             };
         }
 

@@ -30,7 +30,7 @@ namespace Budget.API.Controllers
             // make sure record being deleted is not uncategorized
             VerifyName(_dbContext.Categories.Find(id)?.Name ?? "");
 
-            return Delete(id);
+            return base.Delete(id);
         }
 
         [Route("", Name = "CreateCategory")]
@@ -52,7 +52,15 @@ namespace Budget.API.Controllers
             // make sure record being updated is not uncategorized
             VerifyName(_dbContext.Categories.Find(id).Name ?? "");
 
-            return Update<CategoryBindingModel>(id, model);
+            // filters
+            List<Expression<Func<CategoryModel, bool>>> filters = new List<Expression<Func<CategoryModel, bool>>>();
+            filters.Add(c => c.Id == id);
+
+            // include related entities
+            List<Expression<Func<CategoryModel, object>>> include = new List<Expression<Func<CategoryModel, object>>>();
+            include.Add(c => c.SubCategories);
+
+            return Update<CategoryBindingModel, CategoryModel>(model, filters, include);
         }
 
         [Route("{id}", Name = "GetCategoryById")]
