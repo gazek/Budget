@@ -20,6 +20,8 @@ namespace Budget.API.Services.OFXClient
             _requestBuilder = requestBuilder;
             _config = requestBuilder.Config;
             Status = false;
+            ErrorMessage = "";
+            StatusDescription = "";
         }
 
         public void Post()

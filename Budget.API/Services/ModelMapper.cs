@@ -277,6 +277,11 @@ namespace Budget.API.Services
         public static FinancialInstitutionModel BindingToEntity(FinancialInstitutionUpdateBindingModel model, IApplicationDbContext dbContext)
         {
             FinancialInstitutionModel record = dbContext.FinancialInstitutions.Find(model.Id);
+            if (record == null)
+            {
+                return null;
+            }
+
             return new FinancialInstitutionModel
             {
                 Name = string.Join(" ", model.Name.Split(' ')).ToLower(),
@@ -294,6 +299,11 @@ namespace Budget.API.Services
         public static FinancialInstitutionModel BindingToEntity(FinancialInstitutionUpdateLoginBindingModel model, IApplicationDbContext dbContext)
         {
             FinancialInstitutionModel record = dbContext.FinancialInstitutions.Find(model.Id);
+            if (record == null)
+            {
+                return null;
+            }
+
             byte[] hash = model.Password.Length > 0 ? AesService.EncryptStringToBytes(model.Password) : new byte[1];
             return new FinancialInstitutionModel
             {
@@ -365,6 +375,7 @@ namespace Budget.API.Services
                 OriginalMemo = model.OriginalMemo,
                 DateAdded = model.DateAdded,
                 Status = model.Status,
+                StatusName = model.Status.ToString(),
                 CheckNum = model.CheckNum,
                 LastEditDate = model.LastEditDate,
                 Details = details

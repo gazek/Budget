@@ -164,6 +164,7 @@ namespace Budget.Tests.Services
                 RoutingNumber = 1234567890,
                 Number = "s123",
                 Name = "my account",
+                NameStylized = "My Account",
                 Type = AccountType.Savings,
                 Description = "a savings account",
                 Transactions = new List<TransactionModel>(),
@@ -179,8 +180,8 @@ namespace Budget.Tests.Services
             Assert.AreEqual(model.FinancialInstitutionId, result.FinancialInstitutionId);
             Assert.AreEqual(model.RoutingNumber, result.RoutingNumber);
             Assert.AreEqual(model.Number, result.Number);
-            Assert.AreEqual(model.Name, result.Name);
-            Assert.AreEqual(model.Type, result.Type);
+            Assert.AreEqual(model.NameStylized, result.Name);
+            Assert.AreEqual(model.Type.ToString(), result.Type);
             Assert.AreEqual(model.Description, result.Description);
             Assert.AreEqual(model.BalanceHistory.OrderByDescending(x => x.AsOfDate).FirstOrDefault(), result.Balance);
         }

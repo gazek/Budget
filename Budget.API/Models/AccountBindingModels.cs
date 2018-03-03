@@ -6,7 +6,6 @@ namespace Budget.API.Models
 {
     public class AccountBindingModel
     {
-        [Required]
         public int Id { get; set; }
 
         [Required]

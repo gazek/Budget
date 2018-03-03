@@ -559,7 +559,7 @@ namespace Budget.API.Controllers
             {
                 if (sqlEx.Number == allowEx)
                 {
-
+                    throw new NotImplementedException();
                 }
                 return BadRequest(errors[sqlEx.Number]);
             }

@@ -338,6 +338,7 @@ namespace Budget.API.Services.OFXClient
                 currentAccount.Name = a.SelectSingleNode("DESC")?.InnerText;
                 string path = prefix + "ACCTINFO/" + prefix + "ACCTFROM/";
                 currentAccount.Number = a.SelectSingleNode(path + "ACCTID")?.InnerText;
+                currentAccount.RoutingNumber = Int32.Parse(a.SelectSingleNode(path + "BANKID")?.InnerText ?? "0");
                 if (prefix == "CC")
                 {
                     currentAccount.Type = AccountType.CreditCard;

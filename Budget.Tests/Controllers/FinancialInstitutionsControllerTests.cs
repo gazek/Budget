@@ -15,6 +15,7 @@ using System.Linq;
 using Budget.API.Tests.Fakes;
 using Moq;
 using Budget.API.Tests.FakesAndMocks;
+using System.Net.Http;
 
 namespace Budget.API.Tests.Controllers
 {

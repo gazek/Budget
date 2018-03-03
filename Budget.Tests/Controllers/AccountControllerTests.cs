@@ -279,6 +279,12 @@ namespace Budget.API.Tests.Controllers
             var fi3 = new FinancialInstitutionModel() { Id = 3, UserId = "id3" };
             var fiData = new List<FinancialInstitutionModel>() { fi1, fi2, fi3 };
 
+            // create transactions
+            var t1 = new TransactionModel() { Id = 1, AccountId = 1, Status = TransactionStatus.New, Date = new DateTime() };
+            var t2 = new TransactionModel() { Id = 1, AccountId = 2, Status = TransactionStatus.Accepted, Date = new DateTime() };
+            var t3 = new TransactionModel() { Id = 1, AccountId = 3, Status = TransactionStatus.Attention, Date = new DateTime() };
+            var tData = new List<TransactionModel>() { t1, t2, t3 };
+
             // create data set
             var entityWithId1 = ModelMapper.BindingToEntity(GetValidBindingModel(), fi1);
             entityWithId1.Id = 1;
@@ -286,7 +292,7 @@ namespace Budget.API.Tests.Controllers
             entityWithId2.Id = 2;
             var entityWithId3 = ModelMapper.BindingToEntity(GetValidBindingModel(), fi1);
             entityWithId2.Id = 3;
-            var data = new List<AccountModel>
+            var aData = new List<AccountModel>
             {
                 entityWithId1, entityWithId2, entityWithId3
             };
@@ -297,11 +303,12 @@ namespace Budget.API.Tests.Controllers
                 .SetupFind(1, fi1)
                 .SetupFind(2, fi2)
                 .SetupFind(3, fi3)
-                .WithData(data)
+                .WithData(aData)
                 .SetupAdd(entityWithId1, entityWithId1)
                 .SetupFind(1, entityWithId1)
                 .SetupFind(2, entityWithId2)
                 .SetupFind(3, entityWithId3)
+                .WithData(tData)
                 .SetupSaveChanges(1)
                 .Finalize();
 

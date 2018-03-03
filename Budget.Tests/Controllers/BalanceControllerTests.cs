@@ -11,6 +11,7 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Principal;
 using System.Web.Http;
 using System.Web.Http.Results;
@@ -44,6 +45,7 @@ namespace Budget.API.Tests.Controllers
             var contextMock = GetContextMock(user);
             BalanceController controller = new BalanceController(contextMock.Object);
             controller.User = user;
+            controller.Request = new HttpRequestMessage(HttpMethod.Get, "http://some.url/?startDate=2017-08-01&endDate=2017-08-04");
 
             // Act
             var result = controller.GetBalanceHistory(-1);
@@ -59,6 +61,7 @@ namespace Budget.API.Tests.Controllers
             var user = UserBuilder.CreateUser();
             var contextMock = GetContextMock(user);
             BalanceController controller = new BalanceController(contextMock.Object);
+            controller.Request = new HttpRequestMessage(HttpMethod.Get, "http://some.url/?startDate=2017-08-01&endDate=2017-08-04");
             controller.User = user;
 
             // Act
@@ -77,6 +80,7 @@ namespace Budget.API.Tests.Controllers
             var user = UserBuilder.CreateUser();
             var contextMock = GetContextMock(user);
             BalanceController controller = new BalanceController(contextMock.Object);
+            controller.Request = new HttpRequestMessage(HttpMethod.Get, "http://some.url/?startDate=2017-08-01&endDate=2017-08-04");
             controller.User = user;
 
             // Act
@@ -99,6 +103,7 @@ namespace Budget.API.Tests.Controllers
             var user = UserBuilder.CreateUser();
             var contextMock = GetContextMock(user);
             BalanceController controller = new BalanceController(contextMock.Object);
+            controller.Request = new HttpRequestMessage(HttpMethod.Get, "http://some.url/?startDate=2017-08-01&endDate=2017-08-04");
             controller.User = user;
 
             // Act

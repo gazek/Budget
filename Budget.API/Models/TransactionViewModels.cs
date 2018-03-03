@@ -24,6 +24,7 @@ namespace Budget.API.Models
         public string OriginalMemo { get; set; }
         public DateTime DateAdded { get; set; }
         public TransactionStatus Status { get; set; }
+        public string StatusName { get; set; }
         public int CheckNum { get; set; }
         public DateTime LastEditDate { get; set; }
         public ICollection<TransactionDetailViewModel> Details { get; set; }

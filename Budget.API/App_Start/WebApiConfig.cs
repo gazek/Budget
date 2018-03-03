@@ -9,6 +9,7 @@ namespace Budget.API
         {
             // Web API routes
             config.MapHttpAttributeRoutes();
+            config.IncludeErrorDetailPolicy = IncludeErrorDetailPolicy.Always;
         }
     }
 }

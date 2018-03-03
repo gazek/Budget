@@ -98,17 +98,12 @@ namespace Budget.API.Controllers
                 return _errorResponse;
             }
 
-            AccountModel entity = _record;
-
             // Parse date range
-            var pairs = this.Request.GetQueryNameValuePairs();
-            string begin = pairs.Where(p => p.Key == "startDate").FirstOrDefault().Value ?? "";
-            string end = pairs.Where(p => p.Key == "endDate").FirstOrDefault().Value ?? "";
             DateTime beginDate, endDate;
-            ParseDateRange(begin, end, out beginDate, out endDate);
+            GetBeginAndEndDates(out beginDate, out endDate);
 
             // Configure request
-            ConfigureOfxStatementRequest(entity, beginDate, endDate);
+            ConfigureOfxStatementRequest(beginDate, endDate);
 
             // Build request
             OfxClient.BuildRequest();
@@ -117,101 +112,124 @@ namespace Budget.API.Controllers
             OfxClient.ExecuteRequest();
 
             // initialize response object
-            OfxTransactionRequestViewModel response = new OfxTransactionRequestViewModel();
-            response.Status = OfxClient.Requestor.Status;
-            response.Code = OfxClient.Requestor.StatusCode;
-            response.Response = OfxClient.Requestor.Response;
-            response.Description = OfxClient.Requestor.StatusDescription;
-            response.Message = OfxClient.Requestor.ErrorMessage;
-            response.OfxResponse = OfxClient.Requestor.OFX;
-            response.MsgSetRequestOfx = OfxClient.RequestBuilder.MsgSet;
-            response.SignOn = new OFXReqestResponseViewModel();
-            response.Statement = new OFXReqestResponseViewModel();
-            response.Balance = new OFXReqestResponseViewModel();
+            var response = new OfxTransactionRequestViewModel(OfxClient);
+
+            // check if POST to bank was successful
+            if (!OfxClient.Requestor.Status)
+            {
+                response.Status = false;
+                response.Message.Add("Failed to connecto to bank OFX service");
+                return Content(HttpStatusCode.ServiceUnavailable, response);
+            }
 
             // check request status
             if (OfxClient.Requestor.Status && OfxClient.Requestor.OFX != null)
             {
+                var returnStatusCode = HttpStatusCode.OK;
+
                 // parse response
                 OfxClient.ParseResponse();
 
                 // populate response object
-                response.SignOn.Status = OfxClient.Parser.SignOnRequest.Status;
-                response.SignOn.Code = OfxClient.Parser.SignOnRequest.Code;
-                response.SignOn.Severity = OfxClient.Parser.SignOnRequest.Severity;
-                response.SignOn.Message = OfxClient.Parser.SignOnRequest.Message;
-                response.Statement.Status = OfxClient.Parser.StatmentRequest.Status;
-                response.Statement.Code = OfxClient.Parser.StatmentRequest.Code;
-                response.Statement.Severity = OfxClient.Parser.StatmentRequest.Severity;
-                response.Statement.Message = OfxClient.Parser.StatmentRequest.Message;
-                response.Balance.Status = OfxClient.Parser.BalanceRequest.Status;
-                response.Balance.Code = OfxClient.Parser.BalanceRequest.Code;
-                response.Balance.Severity = OfxClient.Parser.BalanceRequest.Severity;
-                response.Balance.Message = OfxClient.Parser.BalanceRequest.Message;
+                response.PopulateResponse(OfxClient);
 
-                if (!OfxClient.Parser.SignOnRequest.Status)
+                // add transactions to DB
+                if (response.Statement.Status)
                 {
-                    return Content(HttpStatusCode.BadRequest, response);
+                    ImportTransactions(response);
+                }
+                else
+                {
+                    returnStatusCode = HttpStatusCode.BadRequest;
                 }
 
-                // Set transaction default field values
-                TransactionImporter importer = new TransactionImporter(OfxClient.Parser.StatementTransactions, entity, _dbContext);
+                // add balance to DB
+                if (response.Balance.Status)
+                {
+                    ImportBalance(response, id);
+                }
+                else
+                {
+                    returnStatusCode = HttpStatusCode.BadRequest;
+                }
+
+                return Content(returnStatusCode, response);
+            }
+
+            return InternalServerError();
+        }
+
+        private void ImportTransactions(OfxTransactionRequestViewModel response)
+        {
+            TransactionImporter importer = new TransactionImporter(OfxClient.Parser.StatementTransactions, _record, _dbContext);
+
+            // Set transaction default field values
+            if (OfxClient.Parser.StatmentRequest.Status)
+            {
                 importer.FilterExisting()
                     .SetDefaultDateAdded()
                     .SetDefaultLastEditDate()
                     .SetDefaultStatus()
                     .SetDefaultDetails()
                     .ApplyDefaults();
+            }
 
-                // update balance since we have the data
-                if (OfxClient.Parser.BalanceRequest.Status)
+            // commit changes
+            try
+            {
+                int count = importer.Commit();
+            }
+            catch (DbUpdateException ex)
+            {
+                response.Status = false;
+                response.Message.Add("Failed to import transactions");
+            }
+        }
+
+        private void ImportBalance(OfxTransactionRequestViewModel response, int id)
+        {
+            // update balance
+            if (OfxClient.Parser.BalanceRequest.Status)
+            {
+                var bals = _dbContext.Balances.ToList();
+                OfxClient.Parser.Balance.AccountId = id;
+                BalanceModel bal = _dbContext.Balances
+                    .Where(b => b.AccountId == id)
+                    .Where(b => b.AsOfDate == OfxClient.Parser.Balance.AsOfDate)
+                    .FirstOrDefault();
+                if (bal == null)
                 {
-                    var bals = _dbContext.Balances.ToList();
-                    OfxClient.Parser.Balance.AccountId = id;
-                    BalanceModel bal = _dbContext.Balances
-                        .Where(b => b.AccountId == id)
-                        .Where(b => b.AsOfDate == OfxClient.Parser.Balance.AsOfDate)
-                        .FirstOrDefault();
-                    if (bal == null)
-                    {
-                        _dbContext.Balances.Add(OfxClient.Parser.Balance);
-                    }
-                    else
-                    {
-                        bal.Amount = OfxClient.Parser.Balance.Amount;
-                    }
+                    _dbContext.Balances.Add(OfxClient.Parser.Balance);
+                }
+                else
+                {
+                    bal.Amount = OfxClient.Parser.Balance.Amount;
                 }
 
                 // commit changes
                 try
                 {
-                    int count = importer.Commit();
-                    /*
-                    var transactions = importer.Transactions
-                        .Select(t => ModelMapper.EntityToView(t, _dbContext))
-                        .OrderBy(t => t.Date)
-                        .ToList();
-                    return Ok(transactions);
-                    */
-                    return Content(HttpStatusCode.OK, response);
+                    int count = _dbContext.SaveChanges();
                 }
                 catch (DbUpdateException ex)
                 {
-                    return GetErrorResult(ex);
+                    response.Status = false;
+                    response.Message.Add("Failed to import balance");
                 }
-
             }
-
-            if (!OfxClient.Requestor.Status)
-            {
-                return Content(HttpStatusCode.BadRequest, response);
-            }
-
-            return InternalServerError();
         }
 
-        private void ConfigureOfxStatementRequest(AccountModel entity, DateTime begin, DateTime end)
+        private void GetBeginAndEndDates(out DateTime beginDate, out DateTime endDate)
         {
+            var pairs = this.Request.GetQueryNameValuePairs();
+            string begin = pairs.Where(p => p.Key == "startDate").FirstOrDefault().Value ?? "";
+            string end = pairs.Where(p => p.Key == "endDate").FirstOrDefault().Value ?? "";
+            ParseDateRange(begin, end, out beginDate, out endDate);
+        }
+
+        private void ConfigureOfxStatementRequest(DateTime begin, DateTime end)
+        {
+            var entity = _record;
             // configure the ofx statement list request
             OfxClient.RequestConfig.RequestType = OFXRequestConfigRequestType.Statement;
             OfxClient.RequestConfig.Username = entity.FinancialInstitution.Username;
