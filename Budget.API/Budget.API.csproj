@@ -180,6 +180,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App_Start\InitializeDataStore.cs" />
     <Compile Include="App_Start\IdentityConfig.cs" />
     <Compile Include="App_Start\JsonConfig.cs" />
     <Compile Include="App_Start\Startup.Auth.cs" />
@@ -231,6 +232,7 @@
     <Compile Include="Services\OFXClient\IOFXParser.cs" />
     <Compile Include="Services\OFXClient\IOFXRequestBuilder.cs" />
     <Compile Include="Services\OFXClient\IOFXRequestor.cs" />
+    <Compile Include="Services\OFXClient\OFXUtils.cs" />
     <Compile Include="Services\OFXClient\OfxClient.cs" />
     <Compile Include="Services\OFXClient\OFXParser.cs" />
     <Compile Include="Services\OFXClient\OFXRequestBuilder.cs" />
