@@ -76,7 +76,7 @@ namespace Budget.API.Services
             {
                 foreach (PayeeImportNameModel i in p.ImportNames)
                 {
-                    if (Regex.IsMatch(originalPayeeName, i.ImportName, RegexOptions.IgnoreCase))
+                    if (Regex.IsMatch(originalPayeeName ?? "", i.ImportName, RegexOptions.IgnoreCase))
                     {
                         result.Add(p);
                         break;

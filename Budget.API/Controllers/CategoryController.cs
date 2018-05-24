@@ -60,7 +60,7 @@ namespace Budget.API.Controllers
             List<Expression<Func<CategoryModel, object>>> include = new List<Expression<Func<CategoryModel, object>>>();
             include.Add(c => c.SubCategories);
 
-            return Update<CategoryBindingModel, CategoryModel>(model, filters, include);
+            return Update<CategoryBindingModel, CategoryModel, SubCategoryViewModel>(model, filters, include);
         }
 
         [Route("{id}", Name = "GetCategoryById")]

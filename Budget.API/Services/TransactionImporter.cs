@@ -234,7 +234,8 @@ namespace Budget.API.Services
             //   then apply to the Transactions field
             foreach (TransactionModel t in Transactions)
             {
-                List<PayeeModel> payees = transDefaults.GetDefaultPayees(t.OriginalPayeeName);
+                var effectivePayeeName = t.OriginalPayeeName == "" || t.OriginalPayeeName == null ? t.OriginalMemo : t.OriginalPayeeName;
+                List<PayeeModel> payees = transDefaults.GetDefaultPayees(effectivePayeeName);
                 List<TransactionDetailModel> result = new List<TransactionDetailModel>();
                 foreach (PayeeModel p in payees)
                 {

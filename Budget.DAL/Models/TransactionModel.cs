@@ -31,10 +31,18 @@ namespace Budget.DAL.Models
         public decimal Amount { get; set; }
 
         // Finncial institution provided name of payee
-        [Required]
         [StringLength(200)]
         [Index("IX_AccountIdReferenceValueAndDate", 5, IsUnique = true)]
-        public string OriginalPayeeName { get; set; }
+        public string OriginalPayeeName {
+            get
+            {
+                return _originalPayeeName;
+            }
+            set
+            {
+                _originalPayeeName = value ?? "";
+            }
+         }
 
         // Finncial institution provided memo
         [Required(AllowEmptyStrings=true)]
@@ -59,6 +67,7 @@ namespace Budget.DAL.Models
 
         public TransactionModel()
         {
+            OriginalPayeeName = string.Empty;
             OriginalMemo = string.Empty;
             Status = TransactionStatus.New;
             LastEditDate = DateTime.Now;
@@ -66,6 +75,8 @@ namespace Budget.DAL.Models
             Details = new List<TransactionDetailModel>();
             CheckNum = -1;
         }
+
+        private string _originalPayeeName;
     }
 
     public enum TransactionStatus

@@ -24,14 +24,14 @@ namespace Budget.API.Models
 
         public OfxTransactionRequestViewModel(IOfxClient ofxClient)
         {
-            Status = ofxClient.Requestor.Status;
-            Code = ofxClient.Requestor.StatusCode;
-            Response = ofxClient.Requestor.Response;
-            Description = ofxClient.Requestor.StatusDescription;
+            Status = ofxClient.Requestor?.Status ?? false;
+            Code = ofxClient.Requestor?.StatusCode ?? HttpStatusCode.BadRequest;
+            Response = ofxClient.Requestor?.Response ?? null;
+            Description = ofxClient.Requestor?.StatusDescription ?? null;
             Message = new List<string>();
-            Message.Add(ofxClient.Requestor.ErrorMessage);
-            OfxResponse = ofxClient.Requestor.OFX;
-            MsgSetRequestOfx = ofxClient.RequestBuilder.MsgSet;
+            Message.Add(ofxClient.Requestor?.ErrorMessage ?? null);
+            OfxResponse = ofxClient.Requestor?.OFX ?? null;
+            MsgSetRequestOfx = ofxClient.RequestBuilder?.MsgSet ?? null;
             SignOn = new OFXReqestResponseViewModel();
             Statement = new OFXReqestResponseViewModel();
             Balance = new OFXReqestResponseViewModel();
@@ -39,19 +39,24 @@ namespace Budget.API.Models
 
         public void PopulateResponse(IOfxClient ofxClient)
         {
-            Status = ofxClient.Parser.SignOnRequest.Status && ofxClient.Parser.StatmentRequest.Status && ofxClient.Parser.BalanceRequest.Status;
-            SignOn.Status = ofxClient.Parser.SignOnRequest.Status;
-            SignOn.Code = ofxClient.Parser.SignOnRequest.Code;
-            SignOn.Severity = ofxClient.Parser.SignOnRequest.Severity;
-            SignOn.Message = ofxClient.Parser.SignOnRequest.Message;
-            Statement.Status = ofxClient.Parser.StatmentRequest.Status;
-            Statement.Code = ofxClient.Parser.StatmentRequest.Code;
-            Statement.Severity = ofxClient.Parser.StatmentRequest.Severity;
-            Statement.Message = ofxClient.Parser.StatmentRequest.Message;
-            Balance.Status = ofxClient.Parser.BalanceRequest.Status;
-            Balance.Code = ofxClient.Parser.BalanceRequest.Code;
-            Balance.Severity = ofxClient.Parser.BalanceRequest.Severity;
-            Balance.Message = ofxClient.Parser.BalanceRequest.Message;
+            PopulateResponse(ofxClient.Parser);
+        }
+
+        public void PopulateResponse(IOFXParser ofxParser)
+        {
+            Status = ofxParser.SignOnRequest.Status && ofxParser.StatementRequest.Status && ofxParser.BalanceRequest.Status;
+            SignOn.Status = ofxParser.SignOnRequest.Status;
+            SignOn.Code = ofxParser.SignOnRequest.Code;
+            SignOn.Severity = ofxParser.SignOnRequest.Severity;
+            SignOn.Message = ofxParser.SignOnRequest.Message;
+            Statement.Status = ofxParser.StatementRequest.Status;
+            Statement.Code = ofxParser.StatementRequest.Code;
+            Statement.Severity = ofxParser.StatementRequest.Severity;
+            Statement.Message = ofxParser.StatementRequest.Message;
+            Balance.Status = ofxParser.BalanceRequest.Status;
+            Balance.Code = ofxParser.BalanceRequest.Code;
+            Balance.Severity = ofxParser.BalanceRequest.Severity;
+            Balance.Message = ofxParser.BalanceRequest.Message;
         }
     }
 

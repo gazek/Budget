@@ -149,17 +149,17 @@ namespace Budget.API.Controllers
         /*
          * Tb - type of binding model
          */
-        public virtual IHttpActionResult Update<Tb>(int id, Tb model)
+        public virtual IHttpActionResult Update<Tb, Tvm>(int id, Tb model)
         {
             // look for record
             // check record exists
             // verify user is authorized to access record
             GetRecordAndIsAuthorized(id);
 
-            return _Update<Tb>(model);
+            return _Update<Tb, Tvm>(model);
         }
 
-        public virtual IHttpActionResult Update<Tb,Te>(Tb model, ICollection<Expression<Func<Te, bool>>> where, ICollection<Expression<Func<Te, object>>> include = null) where Te : class
+        public virtual IHttpActionResult Update<Tb,Te, Tvm>(Tb model, ICollection<Expression<Func<Te, bool>>> where, ICollection<Expression<Func<Te, object>>> include = null) where Te : class
         {
             // look for record
             // check record exists
@@ -170,10 +170,10 @@ namespace Budget.API.Controllers
             //   that are not included in the update binding model will be deleted aspart of the update
             GetRecordAndIsAuthorized<Te>(where, include);
 
-            return _Update<Tb>(model);
+            return _Update<Tb, Tvm>(model);
         }
 
-        public IHttpActionResult _Update<Tb>(Tb model)
+        public IHttpActionResult _Update<Tb, Tvm>(Tb model)
         {
             // verify model is valid
             VerifyModel();
@@ -187,8 +187,11 @@ namespace Budget.API.Controllers
             // commit changes and check result
             CommitChanges();
 
+            // map updated entity to viewModel
+            Tvm respone = ModelMapper.EntityToView(entity, _dbContext);
+
             // return response
-            return _requestIsOk ? Ok() : _errorResponse;
+            return _requestIsOk ? Ok(respone) : _errorResponse;
         }
         #endregion
 

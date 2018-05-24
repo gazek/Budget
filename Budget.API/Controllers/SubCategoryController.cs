@@ -53,7 +53,7 @@ namespace Budget.API.Controllers
             VerifyName(_dbContext.Categories.Find(catId)?.Name ?? "");
             // Add CategoryId to model
             model.CategoryId = catId;
-            return Update(id, model);
+            return Update<SubCategoryBindingModel, SubCategoryViewModel>(id, model);
         }
 
         [Route("api/Category/{catId}/SubCategory/{id}", Name = "GetSubCategoryById")]

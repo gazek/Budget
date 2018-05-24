@@ -16,10 +16,12 @@ namespace Budget.API.Services.OFXClient
         IOFXResponseStatus AccountListRequest { get; }
         List<AccountModel> Accounts { get; }
         BalanceModel Balance { get; }
+        string BalanceAccountNumber { get; }
         IOFXResponseStatus BalanceRequest { get; }
         IOFXResponseStatus SignOnRequest { get; }
         List<TransactionModel> StatementTransactions { get; }
-        IOFXResponseStatus StatmentRequest { get; }
+        string StatementAccountNumber { get; }
+        IOFXResponseStatus StatementRequest { get; }
 
         void Parse();
     }

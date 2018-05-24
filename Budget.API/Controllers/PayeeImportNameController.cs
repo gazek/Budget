@@ -40,7 +40,7 @@ namespace Budget.API.Controllers
         public IHttpActionResult Update(int id, int pId, PayeeImportNameBindingModel model)
         {
             model.PayeeId = pId;
-            return base.Update(id, model);
+            return base.Update<PayeeImportNameBindingModel, PayeeImportNameViewModel>(id, model);
         }
 
         // delete payee import name

@@ -61,7 +61,7 @@ namespace Budget.API.Controllers
         public IHttpActionResult Update(int id, FinancialInstitutionUpdateBindingModel model)
         {
             model.Id = id;
-            return base.Update(id, model);
+            return base.Update<FinancialInstitutionUpdateBindingModel, FinancialInstitutionViewModel>(id, model);
         }
 
         [Route("{id}/credentials", Name = "UpdateFILogin")]
@@ -70,8 +70,7 @@ namespace Budget.API.Controllers
         public IHttpActionResult UpdateLogin(int id, FinancialInstitutionUpdateLoginBindingModel model)
         {
             model.Id = id;
-            VerifyModel();
-            return Update<FinancialInstitutionUpdateLoginBindingModel>(id, model);
+            return Update<FinancialInstitutionUpdateLoginBindingModel, FinancialInstitutionViewModel>(id, model);
         }
 
         [Route("{id}/GetAccountList", Name = "GetAccountListFromBank")]

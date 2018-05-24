@@ -74,7 +74,7 @@ namespace Budget.API.Controllers
             include.Add(p => p.ImportNames);
 
             //return base.Update(id, model);
-            return base.Update<PayeeBindingModel, PayeeModel>(model, filters, include);
+            return base.Update<PayeeBindingModel, PayeeModel, PayeeViewModel>(model, filters, include);
         }
 
         // delete payee

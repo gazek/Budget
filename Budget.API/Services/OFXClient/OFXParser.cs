@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Xml;
 using Budget.DAL.Models;
+using System.Text.RegularExpressions;
 
 namespace Budget.API.Services.OFXClient
 {
@@ -31,10 +32,12 @@ namespace Budget.API.Services.OFXClient
         // Balance
         public IOFXResponseStatus BalanceRequest { get; private set; }
         public BalanceModel Balance { get; private set; }
+        public string BalanceAccountNumber { get; private set; }
 
         // Statment
-        public IOFXResponseStatus StatmentRequest { get; private set; }
+        public IOFXResponseStatus StatementRequest { get; private set; }
         public List<TransactionModel> StatementTransactions { get; private set; }
+        public string StatementAccountNumber { get; private set; }
 
         // internal OFX and XML Doc
         string _ofx;
@@ -53,12 +56,15 @@ namespace Budget.API.Services.OFXClient
             { "ccBalanceData", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/CCSTMTRS/LEDGERBAL" },
             { "bankStatementStatus", "OFX/BANKMSGSRSV1/STMTTRNRS/STATUS" },
             { "bankStatementData", "OFX/BANKMSGSRSV1/STMTTRNRS/STMTRS/BANKTRANLIST" },
+            { "bankStatementAccountId", "OFX/BANKMSGSRSV1/STMTTRNRS/STMTRS/BANKACCTFROM/ACCTID" },
             { "ccStatementStatus", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/STATUS" },
             { "ccStatementData", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/CCSTMTRS/BANKTRANLIST" },
+            { "ccStatementAccountId", "OFX/CREDITCARDMSGSRSV1/CCSTMTTRNRS/CCSTMTRS/CCACCTFROM/ACCTID" },
             { "balanceStatus", "" },
             { "balanceData", "" },
             { "statementStatus", "" },
-            { "statementData", "" }
+            { "statementData", "" },
+            { "statementAccountId", "" }
         };
 
         public OFXParser(string ofx)
@@ -67,7 +73,7 @@ namespace Budget.API.Services.OFXClient
             SignOnRequest = new OFXResponseStatus();
             AccountListRequest = new OFXResponseStatus();
             BalanceRequest = new OFXResponseStatus();
-            StatmentRequest = new OFXResponseStatus();
+            StatementRequest = new OFXResponseStatus();
             Accounts = new List<AccountModel>();
             StatementTransactions = new List<TransactionModel>();
         }
@@ -122,6 +128,7 @@ namespace Budget.API.Services.OFXClient
                 _ofxPath["balanceData"] = _ofxPath["bankBalanceData"];
                 _ofxPath["statementStatus"] = _ofxPath["bankStatementStatus"];
                 _ofxPath["statementData"] = _ofxPath["bankStatementData"];
+                _ofxPath["statementAccountId"] = _ofxPath["bankStatementAccountId"];
                 return;
             }
 
@@ -131,6 +138,7 @@ namespace Budget.API.Services.OFXClient
                 _ofxPath["balanceData"] = _ofxPath["ccBalanceData"];
                 _ofxPath["statementStatus"] = _ofxPath["ccStatementStatus"];
                 _ofxPath["statementData"] = _ofxPath["ccStatementData"];
+                _ofxPath["statementAccountId"] = _ofxPath["ccStatementAccountId"];
                 return;
             }
         }
@@ -376,6 +384,9 @@ namespace Budget.API.Services.OFXClient
             // parse status
             ParseBalanceStatus();
 
+            // parse account number
+            BalanceAccountNumber = ParseAccountNumber();
+
             // parse balance
             if (BalanceRequest.Status)
             {
@@ -481,11 +492,31 @@ namespace Budget.API.Services.OFXClient
             // parse status
             ParseStatementStatus();
 
+            // parse account number
+            StatementAccountNumber = ParseAccountNumber();
+
             // parse statement
-            if (StatmentRequest.Status)
+            if (StatementRequest.Status)
             {
                 ParseStatementData();
             }
+        }
+
+        private string ParseAccountNumber()
+        {
+            // get status node
+            XmlNode node = _doc.SelectSingleNode(_ofxPath["statementAccountId"]);
+
+            // exit if node not found
+            if (node == null)
+            {
+                return null;
+            }
+
+            // get values from node
+            string accountId = node.InnerText;
+
+            return accountId;
         }
 
         private void ParseStatementStatus()
@@ -494,7 +525,7 @@ namespace Budget.API.Services.OFXClient
             XmlNode status = _doc.SelectSingleNode(_ofxPath["statementStatus"]);
 
             // parse status node
-            ParseStatus(status, StatmentRequest);
+            ParseStatus(status, StatementRequest);
         }
 
         private void ParseStatementData()

@@ -30,7 +30,7 @@ namespace Budget.API.Controllers
                 .FirstOrDefault();
             if (balance != null)
             {
-                return Update<BalanceBindingModel>(balance.Id, model);
+                return Update<BalanceBindingModel, BalanceViewModel>(balance.Id, model);
             }
             else
             {

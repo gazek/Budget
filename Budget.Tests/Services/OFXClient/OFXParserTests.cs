@@ -143,7 +143,7 @@ namespace Budget.Tests.Services.OFXClient
 
             // Assert
             Assert.IsNotNull(parser);
-            Assert.IsTrue(parser.StatmentRequest.Status);
+            Assert.IsTrue(parser.StatementRequest.Status);
             Assert.AreEqual(2, parser.StatementTransactions.Count);
             Assert.AreEqual(1234.56m, parser.StatementTransactions[0].Amount);
             Assert.AreEqual(DateTime.Parse("2016-09-01"), parser.StatementTransactions[0].Date);
@@ -169,8 +169,8 @@ namespace Budget.Tests.Services.OFXClient
 
             // Assert
             Assert.IsNotNull(parser);
-            Assert.IsFalse(parser.StatmentRequest.Status);
-            Assert.AreNotEqual(0, parser.StatmentRequest.Code);
+            Assert.IsFalse(parser.StatementRequest.Status);
+            Assert.AreNotEqual(0, parser.StatementRequest.Code);
             }
 
         [TestMethod]
@@ -221,7 +221,7 @@ namespace Budget.Tests.Services.OFXClient
 
             // Assert
             Assert.IsNotNull(parser);
-            Assert.IsTrue(parser.StatmentRequest.Status);
+            Assert.IsTrue(parser.StatementRequest.Status);
             Assert.AreEqual(2, parser.StatementTransactions.Count);
             Assert.AreEqual(1234.56m, parser.StatementTransactions[0].Amount);
             Assert.AreEqual(DateTime.Parse("2016-09-01"), parser.StatementTransactions[0].Date);
@@ -247,8 +247,8 @@ namespace Budget.Tests.Services.OFXClient
 
             // Assert
             Assert.IsNotNull(parser);
-            Assert.IsFalse(parser.StatmentRequest.Status);
-            Assert.AreNotEqual(0, parser.StatmentRequest.Code);
+            Assert.IsFalse(parser.StatementRequest.Status);
+            Assert.AreNotEqual(0, parser.StatementRequest.Code);
         }
 
         private string GetOfxString(OFXRequestConfigRequestType type, bool isSuccessful, string fiType="bank")

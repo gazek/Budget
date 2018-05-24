@@ -307,6 +307,7 @@ namespace Budget.API.Services
             byte[] hash = model.Password.Length > 0 ? AesService.EncryptStringToBytes(model.Password) : new byte[1];
             return new FinancialInstitutionModel
             {
+                Id = record.Id,
                 Name = record.Name,
                 NameStylized = record.NameStylized,
                 OfxFid = record.OfxFid,

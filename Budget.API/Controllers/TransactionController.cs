@@ -11,6 +11,7 @@ using System.Linq.Expressions;
 using Budget.API.Models;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Budget.API.Controllers
 {
@@ -45,7 +46,7 @@ namespace Budget.API.Controllers
         [Route("Transaction/{id}", Name = "UpdateTransaction")]
         public IHttpActionResult Update(int id, TransactionBindingModel model)
         {
-            return Update<TransactionBindingModel>(id, model);
+            return Update<TransactionBindingModel, TransactionViewModel>(id, model);
         }
 
         // Get - query transactions in DB by date range api/account/{id}/Transactions?startDate=yyyy-mm-dd&endDate=yyyy-mm-dd
@@ -83,11 +84,12 @@ namespace Budget.API.Controllers
             return GetAll<TransactionModel, DateTime>(filters, include, t => t.Date);
         }
 
-        // Post - OFX request to pull latest transactions api/account/{id}/Transactions?startDate=yyyy-mm-dd&endDate=yyyy-mm-dd
+        // Post - OFX request to pull latest transactions
+        // api/account/{id}/Transactions?startDate=yyyy-mm-dd&endDate=yyyy-mm-dd&source=<bank||file>
         [Route("Account/{id:int}/Transactions", Name = "PullLatestTransactionsFromBank")]
         [HttpPost]
         [Authorize]
-        public IHttpActionResult ImportTransactionsFromBank(int id)
+        public IHttpActionResult ImportTransactions(int id)
         {
             // verify existence of account
             // and that user is authorized to access it
@@ -98,6 +100,70 @@ namespace Budget.API.Controllers
                 return _errorResponse;
             }
 
+            // extract the value of the source parameter
+            string source = this.Request.GetQueryNameValuePairs().Where(p => p.Key == "source").FirstOrDefault().Value;
+
+            // check the data source
+            if (source == "bank")
+            {
+                return ImportTransactionsFromBank(id);
+            }
+
+            if (source == "file")
+            {
+                var importTransTask = Task.Run<IHttpActionResult>(async () => await ImportTransactionsFromFile(id));
+                var result = importTransTask.Result;
+                return result;
+            }
+
+            // unexpected source value
+            return BadRequest(String.Format("Invalid source value: {0}", source)); 
+        }
+
+        async private Task<IHttpActionResult> ImportTransactionsFromFile(int id)
+        {
+            // extract file from request
+            if (!Request.Content.IsMimeMultipartContent())
+                throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+
+            var provider = new MultipartMemoryStreamProvider();
+            await Request.Content.ReadAsMultipartAsync(provider);
+            var file = provider.Contents.First();
+            var filename = file.Headers.ContentDisposition.FileName.Trim('\"');
+
+            // store file content as string
+            var buffer = await file.ReadAsByteArrayAsync();
+            string s = System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length);
+            var body = OFXUtils.PartitionResponse(s)["body"];
+
+            // instantiate the OfxParser
+            OfxClient.Parser = new OFXParser(body);
+
+            // initialize response object
+            var response = new OfxTransactionRequestViewModel(OfxClient);
+
+            // parse ofx file
+            OfxClient.Parser.Parse();
+
+            // verify account in file is the same as the account referenced in the route URL
+            var account = _dbContext.Accounts.Find(id);
+            if (!(account.Number.Contains(OfxClient.Parser.StatementAccountNumber) || OfxClient.Parser.StatementAccountNumber.Contains(account.Number)))
+            {
+                return BadRequest("Account in file does not match requested account");
+            }
+
+            // add transactions to DB
+            response.Code = ImportTransactions(response);
+
+            // add balance to DB
+            response.Code = ImportBalance(response, id);
+
+            // return response
+            return Content(response.Code, response);
+        }
+
+        public IHttpActionResult ImportTransactionsFromBank(int id)
+        {
             // Parse date range
             DateTime beginDate, endDate;
             GetBeginAndEndDates(out beginDate, out endDate);
@@ -134,24 +200,10 @@ namespace Budget.API.Controllers
                 response.PopulateResponse(OfxClient);
 
                 // add transactions to DB
-                if (response.Statement.Status)
-                {
-                    ImportTransactions(response);
-                }
-                else
-                {
-                    returnStatusCode = HttpStatusCode.BadRequest;
-                }
+                returnStatusCode = ImportTransactions(response);
 
                 // add balance to DB
-                if (response.Balance.Status)
-                {
-                    ImportBalance(response, id);
-                }
-                else
-                {
-                    returnStatusCode = HttpStatusCode.BadRequest;
-                }
+                returnStatusCode = ImportBalance(response, id);
 
                 return Content(returnStatusCode, response);
             }
@@ -159,12 +211,17 @@ namespace Budget.API.Controllers
             return InternalServerError();
         }
 
-        private void ImportTransactions(OfxTransactionRequestViewModel response)
+        private HttpStatusCode ImportTransactions(OfxTransactionRequestViewModel response)
         {
+            if (!response.Statement.Status && response.Statement.Code != -1)
+            {
+                return HttpStatusCode.BadRequest;
+            }
+
             TransactionImporter importer = new TransactionImporter(OfxClient.Parser.StatementTransactions, _record, _dbContext);
 
             // Set transaction default field values
-            if (OfxClient.Parser.StatmentRequest.Status)
+            if (OfxClient.Parser.StatementRequest.Status)
             {
                 importer.FilterExisting()
                     .SetDefaultDateAdded()
@@ -184,10 +241,17 @@ namespace Budget.API.Controllers
                 response.Status = false;
                 response.Message.Add("Failed to import transactions");
             }
+
+            return HttpStatusCode.OK;
         }
 
-        private void ImportBalance(OfxTransactionRequestViewModel response, int id)
+        private HttpStatusCode ImportBalance(OfxTransactionRequestViewModel response, int id)
         {
+            if (response.Balance.Code != -1 && !response.Balance.Status)
+            {
+                return HttpStatusCode.BadRequest;
+            }
+
             // update balance
             if (OfxClient.Parser.BalanceRequest.Status)
             {
@@ -217,6 +281,8 @@ namespace Budget.API.Controllers
                     response.Message.Add("Failed to import balance");
                 }
             }
+
+            return HttpStatusCode.OK;
         }
 
         private void GetBeginAndEndDates(out DateTime beginDate, out DateTime endDate)

@@ -29,7 +29,9 @@ namespace Budget.API.Services.OFXClient
             PostToFinancialInsitution();
             if (Status && Response != null)
             {
-                PartitionResponse();
+                var partitionedResponse = OFXUtils.PartitionResponse(Response);
+                Header = partitionedResponse["header"];
+                OFX = partitionedResponse["body"];
             }
         }
 
@@ -54,22 +56,6 @@ namespace Budget.API.Services.OFXClient
                         StatusDescription = ((HttpWebResponse)e.Response).StatusDescription;
                     }
                 }
-            }
-        }
-
-        void PartitionResponse()
-        {
-            int ofxStartIndex = Response.IndexOf("<OFX>");
-            int ofxEndIndex = Response.IndexOf("</OFX>") + "</OFX>".Length;
-
-            if (ofxStartIndex >= 0)
-            {
-                Header = Response.Substring(0, ofxStartIndex);
-            }
-
-            if (ofxStartIndex >= 0 && ofxEndIndex > ofxStartIndex)
-            {
-                OFX = Response.Substring(ofxStartIndex, ofxEndIndex - ofxStartIndex);
             }
         }
     }

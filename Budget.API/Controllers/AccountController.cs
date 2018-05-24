@@ -96,7 +96,7 @@ namespace Budget.API.Controllers
         {
             model.FinancialInstitutionId = fiId;
             model.Id = id;
-            return base.Update(id, model);
+            return base.Update< AccountBindingModel,AccountViewModel>(id, model);
         }
 
         // delete account
